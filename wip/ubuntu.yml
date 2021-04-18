@@ -1,0 +1,97 @@
+---
+apiVersion: cdi.kubevirt.io/v1beta1
+kind: DataVolume
+metadata:
+  name: ccio-ubuntu-latest
+  namespace: kargo
+spec:
+  source:
+    registry:
+      url: "docker://quay.io/containercraft/ubuntu:latest"
+  pvc:
+    accessModes:
+      - ReadWriteOnce
+    resources:
+      requests:
+        storage: 512Gi
+---
+apiVersion: kubevirt.io/v1alpha3
+kind: VirtualMachine
+metadata:
+  name: ubuntu
+  namespace: kargo
+  labels:
+    app: ubuntu
+spec:
+  dataVolumeTemplates:
+  - metadata:
+      name: ubuntu-vda-root
+    spec:
+      pvc:
+        accessModes:
+        - ReadWriteOnce
+        resources:
+          requests:
+            storage: 512Gi
+        storageClassName: local-path
+      source:
+        pvc:
+          name: ccio-ubuntu-latest
+          namespace: kargo
+  running: true
+  template:
+    spec:
+      nodeSelector:
+        node-role.kubernetes.io/kubevirt: ""
+      domain:
+        cpu:
+          cores: 4
+          threads: 1
+          sockets: 2
+          dedicatedCpuPlacement: false
+          model: host-model
+        machine:
+          type: pc-q35-rhel8.2.0
+        resources:
+          requests:
+            memory: 16Gi
+        devices:
+          autoattachPodInterface: false
+          autoattachSerialConsole: true
+          autoattachGraphicsDevice: false
+          networkInterfaceMultiqueue: true
+          rng: {}
+          disks:
+            - name: root-disk
+              bootOrder: 1
+              disk:
+                bus: virtio
+            - name: cloudinitdisk
+              disk:
+                bus: virtio
+          interfaces:
+          - name: eth0
+            model: virtio
+            bootOrder: 2
+            bridge: {}
+        features:
+          smm:
+            enabled: true
+        firmware:
+          bootloader:
+            efi:
+              secureBoot: true
+      hostname: ubuntu
+      networks:
+      - name: eth0
+        multus:
+          networkName: br0
+      terminationGracePeriodSeconds: 0
+      volumes:
+        - name: root-disk
+          dataVolume:
+            name: ubuntu-vda-root
+        - name: cloudinitdisk
+          cloudInitConfigDrive:
+            userData: |-
+              {"ignition":{"version":"3.1.0"},"passwd":{"users":[{"name":"core","passwordHash":"","sshAuthorizedKeys":["ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAAB/zPcAdyHRElufWDNQ1mZUWp4V9jDmaWX35ApsXgxfMHBuz3n8VLGVJuXodAAxeRbbE7Rws8BQcCH4DAMKKLHYZRdJtk3ZUw7rm0i/aq0wkeld7Yp6H/fv1ud3mudp7/+3fQ3gV8RmAO8+FS4jNBMciqtY6mWThKciwnkBWmH5atl6GsZ1ZQ+Y8+W4hXnaF6UEU1+xZ8ja+hu81a9fhejcV+m3RwT511kW5IXDe6wkq9tsIEC529VGI7XuySYvusbchivWYxmE+TBMmId3voGCfkl8hIemUG3/LvQWeK95B/6vBKDCFlmABn60zxrjPkdknWPbu4zg+VJWnslX+rDqSe2cBpHqQ8yDxegPcmXNKv2Qp0h8HhEljWoLc4U5x4hlceDraWBehj8i4N6p+Yt678+jUpOCwGC8z9l+zUrG6NPvbHZ2aIBC3eUteYPtmScNLvOiFASPo/9GQQDNqZclQZf5QGDToAV2rV1B4jJPV8fv/1rlgen6O1PNitKo9FlUfr0WA1IXev6CiJUt4x210BzhTlD84S2A0gHJRbeVVkjWKMx/vo/wqEKTg/vvzSOhFDDlKUxSsguL5rrtOxdGj4sUtjeVRuDjwk1u1DH8P75rI0R/1QaeDixJbRi8Q1315z+MrvJuvzJpMTieldqffNUnexMZcFox8yI8KlVt2U= kmorgan@mprcs.braincraft.io"]}]}}

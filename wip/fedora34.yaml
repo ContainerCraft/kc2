@@ -1,0 +1,69 @@
+---
+apiVersion: kubevirt.io/v1alpha3
+kind: VirtualMachine
+metadata:
+  name: fedora34
+spec:
+  running: true
+  template:
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: artemis
+      domain:
+        devices:
+          disks:
+            - name: containerdisk
+              disk:
+                bus: virtio
+            - name: cloudinitdisk
+              disk:
+                bus: virtio
+          interfaces:
+#         - name: default
+#           masquerade: {}
+          - name: eth0
+            bridge: {}
+        machine:
+          type: ""
+        resources:
+          requests:
+            memory: 4096M
+      networks:
+#     - name: default
+#       pod: {}
+      - name: eth0
+        multus:
+          networkName: br0
+      terminationGracePeriodSeconds: 0
+      volumes:
+        - name: containerdisk
+          containerDisk:
+            image: quay.io/containercraft/fedora:34
+        - name: cloudinitdisk
+          cloudInitNoCloud:
+           #networkData: |
+           #  version: 2
+           #  ethernets:
+           #    eth1:
+           #      addresses: [ 10.0.0.18/24 ]
+            userData: |-
+              #!/bin/bash -x
+              echo "fedora" | passwd fedora --stdin
+              mkdir /home/fedora/.ssh
+              touch /home/fedora/.ssh/authorized_keys
+              chmod 600 /home/fedora/.ssh/authorized_keys
+              chown fedora:fedora -R /home/fedora/.ssh
+              curl -L https://github.com/usrbinkat.keys | tee -a /home/fedora/.ssh/authorized_keys
+              sudo grubby --update-kernel=ALL --args 'cgroup_memory=1 cgroup_enable=cpuset cgroup_enable=memory systemd.unified_cgroup_hierarchy=0 intel_iommu=on iommu=pt rd.driver.pre=vfio-pci pci=realloc'
+              sudo dnf -y install openssh-server qemu-guest-agent @virtualization lnav tmux vi vim
+              sudo echo 'unix_sock_group = "libvirt"' > /etc/libvirt/libvirtd.conf
+              sudo echo 'unix_sock_rw_perms = "0770"' > /etc/libvirt/libvirtd.conf
+              sudo systemctl enable --now qemu-guest-agent
+              sudo systemctl enable --now libvirtd
+              sudo systemctl restart libvirtd
+              sudo systemctl enable --now sshd
+              sudo usermod -aG libvirt fedora
+              sudo dnf -y groupinstall "Container Management"
+              sudo dnf update -y
+              sudo grubby --update-kernel=ALL --args 'cgroup_memory=1 cgroup_enable=cpuset cgroup_enable=memory systemd.unified_cgroup_hierarchy=0 intel_iommu=on iommu=pt rd.driver.pre=vfio-pci pci=realloc'
+              sudo reboot

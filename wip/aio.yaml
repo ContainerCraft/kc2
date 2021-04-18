@@ -1,0 +1,99 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: aio-ssh
+spec:
+  externalTrafficPolicy: Cluster
+  ports:
+  - name: nodeport
+    nodePort: 30000
+    port: 22
+    protocol: TCP
+    targetPort: 22
+  selector:
+    guest: aio
+    app.kubernetes.io/name: aio
+  type: NodePort
+---
+apiVersion: kubevirt.io/v1alpha3
+kind: VirtualMachine
+metadata:
+  name: aio
+  namespace: default
+  labels:
+    guest: aio
+    app.kubernetes.io/name: aio
+  annotations:
+    k8s.v1.cni.cncf.io/networks: br0
+spec:
+  dataVolumeTemplates:
+  - metadata:
+      name: aio-disk-0
+    spec:
+      pvc:
+        accessModes:
+        - ReadWriteOnce
+        resources:
+          requests:
+            storage: 32G
+        storageClassName: hostpath-provisioner
+      source:
+        registry:
+          url: "docker://quay.io/codesparta/rhel-kvm"
+  running: true
+  template:
+    metadata: {}
+    spec:
+      domain:
+        cpu:
+          cores: 2
+          sockets: 1
+          threads: 1
+        devices:
+          disks:
+            - bootOrder: 1
+              disk:
+                bus: virtio
+              name: disk-0
+            - disk:
+                bus: virtio
+              name: cloudinitdisk
+          interfaces:
+            - bootOrder: 2
+              masquerade: {}
+              model: virtio
+              name: nic0
+          networkInterfaceMultiqueue: true
+          rng: {}
+        machine:
+          type: pc-q35-rhel8.2.0
+        resources:
+          requests:
+            memory: 2Gi
+      terminationGracePeriodSeconds: 0
+      hostname: aio
+      networks:
+        - name: nic0
+          pod: {}
+      volumes:
+        - dataVolume:
+            name: aio-disk-0
+          name: disk-0
+        - cloudInitNoCloud:
+            userData: |
+              #cloud-config
+              chpasswd:
+                list: |
+                   root:password
+                expire: False
+                runcmd:
+                - sed -i'.orig' -e's/without-password/yes/' /etc/ssh/sshd_config
+                - service sshd restart
+              name: default
+              hostname: kubevirt
+              ssh-authorized-keys:
+                - >-
+                  ssh-rsa
+                  AAAAXXXXXXXXXXXXXXzaC1Vt2U= kmorgan@mprcs.braincraft.io
+          name: cloudinitdisk

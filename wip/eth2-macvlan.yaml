@@ -1,0 +1,18 @@
+---
+apiVersion: k8s.cni.cncf.io/v1
+kind: NetworkAttachmentDefinition
+metadata:
+  name: eth2
+  annotations:
+    k8s.v1.cni.cncf.io/resourceName: macvtap.network.kubevirt.io/eth2
+spec:
+  config: >
+    {
+        "cniVersion": "0.3.1",
+        "name": "eth2",
+        "type": "macvlan",
+        "master": "eth2",
+        "ipam": {
+        "type": "dhcp"
+      }
+    }

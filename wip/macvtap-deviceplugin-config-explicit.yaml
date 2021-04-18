@@ -1,0 +1,13 @@
+# https://raw.githubusercontent.com/kubevirt/macvtap-cni/master/examples/macvtap-deviceplugin-config-explicit.yaml
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: macvtap-deviceplugin-config
+data:
+  DP_MACVTAP_CONF: >-
+    [ {
+        "name" : "lan",
+        "master" : "eno1np0",
+        "mode": "bridge",
+        "capacity" : 50
+     } ]

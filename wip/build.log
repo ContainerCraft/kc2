@@ -1,0 +1,641 @@
+    1  clear
+    2  sudo dnf config-manager --add-repo=https://download.docker.com/linux/centos/docker-ce.repo
+    3  dnf update
+    4  setenforce 0
+    5  vi /etc/selinux/config 
+    6  clear
+    7  systemctl disable firewalld
+    8  systemctl stop firewalld
+    9  clear
+   10  dnf search containerd
+   11  dnf install containerd
+   12  dnf install git
+   13  dnf install vi vim -y
+   14  clear
+   15  podman ps
+   16  clear
+   17  docker ps
+   18  clear
+   19  git clone https://github.com/containercraft/artemis.git
+   20  cd artemis/
+   21  ls
+   22  cd kubeadm/
+   23  ls
+   24  ./01-fix-resolved.sh 
+   25  cat 02-netfilter.sh 
+   26  ./02-netfilter.sh 
+   27  clear
+   28  ls
+   29  cat 03-kubectl.sh 
+   30  ./03-kubectl.sh 
+   31  cp ../bin/kubectl /bin/
+   32  ls
+   33  kubectl version --client
+   34  clear
+   35  ls
+   36  ./04-cni-plugins.sh 
+   37  ./05-crictl.sh 
+   38  cp /etc/containerd/config.toml /etc/containerd/config.toml.bak
+   39  cp -f etc/containerd/config.toml /etc/containerd/config.toml
+   40  systemctl restart containerd
+   41  systemctl enable containerd
+   42  systemctl status containerd
+   43  clear
+   44  ./06-kubernetes.sh ; ./07-kubeadm-init.sh ; sleep 5 ./08-calico.sh 
+   45  vi 07-kubeadm-init.sh 
+   46  ./06-kubernetes.sh ; ./07-kubeadm-init.sh ; sleep 5 ./08-calico.sh 
+   47  dnf provides conntrack
+   48  dnf install conntrack-tools
+   49  ./06-kubernetes.sh ; ./07-kubeadm-init.sh ; sleep 5 ./08-calico.sh 
+   50  dnf provides socat
+   51  dnf install socat
+   52  ./06-kubernetes.sh ; ./07-kubeadm-init.sh ; sleep 5 ./08-calico.sh 
+   53  export KUBECONFIG=/etc/kubernetes/admin.conf 
+   54  kubectl get po
+   55  reboot
+   56  subscription-manager register --auto-attach --username kathryn.morgan@braincraft.io
+   57  subscription-manager register --auto-attach --username kathryn.morgan@braincraft.io --password='**********'
+   58  subscription-manager register --auto-attach --username='kathryn.morgan@braincraft.io' --password='*********'
+   59  subscription-manager register --auto-attach --username='kathryn.morgan@braincraft.io'
+   60  subscription-manager register --username='kathryn.morgan@braincraft.io'
+   61  subscription-manager register --auto-attach
+   62  subscription-manager register --username='usrbinkat' --password='*********'
+   63  clear
+   64  dnf update
+   65  clear
+   66  dnf update
+   67  subscription-manager register --username='usrbinkat' --password='*********' --auto-attach
+   68  subscription-manager register --username='usrbinkat' --password='*********' --auto-attach --force
+   69  dnf update
+   70  dnf install openssh-server -y
+   71  dnf update
+   72  clear
+   73  systemctl status sshd
+   74  mkdir ~/.ssh
+   75  curl https://github.com/usrbinkat.keys | tee -a ~/.ssh/authorized_keys
+   76  chmod 600 ~/.ssh/authorized_keys 
+   77  vi /etc/ssh/sshd_config 
+   78  cd artemis/
+   79  ls
+   80  cd kubevirt/
+   81  ./deploy.sh ; sleep 5 ; ./deploy.sh ; sleep 5 ; ./deploy.sh ; sleep 5 ; ./deploy.sh ; sleep 5 ./deploy.sh 
+   82  ./deploy.sh 
+   83  cat deploy.sh 
+   84  clear
+   85  ls
+   86  cd ..
+   87  ls
+   88  cat hack
+   89  cat hack.sh 
+   90  kubectl label node edge --overwrite node-role.kubernetes.io/master-
+   91  kubectl label node artemis --overwrite node-role.kubernetes.io/master-
+   92  kubectl label node artemis --overwrite node-role.kubernetes.io/worker
+   93  kubectl label node artemis --overwrite node-role.kubernetes.io/worker: ""
+   94  kubectl label node artemis --overwrite node-role.kubernetes.io/worker=""
+   95  kubectl label node artemis --overwrite ingress-ready=true
+   96  clear
+   97  cd qubo/
+   98  ls
+   99  vi bond0.yaml 
+  100  kubectl create -f bond0.yaml 
+  101  dnf install NetworkManager
+  102  systemctl status NetworkManager
+  103  ls
+  104  vi ../kubevirt/networkaddons/network-addons-config-example.cr.yaml 
+  105  clear
+  106  ls
+  107  kubectl apply -f ../kubevirt/networkaddons/network-addons-config-example.cr.yaml 
+  108  kubectl delete -f bond0.yaml 
+  109  kubectl create -f bond0.yaml 
+  110  clear
+  111  kubectl delete -f bond0.yaml 
+  112  vi ../kubevirt/networkaddons/network-addons-config.
+  113  vi ../kubevirt/networkaddons/network-addons-config.yaml 
+  114  vi ../kubevirt/networkaddons/selector.yaml 
+  115  kubectl apply -f ../kubevirt/networkaddons/selector.yaml 
+  116  kubectl create -f bond0.yaml 
+  117  kubectl apply -f ../kubevirt/networkaddons/
+  118  cd ../kubevirt/networkaddons/
+  119  ls
+  120  clear; ll
+  121  vi operator.yaml 
+  122  vi selector.yaml 
+  123  vi network-addons-config.
+  124  vi network-addons-config.yaml 
+  125  cat network-addons-config.
+  126  cat network-addons-config.yaml 
+  127  kubectl apply network-addons-config.yaml 
+  128  kubectl apply -f network-addons-config.yaml 
+  129  clear
+  130  kubectl edit node artemis
+  131  ls
+  132  cat network-addons-config.yaml 
+  133  clear
+  134  kubectl create -f bond0.yaml
+  135  kubectl create -f ../qubo/bond0.yaml
+  136  kubectl create -f ../../qubo/bond0.yaml
+  137  kubectl apply -f ../../qubo/bond0.yaml
+  138  cd ../../qubo/
+  139  clear
+  140  ls
+  141  vim br0.yaml 
+  142  vim bond0.yaml 
+  143  vim ../kubevirt/networkaddons/network-addons-config.yaml 
+  144  kubectl apply -f ../kubevirt/networkaddons/network-addons-config.yaml 
+  145  vim bond0.yaml 
+  146  kubectl apply -f ../kubevirt/networkaddons/selector.yaml 
+  147  vim bond0.yaml 
+  148  vim ../kubevirt/networkaddons/selector.yaml 
+  149  kubectl apply -f ../kubevirt/networkaddons/network-addons-config.yaml 
+  150  clear
+  151  ls
+  152  vim aio.yaml 
+  153  kubectl create -f aio.yaml 
+  154  vim aio.yaml 
+  155  kubectl create -f aio.yaml 
+  156  vim aio.yaml 
+  157  kubectl create -f aio.yaml 
+  158  kubectl apply -f aio.yaml 
+  159  kubectl get vmi -A
+  160  clear
+  161  ls
+  162  vim qubo.yaml 
+  163  kubectl create -f qubo.yaml
+  164  kubectl get svc -A
+  165  kubectl get vmi -A
+  166  vim qubo.yaml 
+  167  kubectl delete -f qubo.yaml 
+  168  vim qubo.yaml 
+  169  kubectl create -f qubo.yaml
+  170  vim qubo.yaml 
+  171  clear
+  172  kubectl delete -f aio.yaml 
+  173  git status
+  174  git stage -A; git commit -m "working kubevirt vm's on lan"
+  175  git push
+  176  history | tee -a build.log
+    1  clear
+    2  sudo dnf config-manager --add-repo=https://download.docker.com/linux/centos/docker-ce.repo
+    3  dnf update
+    4  setenforce 0
+    5  vi /etc/selinux/config 
+    6  clear
+    7  systemctl disable firewalld
+    8  systemctl stop firewalld
+    9  clear
+   10  dnf search containerd
+   11  dnf install containerd
+   12  dnf install git
+   13  dnf install vi vim -y
+   14  clear
+   15  podman ps
+   16  clear
+   17  docker ps
+   18  clear
+   19  git clone https://github.com/containercraft/artemis.git
+   20  cd artemis/
+   21  ls
+   22  cd kubeadm/
+   23  ls
+   24  ./01-fix-resolved.sh 
+   25  cat 02-netfilter.sh 
+   26  ./02-netfilter.sh 
+   27  clear
+   28  ls
+   29  cat 03-kubectl.sh 
+   30  ./03-kubectl.sh 
+   31  cp ../bin/kubectl /bin/
+   32  ls
+   33  kubectl version --client
+   34  clear
+   35  ls
+   36  ./04-cni-plugins.sh 
+   37  ./05-crictl.sh 
+   38  cp /etc/containerd/config.toml /etc/containerd/config.toml.bak
+   39  cp -f etc/containerd/config.toml /etc/containerd/config.toml
+   40  systemctl restart containerd
+   41  systemctl enable containerd
+   42  systemctl status containerd
+   43  clear
+   44  ./06-kubernetes.sh ; ./07-kubeadm-init.sh ; sleep 5 ./08-calico.sh 
+   45  vi 07-kubeadm-init.sh 
+   46  ./06-kubernetes.sh ; ./07-kubeadm-init.sh ; sleep 5 ./08-calico.sh 
+   47  dnf provides conntrack
+   48  dnf install conntrack-tools
+   49  ./06-kubernetes.sh ; ./07-kubeadm-init.sh ; sleep 5 ./08-calico.sh 
+   50  dnf provides socat
+   51  dnf install socat
+   52  ./06-kubernetes.sh ; ./07-kubeadm-init.sh ; sleep 5 ./08-calico.sh 
+   53  export KUBECONFIG=/etc/kubernetes/admin.conf 
+   54  kubectl get po
+   55  reboot
+   56  subscription-manager register --auto-attach --username kathryn.morgan@braincraft.io
+   57  subscription-manager register --auto-attach --username kathryn.morgan@braincraft.io --password='*********'
+   58  subscription-manager register --auto-attach --username='kathryn.morgan@braincraft.io' --password='*********'
+   59  subscription-manager register --auto-attach --username='kathryn.morgan@braincraft.io'
+   60  subscription-manager register --username='kathryn.morgan@braincraft.io'
+   61  subscription-manager register --auto-attach
+   62  subscription-manager register --username='usrbinkat' --password='*********'
+   63  clear
+   64  dnf update
+   65  clear
+   66  dnf update
+   67  subscription-manager register --username='usrbinkat' --password='*********' --auto-attach
+   68  subscription-manager register --username='usrbinkat' --password='*********' --auto-attach --force
+   69  dnf update
+   70  dnf install openssh-server -y
+   71  dnf update
+   72  clear
+   73  systemctl status sshd
+   74  mkdir ~/.ssh
+   75  curl https://github.com/usrbinkat.keys | tee -a ~/.ssh/authorized_keys
+   76  chmod 600 ~/.ssh/authorized_keys 
+   77  vi /etc/ssh/sshd_config 
+   78  kubectl get events -A
+   79  clear; kubectl get events -A -w
+   80  clear
+   81  ls
+   82  cd artemis/
+   83  ls
+   84  cd qubo/
+   85  ls
+   86  history | tee -a build.log
+    1  clear
+    2  sudo dnf config-manager --add-repo=https://download.docker.com/linux/centos/docker-ce.repo
+    3  dnf update
+    4  setenforce 0
+    5  vi /etc/selinux/config 
+    6  clear
+    7  systemctl disable firewalld
+    8  systemctl stop firewalld
+    9  clear
+   10  dnf search containerd
+   11  dnf install containerd
+   12  dnf install git
+   13  dnf install vi vim -y
+   14  clear
+   15  podman ps
+   16  clear
+   17  docker ps
+   18  clear
+   19  git clone https://github.com/containercraft/artemis.git
+   20  cd artemis/
+   21  ls
+   22  cd kubeadm/
+   23  ls
+   24  ./01-fix-resolved.sh 
+   25  cat 02-netfilter.sh 
+   26  ./02-netfilter.sh 
+   27  clear
+   28  ls
+   29  cat 03-kubectl.sh 
+   30  ./03-kubectl.sh 
+   31  cp ../bin/kubectl /bin/
+   32  ls
+   33  kubectl version --client
+   34  clear
+   35  ls
+   36  ./04-cni-plugins.sh 
+   37  ./05-crictl.sh 
+   38  cp /etc/containerd/config.toml /etc/containerd/config.toml.bak
+   39  cp -f etc/containerd/config.toml /etc/containerd/config.toml
+   40  systemctl restart containerd
+   41  systemctl enable containerd
+   42  systemctl status containerd
+   43  clear
+   44  ./06-kubernetes.sh ; ./07-kubeadm-init.sh ; sleep 5 ./08-calico.sh 
+   45  vi 07-kubeadm-init.sh 
+   46  ./06-kubernetes.sh ; ./07-kubeadm-init.sh ; sleep 5 ./08-calico.sh 
+   47  dnf provides conntrack
+   48  dnf install conntrack-tools
+   49  ./06-kubernetes.sh ; ./07-kubeadm-init.sh ; sleep 5 ./08-calico.sh 
+   50  dnf provides socat
+   51  dnf install socat
+   52  ./06-kubernetes.sh ; ./07-kubeadm-init.sh ; sleep 5 ./08-calico.sh 
+   53  export KUBECONFIG=/etc/kubernetes/admin.conf 
+   54  kubectl get po
+   55  reboot
+   56  subscription-manager register --auto-attach --username kathryn.morgan@braincraft.io
+   57  subscription-manager register --auto-attach --username kathryn.morgan@braincraft.io --password='*********'
+   58  subscription-manager register --auto-attach --username='kathryn.morgan@braincraft.io' --password='*********'
+   59  subscription-manager register --auto-attach --username='kathryn.morgan@braincraft.io'
+   60  subscription-manager register --username='kathryn.morgan@braincraft.io'
+   61  subscription-manager register --auto-attach
+   62  subscription-manager register --username='usrbinkat' --password='*********'
+   63  clear
+   64  dnf update
+   65  clear
+   66  dnf update
+   67  subscription-manager register --username='usrbinkat' --password='*********' --auto-attach
+   68  subscription-manager register --username='usrbinkat' --password='*********' --auto-attach --force
+   69  dnf update
+   70  dnf install openssh-server -y
+   71  dnf update
+   72  clear
+   73  systemctl status sshd
+   74  mkdir ~/.ssh
+   75  curl https://github.com/usrbinkat.keys | tee -a ~/.ssh/authorized_keys
+   76  chmod 600 ~/.ssh/authorized_keys 
+   77  vi /etc/ssh/sshd_config 
+   78  cd artemis/kubeadm/
+   79  ls
+   80  ./06-kubernetes.sh 
+   81  i pr
+   82  ip r
+   83  ping 10.0.0.1
+   84  ping 8.8.8.8
+   85  ping google.com
+   86  cat /etc/resolv.conf 
+   87  ls -lah /etc/resolv.conf 
+   88  systemctl status systemd-resolved
+   89  systemctl enable systemd-resolved
+   90  systemctl start systemd-resolved
+   91  ls -lah /etc/resolv.conf 
+   92  dnf update
+   93  clear
+   94  ./06-kubernetes.sh 
+   95  ./07-kubeadm-init.sh 
+   96  rm -rf /etc/kubernetes/manifests
+   97  systemctl restart kubelet
+   98  ./07-kubeadm-init.sh 
+   99  journalctl -xeu kubelet
+  100  ./07-kubeadm-init.sh 
+  101  rm -rf /etc/kubernetes
+  102  ./07-kubeadm-init.sh 
+  103  netstat -tulpn
+  104  clear
+  105  netstat -tulpn
+  106  systemctl stop kubelet
+  107  netstat -tulpn
+  108  ./07-kubeadm-init.sh 
+  109  rm -rf ~/.kube
+  110  rm -rf /etc/kubernetes
+  111  systemctl status kubelet
+  112  systemctl enable --now kubelet
+  113  systemctl status kubelet
+  114  journalctl -fxe -u kubelet
+  115  journalctl -fxe -u kubelet | grep -v sync
+  116  journalctl -fxe -u kubelet | grep -v sync | tee -a /tmp/artemis.log
+  117  journalctl -fxe -u containerd
+  118  journalctl -fxe -u containerd | head
+  119  journalctl -fxe -u containerd > /tmp/containerd.log
+  120  vi /tmp/containerd.log 
+  121  dnf provides aufs
+  122  dnf search aufs
+  123  vi /tmp/containerd.log 
+  124  ls /etc/containerd/
+  125  vi /tmp/containerd.log 
+  126  cat /etc/containerd/config.toml.bak >> /etc/containerd/config.toml
+  127  vi /etc/containerd/config.toml
+  128  systemctl restart containerd
+  129  journalctl -fxe
+  130  vi /etc/containerd/config.toml
+  131  vi 07-kubeadm-init.sh 
+  132  file /var/run/containerd/containerd.sock
+  133  podman
+  134  docker
+  135  dnf install docker-ce
+  136  dnf install fuse-overlayfs fuse3 fuse3-libs libcgroup libslirp slirp3netns
+  137  dnf install fuse-overlayfs fuse3 fuse3-libs libcgroup libslirp slirp4netns
+  138  journalctl -fxe 
+  139  dnf install docker
+  140  dnf install docker-ce
+  141  systemctl enable --now docker
+  142  journalctl -fxe 
+  143  clear
+  144  kubectl get po
+  145  export KUBECONFIG=/etc/kubernetes/admin.conf 
+  146  kubectl get po
+  147  watch kubectl get po
+  148  rm -rf /etc/kubernetes
+  149  ./07-kubeadm-init.sh 
+  150  netstat -tulpn
+  151  systemctl stop kubelet
+  152  cat 06-kubernetes.sh 
+  153  ./06-kubernetes.sh 
+  154  ./07-kubeadm-init.sh 
+  155  journalctl -fxe -u containerd
+  156  journalctl -fxe -u containerd -u kubelet
+  157  clear
+  158  rm -rf ~/.kube
+  159  mkdir -p $HOME/.kube
+  160  sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+  161  sudo chown $(id -u):$(id -g) $HOME/.kube/config
+  162  kubectl get po -A
+  163  watch kubectl get po -A
+  164  ls
+  165  cd ../qubo/
+  166  history | tee -a build.log
+    1  clear
+    2  sudo dnf config-manager --add-repo=https://download.docker.com/linux/centos/docker-ce.repo
+    3  dnf update
+    4  setenforce 0
+    5  vi /etc/selinux/config 
+    6  clear
+    7  systemctl disable firewalld
+    8  systemctl stop firewalld
+    9  clear
+   10  dnf search containerd
+   11  dnf install containerd
+   12  dnf install git
+   13  dnf install vi vim -y
+   14  clear
+   15  podman ps
+   16  clear
+   17  docker ps
+   18  clear
+   19  git clone https://github.com/containercraft/artemis.git
+   20  cd artemis/
+   21  ls
+   22  cd kubeadm/
+   23  ls
+   24  ./01-fix-resolved.sh 
+   25  cat 02-netfilter.sh 
+   26  ./02-netfilter.sh 
+   27  clear
+   28  ls
+   29  cat 03-kubectl.sh 
+   30  ./03-kubectl.sh 
+   31  cp ../bin/kubectl /bin/
+   32  ls
+   33  kubectl version --client
+   34  clear
+   35  ls
+   36  ./04-cni-plugins.sh 
+   37  ./05-crictl.sh 
+   38  cp /etc/containerd/config.toml /etc/containerd/config.toml.bak
+   39  cp -f etc/containerd/config.toml /etc/containerd/config.toml
+   40  systemctl restart containerd
+   41  systemctl enable containerd
+   42  systemctl status containerd
+   43  clear
+   44  ./06-kubernetes.sh ; ./07-kubeadm-init.sh ; sleep 5 ./08-calico.sh 
+   45  vi 07-kubeadm-init.sh 
+   46  ./06-kubernetes.sh ; ./07-kubeadm-init.sh ; sleep 5 ./08-calico.sh 
+   47  dnf provides conntrack
+   48  dnf install conntrack-tools
+   49  ./06-kubernetes.sh ; ./07-kubeadm-init.sh ; sleep 5 ./08-calico.sh 
+   50  dnf provides socat
+   51  dnf install socat
+   52  ./06-kubernetes.sh ; ./07-kubeadm-init.sh ; sleep 5 ./08-calico.sh 
+   53  export KUBECONFIG=/etc/kubernetes/admin.conf 
+   54  kubectl get po
+   55  reboot
+   56  subscription-manager register --auto-attach --username kathryn.morgan@braincraft.io
+   57  subscription-manager register --auto-attach --username kathryn.morgan@braincraft.io --password='*********'
+   58  subscription-manager register --auto-attach --username='kathryn.morgan@braincraft.io' --password='*********'
+   59  subscription-manager register --auto-attach --username='kathryn.morgan@braincraft.io'
+   60  subscription-manager register --username='kathryn.morgan@braincraft.io'
+   61  subscription-manager register --auto-attach
+   62  subscription-manager register --username='usrbinkat' --password='*********'
+   63  clear
+   64  dnf update
+   65  clear
+   66  dnf update
+   67  subscription-manager register --username='usrbinkat' --password='*********' --auto-attach
+   68  subscription-manager register --username='usrbinkat' --password='*********' --auto-attach --force
+   69  dnf update
+   70  dnf install openssh-server -y
+   71  dnf update
+   72  clear
+   73  systemctl status sshd
+   74  mkdir ~/.ssh
+   75  curl https://github.com/usrbinkat.keys | tee -a ~/.ssh/authorized_keys
+   76  chmod 600 ~/.ssh/authorized_keys 
+   77  vi /etc/ssh/sshd_config 
+   78  clear
+   79  systemctl start kubelet
+   80  journalctl -fxe -u kubelet
+   81  journalctl -fxe -u kubelet | grep -v sync
+   82  systemctl status firewalld
+   83  getenforce 
+   84  setenforce 0
+   85  getenforce 
+   86  systemctl status firewalld
+   87  journalctl -fxe -u kubelet | grep -v sync
+   88  ls
+   89  cd artemis/kubeadm/
+   90  rm -rf /etc/kubernetes
+   91  systemctl stop kubelet
+   92  clear
+   93  ls
+   94  ./02-netfilter.sh 
+   95  clear
+   96  ls
+   97  ./03-kubectl.sh 
+   98  ./04-cni-plugins.sh 
+   99  ./05-crictl.sh 
+  100  ./06-kubernetes.sh 
+  101  ./07-kubeadm-init.sh 
+  102  watch kubectl get vmi -A
+  103  history
+  104  cd ../qubo/
+  105  history | tee -a build.log
+    1  clear
+    2  sudo dnf config-manager --add-repo=https://download.docker.com/linux/centos/docker-ce.repo
+    3  dnf update
+    4  setenforce 0
+    5  vi /etc/selinux/config 
+    6  clear
+    7  systemctl disable firewalld
+    8  systemctl stop firewalld
+    9  clear
+   10  dnf search containerd
+   11  dnf install containerd
+   12  dnf install git
+   13  dnf install vi vim -y
+   14  clear
+   15  podman ps
+   16  clear
+   17  docker ps
+   18  clear
+   19  git clone https://github.com/containercraft/artemis.git
+   20  cd artemis/
+   21  ls
+   22  cd kubeadm/
+   23  ls
+   24  ./01-fix-resolved.sh 
+   25  cat 02-netfilter.sh 
+   26  ./02-netfilter.sh 
+   27  clear
+   28  ls
+   29  cat 03-kubectl.sh 
+   30  ./03-kubectl.sh 
+   31  cp ../bin/kubectl /bin/
+   32  ls
+   33  kubectl version --client
+   34  clear
+   35  ls
+   36  ./04-cni-plugins.sh 
+   37  ./05-crictl.sh 
+   38  cp /etc/containerd/config.toml /etc/containerd/config.toml.bak
+   39  cp -f etc/containerd/config.toml /etc/containerd/config.toml
+   40  systemctl restart containerd
+   41  systemctl enable containerd
+   42  systemctl status containerd
+   43  clear
+   44  ./06-kubernetes.sh ; ./07-kubeadm-init.sh ; sleep 5 ./08-calico.sh 
+   45  vi 07-kubeadm-init.sh 
+   46  ./06-kubernetes.sh ; ./07-kubeadm-init.sh ; sleep 5 ./08-calico.sh 
+   47  dnf provides conntrack
+   48  dnf install conntrack-tools
+   49  ./06-kubernetes.sh ; ./07-kubeadm-init.sh ; sleep 5 ./08-calico.sh 
+   50  dnf provides socat
+   51  dnf install socat
+   52  ./06-kubernetes.sh ; ./07-kubeadm-init.sh ; sleep 5 ./08-calico.sh 
+   53  export KUBECONFIG=/etc/kubernetes/admin.conf 
+   54  kubectl get po
+   55  reboot
+   56  subscription-manager register --auto-attach --username kathryn.morgan@braincraft.io
+   57  subscription-manager register --auto-attach --username kathryn.morgan@braincraft.io --password='*********'
+   58  subscription-manager register --auto-attach --username='kathryn.morgan@braincraft.io' --password='*********'
+   59  subscription-manager register --auto-attach --username='kathryn.morgan@braincraft.io'
+   60  subscription-manager register --username='kathryn.morgan@braincraft.io'
+   61  subscription-manager register --auto-attach
+   62  subscription-manager register --username='usrbinkat' --password='*********'
+   63  clear
+   64  dnf update
+   65  clear
+   66  dnf update
+   67  subscription-manager register --username='usrbinkat' --password='*********' --auto-attach
+   68  subscription-manager register --username='usrbinkat' --password='*********' --auto-attach --force
+   69  dnf update
+   70  dnf install openssh-server -y
+   71  dnf update
+   72  clear
+   73  systemctl status sshd
+   74  mkdir ~/.ssh
+   75  curl https://github.com/usrbinkat.keys | tee -a ~/.ssh/authorized_keys
+   76  chmod 600 ~/.ssh/authorized_keys 
+   77  vi /etc/ssh/sshd_config 
+   78  pstree
+   79  pstree -h
+   80  pstree -ax
+   81  pstree 1
+   82  pstree 0
+   83  pstree 0 | grep -v watch
+   84  pstree 0 | grep -v watchdog
+   85  pstree 0 | grep -vE "migration|watchdog"
+   86  pstree 0 | grep -vE "migration|watchdog|worker"
+   87  pstree 0 | grep -vE "migration|watchdog|worker|ksoftirq"
+   88  pstree 0 | grep -vE "migration|watchdog|worker|ksoftirq|cpuhp"
+   89  clear; pstree 0 | grep -vE "migration|watchdog|worker|ksoftirq|cpuhp"
+   90  watch -c 'pstree 0 | grep -vE "migration|watchdog|worker|ksoftirq|cpuhp"'
+   91  clear
+   92  watch netstat -tulpn
+   93  clear
+   94  ip a s 
+   95  ip a s | head
+   96  ip a s | grep en
+   97  ip a s | grep -E "eth|eno|ens"
+   98  ip a s | grep -E "eth|eno|ens" | grep -v ether
+   99  clear
+  100  ip a s | grep -E "eth|eno|ens" | grep -v ether
+  101  ip a s | grep -E "eth|eno|ens" | grep -vE "inet|ether"
+  102  clear
+  103  ip a s | grep -E "eth|eno|ens" | grep -vE "inet|ether"
+  104  ip a s eno1np0; echo; ip a s eno2np1; echo; ip a s ens2f0; echo; ip a s ens2f1; echo; ip a s eth2; echo; ip a s eth3; echo; ip a s bond0; echo; ip a s br0
+  105  watch -c "ip a s eno1np0; echo; ip a s eno2np1; echo; ip a s ens2f0; echo; ip a s ens2f1; echo; ip a s eth2; echo; ip a s eth3; echo; ip a s bond0; echo; ip a s br0"
+  106  ls
+  107  cd artemis/qubo/
+  108  history | tee -a build.log

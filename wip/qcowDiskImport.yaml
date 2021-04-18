@@ -1,0 +1,82 @@
+---
+apiVersion: kubevirt.io/v1alpha3
+kind: VirtualMachine
+metadata:
+  name: rhel01
+  namespace: default
+  labels:
+    app: guestvms
+    kubevirt.io/vm: rhel01
+spec:
+  dataVolumeTemplates:
+  - metadata:
+      name: rhel01-disk-0
+    spec:
+      pvc:
+        accessModes:
+        - ReadWriteOnce
+        resources:
+          requests:
+            storage: 38G
+        storageClassName: hostpath
+#       storageClassName: rook-ceph-block
+      source:
+        pvc:
+          name: registry-image-datavolume
+          namespace: default
+  running: true
+  template:
+    metadata: {}
+    spec:
+      domain:
+        cpu:
+          cores: 2
+          sockets: 1
+          threads: 1
+        devices:
+          disks:
+            - name: disk-0
+              bootOrder: 1
+              disk:
+                bus: virtio
+            - name: cloudinitdisk
+              disk:
+                bus: virtio
+          interfaces:
+            - bootOrder: 2
+              masquerade: {}
+              model: virtio
+              name: nic0
+          networkInterfaceMultiqueue: true
+          rng: {}
+        machine:
+          type: pc-q35-rhel8.2.0
+        resources:
+          requests:
+            memory: 4Gi
+      terminationGracePeriodSeconds: 0
+      hostname: rhel01
+      networks:
+        - name: nic0
+          pod: {}
+      volumes:
+        - dataVolume:
+            name: rhel01-disk-0
+          name: disk-0
+        - cloudInitNoCloud:
+            userData: |
+              #cloud-config
+              chpasswd:
+                list: |
+                   root:password
+                expire: False
+                runcmd:
+                - sed -i'.orig' -e's/without-password/yes/' /etc/ssh/sshd_config
+                - service sshd restart
+              name: default
+              hostname: kubevirt
+              ssh-authorized-keys:
+                - >-
+                  ssh-rsa
+                  AAAAB3NzaC1yc2EAAAADAQABAAAB/zPcAdyHRElufWDNQ1mZUWp4V9jDmaWX35ApsXgxfMHBuz3n8VLGVJuXodAAxeRbbE7Rws8BQcCH4DAMKKLHYZRdJtk3ZUw7rm0i/aq0wkeld7Yp6H/fv1ud3mudp7/+3fQ3gV8RmAO8+FS4jNBMciqtY6mWThKciwnkBWmH5atl6GsZ1ZQ+Y8+W4hXnaF6UEU1+xZ8ja+hu81a9fhejcV+m3RwT511kW5IXDe6wkq9tsIEC529VGI7XuySYvusbchivWYxmE+TBMmId3voGCfkl8hIemUG3/LvQWeK95B/6vBKDCFlmABn60zxrjPkdknWPbu4zg+VJWnslX+rDqSe2cBpHqQ8yDxegPcmXNKv2Qp0h8HhEljWoLc4U5x4hlceDraWBehj8i4N6p+Yt678+jUpOCwGC8z9l+zUrG6NPvbHZ2aIBC3eUteYPtmScNLvOiFASPo/9GQQDNqZclQZf5QGDToAV2rV1B4jJPV8fv/1rlgen6O1PNitKo9FlUfr0WA1IXev6CiJUt4x210BzhTlD84S2A0gHJRbeVVkjWKMx/vo/wqEKTg/vvzSOhFDDlKUxSsguL5rrtOxdGj4sUtjeVRuDjwk1u1DH8P75rI0R/1QaeDixJbRi8Q1315z+MrvJuvzJpMTieldqffNUnexMZcFox8yI8KlVt2U= kmorgan@mprcs.braincraft.io
+          name: cloudinitdisk

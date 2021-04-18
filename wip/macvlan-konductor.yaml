@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: konductor
+  annotations:
+    k8s.v1.cni.cncf.io/networks: lan@eth1
+spec:
+  containers:
+  - name: konductor
+    image: quay.io/cloudctl/konductor

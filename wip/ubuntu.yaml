@@ -1,0 +1,64 @@
+---
+apiVersion: kubevirt.io/v1alpha3
+kind: VirtualMachine
+metadata:
+  name: ubuntu
+  namespace: kargo
+  labels:
+    app: coreos
+spec:
+  running: true
+  template:
+    spec:
+      nodeSelector:
+        node-role.kubernetes.io/kubevirt: ""
+      domain:
+        cpu:
+          sockets: 8
+          threads: 1
+          cores: 1
+        devices:
+          disks:
+            - name: containerdisk
+              disk:
+                bus: virtio
+            - name: cloudinitdisk
+              disk:
+                bus: virtio
+          interfaces:
+          - name: eth0
+            model: virtio
+            bridge: {}
+        machine:
+          type: ""
+        resources:
+          requests:
+            memory: 16Gi
+      networks:
+      - name: eth0
+        multus:
+          networkName: br0
+      terminationGracePeriodSeconds: 0
+      volumes:
+        - name: containerdisk
+          containerDisk:
+            image: quay.io/containercraft/ubuntu:latest
+        - name: cloudinitdisk
+          cloudInitNoCloud:
+            userData: |-
+              #!/bin/bash -x
+              echo 'ubuntu:ubuntu'|chpasswd
+              echo 'root:ubuntu'|chpasswd
+              mkdir -p /home/ubuntu/.ssh
+              touch /home/ubuntu/.ssh/authorized_keys
+              curl -L https://github.com/usrbinkat.keys | tee -a /home/ubuntu/.ssh/authorized_keys
+              chown ubuntu:ubuntu /home/ubuntu/.ssh
+              chown ubuntu:ubuntu /home/ubuntu/.ssh/authorized_keys
+              chmod 600 /home/ubuntu/.ssh/authorized_keys
+              sudo apt-get update -y
+              sudo apt-get -y --install-recommends install qemu-guest-agent
+              sudo systemctl enable --now qemu-guest-agent
+              sudo apt-get -y install cloud-initramfs-growroot qemu-guest-agent openssh-server runc podman lnav tmux vim
+              sudo systemctl enable --now sshd
+              sudo growpart /dev/vda 1
+              sudo apt-get upgrade -y

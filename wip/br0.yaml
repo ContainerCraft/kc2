@@ -1,0 +1,23 @@
+apiVersion: nmstate.io/v1beta1
+kind: NodeNetworkConfigurationPolicy
+metadata:
+  name: linux-bridge
+spec:
+  desiredState:
+    interfaces:
+    - name: br0
+      description: Linux bridge with eth1 as a port
+      type: linux-bridge
+      state: up
+      ipv4:
+        dhcp: true
+        enabled: true
+      bridge:
+        options:
+          stp:
+            enabled: true
+        port:
+        - name: eth3
+        - name: eth0
+        - name: ens2f0
+        - name: ens2f1
