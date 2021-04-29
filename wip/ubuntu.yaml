@@ -5,7 +5,7 @@ metadata:
   name: ubuntu
   namespace: kargo
   labels:
-    app: coreos
+    app: ubuntu
 spec:
   running: true
   template:
@@ -13,13 +13,30 @@ spec:
       nodeSelector:
         node-role.kubernetes.io/kubevirt: ""
       domain:
+       #clock:
+       #  utc: {}
+       # #timezone: "America/Los Angeles"
         cpu:
           sockets: 8
           threads: 1
           cores: 1
+          dedicatedCpuPlacement: false
+          model: host-passthrough
+         #model: host-model
+        resources:
+          requests:
+            memory: 16Gi
+        machine:
+          type: pc-q35-rhel8.2.0
         devices:
+          autoattachPodInterface: false
+          autoattachSerialConsole: true
+          autoattachGraphicsDevice: true
+          networkInterfaceMultiqueue: true
+          rng: {}
           disks:
             - name: containerdisk
+              bootOrder: 1
               disk:
                 bus: virtio
             - name: cloudinitdisk
@@ -28,12 +45,18 @@ spec:
           interfaces:
           - name: eth0
             model: virtio
+            bootOrder: 2
             bridge: {}
-        machine:
-          type: ""
-        resources:
-          requests:
-            memory: 16Gi
+#       features:
+#         smm:
+#           enabled: true
+#       firmware:
+#         uuid: 5d307ca9-b3ef-428c-8861-06e72d69f223
+#         serial: e4686d2c-6e8d-4335-b8fd-81bee22f4815
+#         bootloader:
+#           efi:
+#             secureBoot: true
+      hostname: ubuntu
       networks:
       - name: eth0
         multus:
@@ -42,7 +65,7 @@ spec:
       volumes:
         - name: containerdisk
           containerDisk:
-            image: quay.io/containercraft/ubuntu:latest
+            image: quay.io/containercraft/ubuntu:21.04
         - name: cloudinitdisk
           cloudInitNoCloud:
             userData: |-
@@ -58,7 +81,7 @@ spec:
               sudo apt-get update -y
               sudo apt-get -y --install-recommends install qemu-guest-agent
               sudo systemctl enable --now qemu-guest-agent
-              sudo apt-get -y install cloud-initramfs-growroot qemu-guest-agent openssh-server runc podman lnav tmux vim
+              sudo apt-get -y install cloud-initramfs-growroot openssh-server runc podman tmux vim lnav htop neofetch
               sudo systemctl enable --now sshd
               sudo growpart /dev/vda 1
               sudo apt-get upgrade -y

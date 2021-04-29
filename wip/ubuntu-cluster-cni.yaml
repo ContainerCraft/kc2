@@ -1,0 +1,54 @@
+
+---
+apiVersion: kubevirt.io/v1alpha3
+kind: VirtualMachine
+metadata:
+  name: ubuntu
+  namespace: kargo
+spec:
+  running: true
+  template:
+    spec:
+      nodeSelector:
+        node-role.kubernetes.io/kubevirt: ""
+      hostname: hirsute
+      domain:
+        cpu:
+          sockets: 4
+          threads: 1
+          cores: 1
+          model: host-passthrough
+        resources:
+          requests:
+            memory: 4Gi
+        machine:
+          type: q35
+        devices:
+          autoattachPodInterface: true
+          autoattachSerialConsole: true
+          autoattachGraphicsDevice: false
+          rng: {}
+          disks:
+            - name: containerdisk
+              disk:
+                bus: virtio
+            - name: cloudinitdisk
+              disk:
+                bus: virtio
+#         interfaces:
+#         - name: default
+#           bridge: {}
+#     networks:
+#     - name: default
+#       pod: {}
+      terminationGracePeriodSeconds: 0
+      volumes:
+        - name: containerdisk
+          containerDisk:
+            image: quay.io/containercraft/ubuntu:21.04
+        - name: cloudinitdisk
+          cloudInitNoCloud:
+            userData: |-
+              #!/bin/bash -x
+              echo 'ubuntu:ubuntu'|chpasswd
+              sudo systemctl start qemu-guest-agent

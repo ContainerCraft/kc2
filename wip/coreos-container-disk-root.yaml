@@ -4,7 +4,7 @@ apiVersion: kubevirt.io/v1alpha3
 kind: VirtualMachine
 metadata:
   name: coreos
-  namespace: default
+  namespace: kargo
   labels:
     app: coreos
 spec:
@@ -12,8 +12,19 @@ spec:
   template:
     spec:
       nodeSelector:
-        kubernetes.io/hostname: artemis
+        node-role.kubernetes.io/kubevirt: ""
       domain:
+        cpu:
+          sockets: 2
+          threads: 2
+          cores: 4
+          dedicatedCpuPlacement: false
+          model: host-passthrough
+        resources:
+          requests:
+            memory: 16Gi
+        machine:
+          type: pc-q35-rhel8.2.0
         features:
           smm:
             enabled: true
@@ -22,6 +33,11 @@ spec:
             efi:
               secureBoot: true
         devices:
+          autoattachPodInterface: false
+          autoattachSerialConsole: true
+          autoattachGraphicsDevice: false
+          networkInterfaceMultiqueue: true
+          rng: {}
           disks:
             - name: containerdisk
               disk:
@@ -33,11 +49,6 @@ spec:
           - name: eth0
             model: virtio
             bridge: {}
-        machine:
-          type: ""
-        resources:
-          requests:
-            memory: 8192M
       networks:
       - name: eth0
         multus:

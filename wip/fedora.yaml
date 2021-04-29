@@ -3,16 +3,37 @@ apiVersion: kubevirt.io/v1alpha3
 kind: VirtualMachine
 metadata:
   name: fedora
+  namespace: kargo
+  labels:
+    app: fedora
 spec:
   running: true
   template:
     spec:
       nodeSelector:
-        kubernetes.io/hostname: artemis
+        node-role.kubernetes.io/kubevirt: ""
       domain:
+        cpu:
+          sockets: 2
+          threads: 2
+          cores: 4
+          dedicatedCpuPlacement: false
+          model: host-passthrough
+         #model: host-model
+        resources:
+          requests:
+            memory: 16Gi
+        machine:
+          type: pc-q35-rhel8.2.0
         devices:
+          autoattachPodInterface: false
+          autoattachSerialConsole: true
+          autoattachGraphicsDevice: false
+          networkInterfaceMultiqueue: true
+          rng: {}
           disks:
             - name: containerdisk
+              bootOrder: 1
               disk:
                 bus: virtio
             - name: cloudinitdisk
@@ -20,12 +41,17 @@ spec:
                 bus: virtio
           interfaces:
           - name: eth0
+            model: virtio
+            bootOrder: 2
             bridge: {}
-        machine:
-          type: ""
-        resources:
-          requests:
-            memory: 8192M
+#       features:
+#         smm:
+#           enabled: true
+#       firmware:
+#         bootloader:
+#           efi:
+#             secureBoot: true
+      hostname: fedora
       networks:
       - name: eth0
         multus:
@@ -39,21 +65,24 @@ spec:
           cloudInitNoCloud:
             userData: |-
               #!/bin/bash -x
-              echo "passwd" | passwd root --stdin
               echo "fedora" | passwd fedora --stdin
-              mkdir -p /home/fedora/.ssh
+              mkdir /home/fedora/.ssh
               touch /home/fedora/.ssh/authorized_keys
-              curl -L https://github.com/usrbinkat.keys | tee -a /home/fedora/.ssh/authorized_keys
-              chown fedora:fedora /home/fedora/.ssh
-              chown fedora:fedora /home/fedora/.ssh/authorized_keys
               chmod 600 /home/fedora/.ssh/authorized_keys
+              chown fedora:fedora -R /home/fedora/.ssh
+              curl -L https://github.com/usrbinkat.keys | tee -a /home/fedora/.ssh/authorized_keys
               sudo grubby --update-kernel=ALL --args 'cgroup_memory=1 cgroup_enable=cpuset cgroup_enable=memory systemd.unified_cgroup_hierarchy=0 intel_iommu=on iommu=pt rd.driver.pre=vfio-pci pci=realloc'
-              sudo dnf -y install openssh-server qemu-guest-agent @virtualization lnav tmux vi vim
-              sudo dnf -y groupinstall "Container Management"
+              sudo systemctl start qemu-guest-agent
+              sudo dnf -y install qemu-guest-agent 
               sudo systemctl enable --now qemu-guest-agent
-              sudo systemctl enable --now libvirtd
-              sudo systemctl enable --now sshd
+              sudo dnf -y install openssh-server @virtualization tmux vi vim lnav htop neofetch
               sudo echo 'unix_sock_group = "libvirt"' > /etc/libvirt/libvirtd.conf
               sudo echo 'unix_sock_rw_perms = "0770"' > /etc/libvirt/libvirtd.conf
+              sudo systemctl enable --now libvirtd
+              sudo systemctl restart libvirtd
+              sudo systemctl enable --now sshd
               sudo usermod -aG libvirt fedora
+              sudo dnf -y groupinstall "Container Management"
               sudo dnf update -y
+              sudo grubby --update-kernel=ALL --args 'cgroup_memory=1 cgroup_enable=cpuset cgroup_enable=memory systemd.unified_cgroup_hierarchy=0 intel_iommu=on iommu=pt rd.driver.pre=vfio-pci pci=realloc'
+              sudo reboot

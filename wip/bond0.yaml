@@ -4,7 +4,7 @@
 apiVersion: nmstate.io/v1beta1
 kind: NodeNetworkConfigurationPolicy
 metadata:
-  name: bond
+  name: kargo-nncp-bond0
 spec:
   nodeSelector:
     node-role.kubernetes.io/kubevirt: ""
@@ -34,7 +34,7 @@ spec:
 apiVersion: nmstate.io/v1beta1
 kind: NodeNetworkConfigurationPolicy
 metadata:
-  name: linux-bridge
+  name: kargo-nncp-br0
 spec:
   nodeSelector:
     node-role.kubernetes.io/kubevirt: ""
@@ -57,11 +57,12 @@ spec:
         port:
         - name: bond0
         - name: eno2np1
+        - name: enp28s0f1
 ---
 apiVersion: k8s.cni.cncf.io/v1
 kind: NetworkAttachmentDefinition
 metadata:
-  name: br0
+  name: kargo-net-attach-def-br0
   namespace: kargo
 spec:
   config: >

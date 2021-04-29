@@ -124,11 +124,11 @@ spec:
           sockets: 2
           dedicatedCpuPlacement: false
           model: host-model
-        machine:
-          type: pc-q35-rhel8.2.0
         resources:
           requests:
             memory: 16Gi
+        machine:
+          type: pc-q35-rhel8.2.0
         devices:
           autoattachPodInterface: false
           autoattachSerialConsole: true
