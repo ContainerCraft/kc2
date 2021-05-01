@@ -9,6 +9,11 @@ spec:
   nodeSelector:
     node-role.kubernetes.io/kubevirt: ""
   desiredState:
+#   routes:
+#     config:
+#     - destination: 0.0.0.0/0
+#       next-hop-address: 10.0.0.1
+#       next-hop-interface: br0
     interfaces:
     - name: bond0
       type: bond
@@ -39,6 +44,11 @@ spec:
   nodeSelector:
     node-role.kubernetes.io/kubevirt: ""
   desiredState:
+    dns-resolver:
+      config:
+        server:
+        - 8.8.8.8
+        - 8.8.4.4
     interfaces:
     - name: br0
       description: Linux bridge with bond0 as a port
@@ -48,11 +58,14 @@ spec:
         dhcp: false
         enabled: false
       ipv4:
-        dhcp: false
+        dhcp: true
         enabled: true
         address:
         - ip: 10.0.0.3
           prefix-length: 24
+        auto-gateway: true
+        auto-routes: true
+        auto-dns: false
       bridge:
         options:
           stp:

@@ -55,7 +55,7 @@ spec:
       networks:
       - name: eth0
         multus:
-          networkName: br0
+          networkName: kargo-net-attach-def-br0
       terminationGracePeriodSeconds: 0
       volumes:
         - name: containerdisk

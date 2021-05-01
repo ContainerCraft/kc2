@@ -76,6 +76,8 @@ spec:
               sudo systemctl enable --now sshd
               sudo growpart /dev/vda 1
               sudo apt-get upgrade -y
+
+
 #             #!/bin/bash -x
 #             echo "fedora" | passwd fedora --stdin
 #             mkdir /home/fedora/.ssh
