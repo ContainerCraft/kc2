@@ -2,7 +2,8 @@
 apiVersion: kubevirt.io/v1alpha3
 kind: VirtualMachine
 metadata:
-  name: qubo-test
+  name: qubo
+  namespace: kargo
 spec:
   running: true
   template:
@@ -16,30 +17,24 @@ spec:
           threads: 1
           cores: 1
           dedicatedCpuPlacement: false
-          model: host-model
-         #model: host-passthrough
+         #model: host-model
+          model: host-passthrough
         resources:
           requests:
             memory: 2Gi
+        machine:
+          type: ""
         devices:
           autoattachPodInterface: false
           autoattachSerialConsole: true
           autoattachGraphicsDevice: true
+          networkInterfaceMultiqueue: true
           rng: {}
-#         interfaces:
-#         - name: default
-#           masquerade: {}
+          interfaces:
+          - name: default
+            masquerade: {}
 #         - name: eth0
 #           bridge: {}
-#       machine:
-#         type: ""
-#     networks:
-#     - name: default
-#       pod: {}
-#     - name: eth0
-#       multus:
-#         networkName: br0
-#         networkInterfaceMultiqueue: true
           disks:
             - name: containerdisk
               disk:
@@ -47,6 +42,12 @@ spec:
             - name: cloudinitdisk
               disk:
                 bus: virtio
+      networks:
+      - name: default
+        pod: {}
+#     - name: eth0
+#       multus:
+#         networkName: br0
       volumes:
         - name: containerdisk
           containerDisk:
