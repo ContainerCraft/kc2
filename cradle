@@ -1,0 +1,133 @@
+#!/usr/bin/env python3
+# ./cradle --image-name registry.com/namespace/rhel --image-tag 8.2 --cradle-image scratch --image-file ./images/rhel-8.2.x86_64.qcow2
+
+import os
+import sys
+import gzip
+import shutil
+import pathlib
+import tempfile
+import argparse
+import subprocess
+import urllib.request
+from datetime import datetime
+
+# Define Mandatory & Optional CLI Flags
+parser = argparse.ArgumentParser(
+    description='KubeVirt Image Cradle Builder to generate OpenShift Virtualization compatible qcow2 import images')
+parser.add_argument(
+    "--image-name",
+    default="localhost/cradle",
+    help="Name of cradle image",
+    metavar="registry.com/namespace/image-name",
+    required=False)
+parser.add_argument(
+    "--image-tag",
+    default="latest",
+    help="Image tag",
+    metavar="IMAGE_TAG",
+    required=False)
+parser.add_argument(
+    "--build-path",
+    default=("/tmp/cradle"),
+    help="Container build context global path",
+    required=False)
+parser.add_argument(
+    "--cradle-image",
+    help="Name of cradle image",
+    default="registry.access.redhat.com/ubi8/ubi",
+    required=False)
+
+
+group = parser.add_mutually_exclusive_group(
+    required=True)
+group.add_argument(
+    "--image-url",
+    help="qcow image url",
+    metavar="https://FQDN/URI/image.qcow2.gz",
+    default="",
+    required=False)
+group.add_argument(
+    "--image-file",
+    help="qcow image path",
+    metavar="/global/path/to/image.qcow2",
+    default="",
+    required=False)
+
+
+# Parse cli arguments
+args                     = parser.parse_args()
+
+
+# Base Variables
+rundate                  = datetime.now()
+datetimestr              = rundate.strftime("%Y%m%d%H%M%S")
+cradle_name              = args.image_name
+cradle_tag               = args.image_tag
+build_path               = args.build_path
+container_context        = (args.build_path + "/" + datetimestr)
+qcow2_staging_path       = (container_context + "/rootfs/disk/image.qcow2")
+docker_file              = ("FROM " + args.cradle_image + "\n" + "ADD " + "./rootfs /")
+container_build_cmd      = "podman build --isolation='chroot'"
+
+
+# Create temp cradle build directory tree
+def StageBuildTree(args, container_context):
+    try:
+        os.makedirs(container_context + "/rootfs/disk", exist_ok=True)
+    except OSError:
+        print ("Failed to create container context directory: %container_context " % container_context)
+    else:
+        print( ">> Created Build Context: " + container_context )
+    f = open(container_context + '/Dockerfile', 'w')
+    f.write(docker_file)
+    f.close()
+
+
+# Stage Qcow2 Image File
+def StageImageFile(args, container_context):
+    print( ">> Staging Image File: " + args.image_file )
+    shutil.copy(args.image_file, qcow2_staging_path)
+
+
+
+# Download Image from URL
+def DownloadImageFile(args, qcow2_staging_path):
+    download_url = (args.image_url)
+    print( ">> Downloading Image: " + args.image_url )
+    try:
+        with urllib.request.urlopen(download_url) as image_gzip:
+            with gzip.GzipFile(fileobj=image_gzip) as archive:
+                archive_content = archive.read()
+            with open(qcow2_staging_path, 'wb') as image:
+                image.write(archive_content)
+                return 0
+    except Exception as e:
+        print(e)
+        return 1
+
+
+# Build Disk Image Cradle Container
+def PodmanBuildCradle(container_build_cmd, cradle_name, cradle_tag, container_context):
+    dockerfile = (container_context + "/Dockerfile")
+    build_cmd  = (container_build_cmd + " -f " + dockerfile + " -t " + cradle_name + ":" + cradle_tag + " " + container_context)
+    os.chdir(container_context)
+    print(">> Executing build: \n>>     " + build_cmd)
+    subprocess.run( build_cmd,
+        env=dict(os.environ, STORAGE_DRIVER="overlay"),
+        shell=True, check=True, cwd=container_context
+    )
+
+
+def main():
+    print( ">> Automated KubeVirt Qcow2 Image Cradle Container Builder" )
+    StageBuildTree(args, container_context)
+    if args.image_url != "":
+      DownloadImageFile(args, qcow2_staging_path)
+    if args.image_file != "":
+      StageImageFile(args, qcow2_staging_path)
+    PodmanBuildCradle(container_build_cmd, cradle_name, cradle_tag, container_context)
+
+
+if __name__ == "__main__":
+    main()
