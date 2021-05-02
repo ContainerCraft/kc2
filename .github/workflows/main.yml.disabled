@@ -42,3 +42,7 @@ jobs:
     - name: Push Fedora Cradle
       run: |
         podman push quay.io/containercraft/fedora:34
+        
+    - name: Cleanup
+      run: |
+        rm -rf /tmp/cradle /tmp/*qcow*
