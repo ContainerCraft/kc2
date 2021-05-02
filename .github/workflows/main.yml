@@ -63,7 +63,7 @@ jobs:
       run: |
         set -ex ;\
         podman push quay.io/containercraft/fedora:34 ;\
-        podman push docker://sudo virt-sysprep -a /tmp/fedora.qcow2 --password fedora:password:fedora docker://quay.io/containercraft/fedora:latest ;\
+        podman push docker://quay.io/containercraft/fedora:34 docker://quay.io/containercraft/fedora:latest ;\
         echo;
         
     - name: Cleanup

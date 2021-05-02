@@ -60,14 +60,16 @@ spec:
       volumes:
         - name: containerdisk
           containerDisk:
-            image: quay.io/containercraft/fedora:34
+            image: quay.io/containercraft/fedora:latest
+           #image: quay.io/containercraft/fedora:34
         - name: cloudinitdisk
           cloudInitNoCloud:
             userData: |-
               #!/bin/bash -x
-              echo "fedora" | passwd fedora --stdin
               mkdir /home/fedora/.ssh
               touch /home/fedora/.ssh/authorized_keys
               chmod 600 /home/fedora/.ssh/authorized_keys
               chown fedora:fedora -R /home/fedora/.ssh
               curl -L https://github.com/usrbinkat.keys | tee -a /home/fedora/.ssh/authorized_keys
+              reboot
+              #echo "fedora" | passwd fedora --stdin
