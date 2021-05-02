@@ -23,7 +23,7 @@ jobs:
     - name: Install Dependencies
       run: |
         set -ex ;\
-        apt install -y \
+        sudo apt-get install -y \
             libguestfs-tools \
         ;echo;
 
