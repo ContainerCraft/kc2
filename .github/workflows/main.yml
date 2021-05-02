@@ -44,7 +44,7 @@ jobs:
         set -ex ;\
         curl --output /tmp/fedora.qcow2 -L "https://download.fedoraproject.org/pub/fedora/linux/releases/34/Cloud/x86_64/images/Fedora-Cloud-Base-34-1.2.x86_64.qcow2" ;\
         qemu-img resize /tmp/fedora.qcow2 +22G ;\
-        sudo virt-customize -a /tmp/fedora.qcow2 --run-command "dnf update -y && dnf upgrade -y"
+        sudo virt-customize -a /tmp/fedora.qcow2 --run-command "dnf update -y && dnf upgrade -y" ;\
         sudo virt-customize -a /tmp/fedora.qcow2 --install 'tmux,git,vim,net-tools,qemu-guest-agent' ;\
         sudo virt-customize -a /tmp/fedora.qcow2 --run-command "dnf clean all && rm -rf /var/cache/dnf" ;\
         sudo virt-customize -a /tmp/fedora.qcow2 --run-command 'systemctl enable qemu-guest-agent' ;\
@@ -59,7 +59,10 @@ jobs:
 
     - name: Push Fedora Cradle
       run: |
-        podman push quay.io/containercraft/fedora:34
+        set -ex ;\
+        podman push quay.io/containercraft/fedora:34 ;\
+        podman push quay.io/containercraft/fedora:latest ;\
+        echo;
         
     - name: Cleanup
       run: |
