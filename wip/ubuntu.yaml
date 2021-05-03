@@ -13,21 +13,18 @@ spec:
       nodeSelector:
         node-role.kubernetes.io/kubevirt: ""
       domain:
-       #clock:
-       #  utc: {}
-       # #timezone: "America/Los Angeles"
         cpu:
           sockets: 8
           threads: 1
           cores: 1
           dedicatedCpuPlacement: false
           model: host-passthrough
-         #model: host-model
         resources:
           requests:
             memory: 16Gi
-#       machine:
-#         type: pc-q35-rhel8.2.0
+            devices.kubevirt.io/kvm: "1"
+        machine:
+          type: pc-q35
         devices:
           autoattachPodInterface: false
           autoattachSerialConsole: true
@@ -36,7 +33,7 @@ spec:
           rng: {}
           disks:
             - name: containerdisk
-#             bootOrder: 1
+              bootOrder: 1
               disk:
                 bus: virtio
             - name: cloudinitdisk
@@ -45,17 +42,17 @@ spec:
           interfaces:
           - name: eth0
             model: virtio
+            bootOrder: 2
             bridge: {}
-#           bootOrder: 2
-#       features:
-#         smm:
-#           enabled: true
-#       firmware:
+        features:
+          smm:
+            enabled: true
+        firmware:
 #         uuid: 5d307ca9-b3ef-428c-8861-06e72d69f223
 #         serial: e4686d2c-6e8d-4335-b8fd-81bee22f4815
-#         bootloader:
-#           efi:
-#             secureBoot: true
+          bootloader:
+            efi:
+              secureBoot: true
       hostname: ubuntu
       networks:
       - name: eth0
@@ -66,22 +63,43 @@ spec:
         - name: containerdisk
           containerDisk:
             image: quay.io/containercraft/ubuntu:21.04
+            imagePullPolicy: Always
         - name: cloudinitdisk
           cloudInitNoCloud:
-            userData: |-
-              #!/bin/bash -x
-              echo 'ubuntu:ubuntu'|chpasswd
-              echo 'root:ubuntu'|chpasswd
-              mkdir -p /home/ubuntu/.ssh
-              touch /home/ubuntu/.ssh/authorized_keys
-              curl -L https://github.com/usrbinkat.keys | tee -a /home/ubuntu/.ssh/authorized_keys
-              chown ubuntu:ubuntu /home/ubuntu/.ssh
-              chown ubuntu:ubuntu /home/ubuntu/.ssh/authorized_keys
-              chmod 600 /home/ubuntu/.ssh/authorized_keys
-              sudo apt-get update -y
-              sudo apt-get -y --install-recommends install qemu-guest-agent
-              sudo systemctl enable --now qemu-guest-agent
-              sudo apt-get -y install cloud-initramfs-growroot openssh-server runc podman tmux vim lnav htop neofetch
-              sudo systemctl enable --now sshd
-              sudo growpart /dev/vda 1
-              sudo apt-get upgrade -y
+            userData: |
+              #cloud-config
+              version: 2
+              ethernets:
+                eth0:
+                  dhcp4: false
+                  dhcp6: false
+                  addresses:
+                    - 10.0.0.15/24
+                  gateway4: 10.0.0.1
+                  nameservers:
+                  addresses:
+                    - 8.8.8.8
+                    - 8.8.4.4
+                  search: kargo.lab
+              ssh_pwauth: true
+              chpasswd:
+                list: |
+                   ubuntu:ubuntu
+                expire: False
+              users:
+                - default
+                - name: usrbinkat
+                  sudo: ['ALL=(ALL) NOPASSWD:ALL']
+                  groups: sudo
+                  shell: /bin/bash
+                  ssh-authorized-keys:
+                    - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAAB/zPcAdyHRElufWDNQ1mZUWp4V9jDmaWX35ApsXgxfMHBuz3n8VLGVJuXodAAxeRbbE7Rws8BQcCH4DAMKKLHYZRdJtk3ZUw7rm0i/aq0wkeld7Yp6H/fv1ud3mudp7/+3fQ3gV8RmAO8+FS4jNBMciqtY6mWThKciwnkBWmH5atl6GsZ1ZQ+Y8+W4hXnaF6UEU1+xZ8ja+hu81a9fhejcV+m3RwT511kW5IXDe6wkq9tsIEC529VGI7XuySYvusbchivWYxmE+TBMmId3voGCfkl8hIemUG3/LvQWeK95B/6vBKDCFlmABn60zxrjPkdknWPbu4zg+VJWnslX+rDqSe2cBpHqQ8yDxegPcmXNKv2Qp0h8HhEljWoLc4U5x4hlceDraWBehj8i4N6p+Yt678+jUpOCwGC8z9l+zUrG6NPvbHZ2aIBC3eUteYPtmScNLvOiFASPo/9GQQDNqZclQZf5QGDToAV2rV1B4jJPV8fv/1rlgen6O1PNitKo9FlUfr0WA1IXev6CiJUt4x210BzhTlD84S2A0gHJRbeVVkjWKMx/vo/wqEKTg/vvzSOhFDDlKUxSsguL5rrtOxdGj4sUtjeVRuDjwk1u1DH8P75rI0R/1QaeDixJbRi8Q1315z+MrvJuvzJpMTieldqffNUnexMZcFox8yI8KlVt2U= kmorgan@mprcs.braincraft.io
+              hostname: kargo-ubuntu
+              runcmd:
+                - echo $(date) > /tmp/complete
+                - chmod 777 /tmp/complete
+
+#                 routes:
+#                   - to: 0.0.0.0/0
+#                     via: 10.0.0.1
+#                     metric: 3
