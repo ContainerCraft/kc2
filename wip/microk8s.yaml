@@ -17,9 +17,9 @@ spec:
           utc: {}
           timer: {}
         cpu:
-          sockets: 2
-          threads: 2
-          cores: 4
+          sockets: 8
+          threads: 1
+          cores: 1
           model: host-passthrough
           dedicatedCpuPlacement: false
         resources:
