@@ -81,7 +81,7 @@ spec:
                     - 8.8.8.8
                     - 8.8.4.4
                     search:
-                    - kargo.lab
+                    - microk8s.lab
             userData: |
               #cloud-config
               ssh_pwauth: true
