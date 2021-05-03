@@ -70,18 +70,6 @@ spec:
             networkData: |
               version: 2
               ethernets:
-                eth0:
-                  addresses:
-                    - 10.0.0.14/24
-                  dhcp4: false
-                  dhcp6: false
-                  gateway4: 10.0.0.1
-                  nameservers:
-                    addresses:
-                    - 8.8.8.8
-                    - 8.8.4.4
-                    search:
-                    - kargo.lab
                 enp1s0:
                   addresses:
                     - 10.0.0.14/24
