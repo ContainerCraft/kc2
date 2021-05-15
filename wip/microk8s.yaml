@@ -43,7 +43,7 @@ spec:
               disk:
                 bus: virtio
           interfaces:
-          - name: eth0
+          - name: enp1s0
             model: virtio
             bootOrder: 2
             bridge: {}
@@ -56,7 +56,7 @@ spec:
               secureBoot: false
       hostname: microk8s
       networks:
-      - name: eth0
+      - name: enp1s0
         multus:
           networkName: kargo-net-attach-def-br0
       terminationGracePeriodSeconds: 0
@@ -81,7 +81,7 @@ spec:
                     - 8.8.8.8
                     - 8.8.4.4
                     search:
-                    - kargo.lab
+                    - microk8s.lab
             userData: |
               #cloud-config
               ssh_pwauth: true
