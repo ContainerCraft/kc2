@@ -2,10 +2,10 @@
 apiVersion: kubevirt.io/v1alpha3
 kind: VirtualMachine
 metadata:
-  name: microk8s
+  name: kargo
   namespace: kargo
   labels:
-    app: microk8s
+    app: kargo
 spec:
   running: true
   template:
@@ -54,7 +54,7 @@ spec:
           bootloader:
             efi:
               secureBoot: false
-      hostname: microk8s
+      hostname: kargo
       networks:
       - name: eth0
         multus:
@@ -72,7 +72,7 @@ spec:
               ethernets:
                 enp1s0:
                   addresses:
-                    - 10.0.0.14/24
+                    - 10.0.0.16/24
                   dhcp4: false
                   dhcp6: false
                   gateway4: 10.0.0.1
@@ -84,40 +84,26 @@ spec:
                     - kargo.lab
             userData: |
               #cloud-config
+              hostname: kargo
               ssh_pwauth: true
               chpasswd:
                 list: |
                    ubuntu:ubuntu
                 expire: False
-              users:
-                - default
-                - name: usrbinkat
-                  sudo: ['ALL=(ALL) NOPASSWD:ALL']
-                  groups: sudo
-                  shell: /bin/bash
-                  ssh-authorized-keys:
-                    - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAAB/zPcAdyHRElufWDNQ1mZUWp4V9jDmaWX35ApsXgxfMHBuz3n8VLGVJuXodAAxeRbbE7Rws8BQcCH4DAMKKLHYZRdJtk3ZUw7rm0i/aq0wkeld7Yp6H/fv1ud3mudp7/+3fQ3gV8RmAO8+FS4jNBMciqtY6mWThKciwnkBWmH5atl6GsZ1ZQ+Y8+W4hXnaF6UEU1+xZ8ja+hu81a9fhejcV+m3RwT511kW5IXDe6wkq9tsIEC529VGI7XuySYvusbchivWYxmE+TBMmId3voGCfkl8hIemUG3/LvQWeK95B/6vBKDCFlmABn60zxrjPkdknWPbu4zg+VJWnslX+rDqSe2cBpHqQ8yDxegPcmXNKv2Qp0h8HhEljWoLc4U5x4hlceDraWBehj8i4N6p+Yt678+jUpOCwGC8z9l+zUrG6NPvbHZ2aIBC3eUteYPtmScNLvOiFASPo/9GQQDNqZclQZf5QGDToAV2rV1B4jJPV8fv/1rlgen6O1PNitKo9FlUfr0WA1IXev6CiJUt4x210BzhTlD84S2A0gHJRbeVVkjWKMx/vo/wqEKTg/vvzSOhFDDlKUxSsguL5rrtOxdGj4sUtjeVRuDjwk1u1DH8P75rI0R/1QaeDixJbRi8Q1315z+MrvJuvzJpMTieldqffNUnexMZcFox8yI8KlVt2U= kmorgan@mprcs.braincraft.io
-              hostname: microk8s
               runcmd:
                 - "systemctl enable iscsid"
                 - "snap install microk8s --classic --channel=1.21/edge"
-                - "snap install kubectl  --classic --channel=1.21/edge"
-                - "microk8s status --wait-ready"
                 - "microk8s.enable dns"
+                - "microk8s kubectl create namespace kargo"
+                - "microk8s kubectl label nodes --all node-role.kubernetes.io/worker=''"
+                - "microk8s kubectl label nodes --all node-role.kubernetes.io/kubevirt=''"
+                - "microk8s kubectl kustomize https://github.com/ContainerCraft/Kargo.git | microk8s kubectl apply -f -"
                 - "microk8s status --wait-ready"
-                - "microk8s.enable dashboard"
-                - "microk8s status --wait-ready"
-                - "microk8s.enable helm3"
-                - "microk8s status --wait-ready"
-                - "microk8s.enable metallb:10.0.0.5-10.0.0.9"
-                - "microk8s status --wait-ready"
-                - "microk8s.enable openebs"
-                - "microk8s status --wait-ready"
-                - "microk8s.enable prometheus"
-                - "microk8s status --wait-ready"
-                - "microk8s.enable rbac"
-                - "microk8s status --wait-ready"
-                - "mkdir -p /home/usrbinkat/.kube"
-                - "microk8s kubectl config view --raw | sed 's/127.0.0.1/10.0.0.14/g' | tee /home/usrbinkat/.kube/config"
-                - "chown -R usrbinkat:usrbinkat /home/usrbinkat"
-#               - kubectl patch storageclass hostpath-provisioner -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
+                - "microk8s kubectl kustomize https://github.com/ContainerCraft/Kargo.git | microk8s kubectl apply -f -"
+                - "echo R1JVQl9ERUZBVUxUPTAKR1JVQl9USU1FT1VUPTAKR1JVQl9USU1FT1VUX1NUWUxFPWhpZGRlbgpHUlVCX0RJU1RSSUJVVE9SPWBsc2JfcmVsZWFzZSAtaSAtcyAyPiAvZGV2L251bGwgfHwgZWNobyBEZWJpYW5gCkdSVUJfQ01ETElORV9MSU5VWD0nY2dyb3VwX21lbW9yeT0xIGNncm91cF9lbmFibGU9Y3B1c2V0IGNncm91cF9lbmFibGU9bWVtb3J5IHN5c3RlbWQudW5pZmllZF9jZ3JvdXBfaGllcmFyY2h5PTAgaW50ZWxfaW9tbXU9b24gaW9tbXU9cHQgcmQuZHJpdmVyLnByZT12ZmlvLXBjaSBwY2k9cmVhbGxvYycK | base64 -d > /etc/default/grub"
+                - "update-grub"
+                - "usermod -a -G microk8s ubuntu"
+                - "chown -f -R ubuntu /home/ubuntu"
+                - "sleep 30"
+                - "reboot"
+#               - "microk8s kubectl config view --raw | sed 's/127.0.0.1/10.0.0.16/g' | tee /home/usrbinkat/.kube/config"
