@@ -1,11 +1,12 @@
 ---
+# https://github.com/kubevirt/kubevirt/blob/master/docs/cloud-init.md
 apiVersion: kubevirt.io/v1alpha3
 kind: VirtualMachine
 metadata:
-  name: ubuntu-n01
+  name: test
   namespace: kargo
   labels:
-    app: ubuntu
+    app: test
 spec:
   running: true
   template:
@@ -13,53 +14,49 @@ spec:
       nodeSelector:
         node-role.kubernetes.io/kubevirt: ""
       domain:
-        clock:
-          timer: {}
-          utc: {}
-          #timezone: "America/Los Angeles"
         cpu:
           sockets: 2
-          threads: 2
-          cores: 4
-          model: host-passthrough
+          threads: 1
+          cores: 1
           dedicatedCpuPlacement: false
+          model: host-passthrough
         resources:
           requests:
+            memory: 2Gi
             devices.kubevirt.io/kvm: "1"
-            memory: 16Gi
         machine:
-          type: pc-q35-rhel8.2.0
-        devices:
-          autoattachPodInterface: false
-          autoattachSerialConsole: true
-          autoattachGraphicsDevice: true
-          networkInterfaceMultiqueue: true
-          rng: {}
-          disks:
-            - name: containerdisk
-              bootOrder: 1
-              disk:
-                bus: virtio
-            - name: cloudinitdisk
-              disk:
-                bus: virtio
-          interfaces:
-          - name: eth0
-            model: virtio
-            bootOrder: 2
-            bridge: {}
+          type: q35
         features:
           smm:
             enabled: true
         firmware:
           bootloader:
             efi:
-              secureBoot: false
-      hostname: ubuntu
+              secureBoot: true
+        clock:
+          utc: {}
+          timer: {}
+        devices:
+          rng: {}
+          autoattachPodInterface: false
+          autoattachSerialConsole: true
+          autoattachGraphicsDevice: true
+          networkInterfaceMultiqueue: false
+          disks:
+            - name: cloudinitdisk
+              disk:
+                bus: virtio
+            - name: containerdisk
+              disk:
+                bus: virtio
+          interfaces:
+          - name: eth0
+            model: virtio
+            masquerade: {}
       networks:
       - name: eth0
-        multus:
-          networkName: kargo-net-attach-def-br0
+        pod: {}
+      hostname: test
       terminationGracePeriodSeconds: 0
       volumes:
         - name: containerdisk
@@ -104,7 +101,7 @@ spec:
                 expire: False
               users:
                 - default
-                - name: usrbinkat
+                - name: ubuntu
                   sudo: ['ALL=(ALL) NOPASSWD:ALL']
                   groups: sudo
                   shell: /bin/bash
@@ -113,3 +110,4 @@ spec:
               hostname: ubuntu
               runcmd:
                 - echo $(date) > /tmp/complete
+                - chown ubuntu:ubuntu /tmp/complete

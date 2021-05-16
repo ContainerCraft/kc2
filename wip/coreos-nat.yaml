@@ -23,6 +23,7 @@ spec:
         resources:
           requests:
             memory: 16Gi
+            devices.kubevirt.io/kvm: "1"
         machine:
           type: pc-q35-rhel8.2.0
         features:
@@ -32,12 +33,15 @@ spec:
           bootloader:
             efi:
               secureBoot: true
+        clock:
+          utc: {}
+          timer: {}
         devices:
+          rng: {}
           autoattachPodInterface: false
           autoattachSerialConsole: true
           autoattachGraphicsDevice: true
           networkInterfaceMultiqueue: true
-          rng: {}
           disks:
             - name: containerdisk
               disk:
@@ -49,13 +53,7 @@ spec:
           - name: eth0
             model: virtio
             masquerade: {}
-#         - name: eth1
-#           multus:
-#           networkName: br0
       networks:
-#     - name: eth1
-#       multus:
-#         networkName: br0
       - name: eth0
         pod: {}
       hostname: coreos
