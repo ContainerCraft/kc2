@@ -9,13 +9,13 @@ spec:
   nodeSelector:
     node-role.kubernetes.io/kubevirt: ""
   desiredState:
-#   routes:
-#     config:
-#     - destination: 0.0.0.0/0
-#       state: absent
-#     - destination: 0.0.0.0/0
-#       next-hop-address: 10.0.0.1
-#       next-hop-interface: br0
+    routes:
+      config:
+      - destination: 0.0.0.0/0
+        state: absent
+      - destination: 0.0.0.0/0
+        next-hop-address: 10.0.0.1
+        next-hop-interface: br0
     interfaces:
     - name: bond0
       type: bond
@@ -32,70 +32,8 @@ spec:
           miimon: '140'
         slaves:
         - eno1np0
-#       - eno2np1
-#       - ens2f0
-#       - ens2f1
-#       - eth2
-#       - eth3
----
-apiVersion: nmstate.io/v1beta1
-kind: NodeNetworkConfigurationPolicy
-metadata:
-  name: kargo-nncp-br0
-spec:
-  nodeSelector:
-    node-role.kubernetes.io/kubevirt: ""
-  desiredState:
-    dns-resolver:
-      config:
-        server:
-        - 8.8.8.8
-        - 8.8.4.4
-    interfaces:
-    - name: br0
-      description: Linux bridge with bond0 as a port
-      type: linux-bridge
-      state: up
-      ipv6:
-        dhcp: false
-        enabled: false
-      ipv4:
-        dhcp: true
-        enabled: true
-        address:
-        - ip: 10.0.0.3
-          prefix-length: 24
-        auto-gateway: true
-        auto-routes: true
-        auto-dns: false
-      bridge:
-        options:
-          stp:
-            enabled: true
-        port:
-        - name: bond0
-        - name: eno2np1
-        - name: enp28s0f0
-        - name: enp28s0f1
----
-apiVersion: k8s.cni.cncf.io/v1
-kind: NetworkAttachmentDefinition
-metadata:
-  name: kargo-net-attach-def-br0
-  namespace: kargo
-spec:
-  config: >
-    {
-        "cniVersion": "0.3.1",
-        "name": "br0",
-        "plugins": [
-            {
-                "type": "bridge",
-                "bridge": "br0",
-                "ipam": {}
-            },
-            {
-                "type": "tuning"
-            }
-        ]
-    }
+        - eno2np1
+        - ens2f0
+        - ens2f1
+        - eth2
+        - eth3
