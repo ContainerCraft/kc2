@@ -72,7 +72,7 @@ spec:
               ethernets:
                 enp1s0:
                   addresses:
-                    - 10.0.0.14/24
+                    - 10.0.0.15/24
                   dhcp4: false
                   dhcp6: false
                   gateway4: 10.0.0.1
@@ -109,4 +109,6 @@ spec:
                 - "mkdir -p /home/ubuntu/.kube"
                 - "microk8s kubectl config view --raw | sed 's/127.0.0.1/10.0.0.14/g' | tee /home/ubuntu/.kube/config"
                 - "chown -R ubuntu:ubuntu /home/ubuntu"
+                - "sudo usermod -a -G microk8s ubuntu"
+                - "sudo chown -f -R ubuntu ~/.kube"
 #               - kubectl patch storageclass openebs-hostpath -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
