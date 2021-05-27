@@ -1,0 +1,46 @@
+---
+apiVersion: nmstate.io/v1beta1
+kind: NodeNetworkConfigurationPolicy
+metadata:
+  name: kargo-nncp-br0
+spec:
+  nodeSelector:
+    node-role.kubernetes.io/kubevirt: ""
+  desiredState:
+    routes:
+      config:
+      - destination: 0.0.0.0/0
+        next-hop-interface: br0
+        next-hop-address: 10.0.0.1
+    interfaces:
+    - name: br0
+      description: Linux bridge with bond0 as a port
+      type: linux-bridge
+      state: up
+      ipv6:
+        dhcp: false
+        enabled: false
+      ipv4:
+        dhcp: false
+        enabled: true
+        address:
+        - ip: 10.0.0.3
+          prefix-length: 24
+        - ip: 10.0.0.75
+          prefix-length: 24
+        auto-gateway: true
+        auto-routes: true
+        auto-dns: false
+    dns-resolver:
+      config:
+        server:
+        - 8.8.4.4
+      bridge:
+        options:
+          stp:
+            enabled: true
+        port:
+        - name: eno1np0
+        - name: eno2np1
+        - name: enp28s0f0
+        - name: enp28s0f1
