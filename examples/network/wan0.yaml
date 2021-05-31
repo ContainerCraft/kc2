@@ -2,28 +2,27 @@
 apiVersion: nmstate.io/v1beta1
 kind: NodeNetworkConfigurationPolicy
 metadata:
-  name: kargo-nncp-edge-br0
+  name: kargo-nncp-wan0
 spec:
   nodeSelector:
     node-role.kubernetes.io/edge: ""
   desiredState:
     interfaces:
-    - description: Qotom Default Linux Bridge
-      name: br0
-      state: up
+    - name: wan0
+      description: Linux bridge wan0
       type: linux-bridge
+      state: up
       ipv6:
         dhcp: false
         enabled: false
+        auto-dns: false
       ipv4:
         dhcp: false
         enabled: false
+        auto-dns: false
       bridge:
         options:
           stp:
             enabled: false
         port:
-        - name: enp2s0
-        - name: enp3s0
-        - name: enp4s0
-        - name: enp5s0
+        - name: enp1s0
