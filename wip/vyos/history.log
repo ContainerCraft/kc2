@@ -1,0 +1,628 @@
+# https://docs.vyos.io/en/latest/configexamples/pppoe-ipv6-basic.html
+# https://blog.kroy.io/2020/05/04/vyos-from-scratch-edition-1/#WAN
+# https://www.flackbox.com/vyos-router-installation-configuration-tutorial
+# https://blog.vyos.io/dns-forwarding-in-vyos
+# https://docs.vyos.io/en/latest/quick-start.html#interface-configuration
+# https://docs.vyos.io/en/latest/quick-start.html
+# https://docs.vyos.io/en/latest/automation/cloud-init.html#config-sources
+
+set firewall all-ping 'enable'
+set firewall broadcast-ping 'disable'
+set firewall config-trap 'disable'
+set firewall ipv6-name OUTSIDE-6-IN default-action 'drop'
+set firewall ipv6-name OUTSIDE-6-IN rule 10 action 'accept'
+set firewall ipv6-name OUTSIDE-6-IN rule 10 state established 'enable'
+set firewall ipv6-name OUTSIDE-6-IN rule 10 state related 'enable'
+set firewall ipv6-name OUTSIDE-6-IN rule 20 action 'accept'
+set firewall ipv6-name OUTSIDE-6-IN rule 20 protocol 'ipv6-icmp'
+set firewall ipv6-name OUTSIDE-6-LOCAL default-action 'drop'
+set firewall ipv6-name OUTSIDE-6-LOCAL rule 10 action 'accept'
+set firewall ipv6-name OUTSIDE-6-LOCAL rule 10 state established 'enable'
+set firewall ipv6-name OUTSIDE-6-LOCAL rule 10 state related 'enable'
+set firewall ipv6-name OUTSIDE-6-LOCAL rule 20 action 'accept'
+set firewall ipv6-name OUTSIDE-6-LOCAL rule 20 description 'Allow DHCPv6'
+set firewall ipv6-name OUTSIDE-6-LOCAL rule 20 destination address 'fc00::/6'
+set firewall ipv6-name OUTSIDE-6-LOCAL rule 20 destination port '546'
+set firewall ipv6-name OUTSIDE-6-LOCAL rule 20 protocol 'udp'
+set firewall ipv6-name OUTSIDE-6-LOCAL rule 20 source address 'fc00::/6'
+set firewall ipv6-name OUTSIDE-6-LOCAL rule 21 action 'accept'
+set firewall ipv6-name OUTSIDE-6-LOCAL rule 21 description 'Allow MLD'
+set firewall ipv6-name OUTSIDE-6-LOCAL rule 21 protocol 'icmpv6'
+set firewall ipv6-name OUTSIDE-6-LOCAL rule 21 source address 'fe80::/10'
+set firewall ipv6-name OUTSIDE-6-LOCAL rule 22 action 'accept'
+set firewall ipv6-name OUTSIDE-6-LOCAL rule 22 description 'Allow ICMPv6'
+set firewall ipv6-name OUTSIDE-6-LOCAL rule 22 limit burst '1'
+set firewall ipv6-name OUTSIDE-6-LOCAL rule 22 limit rate '1000/second'
+set firewall ipv6-name OUTSIDE-6-LOCAL rule 22 protocol 'icmpv6'
+set firewall ipv6-receive-redirects 'disable'
+set firewall ipv6-src-route 'disable'
+set firewall ip-src-route 'disable'
+set firewall log-martians 'enable'
+set firewall name OUTSIDE-IN default-action 'drop'
+set firewall name OUTSIDE-IN rule 10 action 'accept'
+set firewall name OUTSIDE-IN rule 10 state established 'enable'
+set firewall name OUTSIDE-IN rule 10 state related 'enable'
+set firewall name OUTSIDE-LOCAL default-action 'drop'
+set firewall name OUTSIDE-LOCAL rule 10 action 'accept'
+set firewall name OUTSIDE-LOCAL rule 10 state established 'enable'
+set firewall name OUTSIDE-LOCAL rule 10 state related 'enable'
+set firewall name OUTSIDE-LOCAL rule 20 action 'accept'
+set firewall name OUTSIDE-LOCAL rule 20 icmp type-name 'echo-request'
+set firewall name OUTSIDE-LOCAL rule 20 protocol 'icmp'
+set firewall name OUTSIDE-LOCAL rule 20 state new 'enable'
+set firewall name OUTSIDE-LOCAL rule 32 action 'accept'
+set firewall name OUTSIDE-LOCAL rule 32 destination port '68'
+set firewall name OUTSIDE-LOCAL rule 32 protocol 'udp'
+set firewall receive-redirects 'disable'
+set firewall send-redirects 'enable'
+set firewall source-validation 'disable'
+set firewall syn-cookies 'enable'
+set firewall twa-hazards-protection 'disable'
+set interfaces ethernet eth0 address 'dhcp'
+set interfaces ethernet eth0 address 'dhcpv6'
+set interfaces ethernet eth0 dhcpv6-options prefix-delegation interface eth1
+sla-id '0'
+set interfaces ethernet eth0 dhcpv6-options prefix-delegation interface eth1
+sla-len '0'
+set interfaces ethernet eth0 firewall in ipv6-name 'OUTSIDE-6-IN'
+set interfaces ethernet eth0 firewall in name 'OUTSIDE-IN'
+set interfaces ethernet eth0 firewall local ipv6-name 'OUTSIDE-6-LOCAL'
+set interfaces ethernet eth0 firewall local name 'OUTSIDE-LOCAL'
+set interfaces ethernet eth0 hw-id 'xx:xx:xx:xx:xx:xx'
+set interfaces ethernet eth1 address '192.168.0.1/24'
+set interfaces ethernet eth1 hw-id 'xx:xx:xx:xx:xx:xx'
+set service router-advert interface eth1 name-server 'xx:xx:xx:xx:xx:xx'
+set service router-advert interface eth1 prefix ::/64
+    1  2021-06-01T16:05:54+0000 clear
+    2  2021-06-01T16:05:57+0000 configure
+    3  2021-06-01T16:06:30+0000 set interfaces ethernet eth0 address dhcp
+    4  2021-06-01T16:06:43+0000 set interfaces ethernet eth0 description 'WAN'
+    5  2021-06-01T16:07:35+0000 set interfaces ethernet eth1 address '192.168.1.1/24'
+    6  2021-06-01T16:08:08+0000 set interfaces ethernet eth2 address '10.0.0.1/24'
+    7  2021-06-01T16:08:18+0000 set interfaces ethernet eth1 description 'LAN'
+    8  2021-06-01T16:08:28+0000 set interfaces ethernet eth2 description 'DMZ'
+    9  2021-06-01T16:08:40+0000 set service ssh port '2022'
+   10  2021-06-01T16:08:45+0000 commit
+   11  2021-06-01T16:08:48+0000 save
+   12  2021-06-01T16:08:51+0000 clear
+   13  2021-06-01T16:08:53+0000 ip a
+   14  2021-06-01T16:09:08+0000 ip link set eth2 down
+   15  2021-06-01T16:09:10+0000 sudo !!
+   16  2021-06-01T16:09:14+0000 sudo ip link set eth2 down
+   17  2021-06-01T16:09:16+0000 ip a
+   18  2021-06-01T16:09:23+0000 clear
+   19  2021-06-01T16:09:26+0000 ping 10.0.0.1
+   20  2021-06-01T16:09:29+0000 ping google.com
+   21  2021-06-01T16:09:30+0000 clear
+   22  2021-06-01T16:09:34+0000 configure
+   23  2021-06-01T16:09:58+0000 set interfaces ethernet eth2 address '172.0.0.1/24'
+   24  2021-06-01T16:10:00+0000 commit
+   25  2021-06-01T16:10:02+0000 save
+   26  2021-06-01T16:10:04+0000 ip a
+   27  2021-06-01T16:11:04+0000 configure
+   28  2021-06-01T16:11:24+0000 delete address '10.0.0.1/24'
+   29  2021-06-01T16:11:48+0000 delete interfaces ethernet eth2 address '10.0.0.1/24'
+   30  2021-06-01T16:11:51+0000 commit
+   31  2021-06-01T16:11:52+0000 save
+   32  2021-06-01T16:11:54+0000 ip a
+   33  2021-06-01T16:11:56+0000 clear
+   34  2021-06-01T16:11:56+0000 ip a
+   35  2021-06-01T16:12:12+0000 ping 10.0.0.1
+   36  2021-06-01T16:12:22+0000 clear
+   37  2021-06-01T16:12:43+0000 clear
+   38  2021-06-01T16:13:12+0000 cat ~/.ssh/authorized_keys 
+   39  2021-06-01T16:13:24+0000 cat <<EOF >> ~/.ssh/authorized_keys 
+ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAAB/zPcAdyHRElufWDNQ1mZUWp4V9jDmaWX35ApsXgxfMHBuz3n8VLGVJuXodAAxeRbbE7Rws8BQcCH4DAMKKLHYZRdJtk3ZUw7rm0i/aq0wkeld7Yp6H/fv1ud3mudp7/+3fQ3gV8RmAO8+FS4jNBMciqtY6mWThKciwnkBWmH5atl6GsZ1ZQ+Y8+W4hXnaF6UEU1+xZ8ja+hu81a9fhejcV+m3RwT511kW5IXDe6wkq9tsIEC529VGI7XuySYvusbchivWYxmE+TBMmId3voGCfkl8hIemUG3/LvQWeK95B/6vBKDCFlmABn60zxrjPkdknWPbu4zg+VJWnslX+rDqSe2cBpHqQ8yDxegPcmXNKv2Qp0h8HhEljWoLc4U5x4hlceDraWBehj8i4N6p+Yt678+jUpOCwGC8z9l+zUrG6NPvbHZ2aIBC3eUteYPtmScNLvOiFASPo/9GQQDNqZclQZf5QGDToAV2rV1B4jJPV8fv/1rlgen6O1PNitKo9FlUfr0WA1IXev6CiJUt4x210BzhTlD84S2A0gHJRbeVVkjWKMx/vo/wqEKTg/vvzSOhFDDlKUxSsguL5rrtOxdGj4sUtjeVRuDjwk1u1DH8P75rI0R/1QaeDixJbRi8Q1315z+MrvJuvzJpMTieldqffNUnexMZcFox8yI8KlVt2U= kmorgan@mprcs.braincraft.io
+EOF
+
+   40  2021-06-01T16:13:51+0000 history >> history.log
+    1  2021-06-01T16:05:54+0000 clear
+    2  2021-06-01T16:05:57+0000 configure
+    3  2021-06-01T16:06:30+0000 set interfaces ethernet eth0 address dhcp
+    4  2021-06-01T16:06:43+0000 set interfaces ethernet eth0 description 'WAN'
+    5  2021-06-01T16:07:35+0000 set interfaces ethernet eth1 address '192.168.1.1/24'
+    6  2021-06-01T16:08:08+0000 set interfaces ethernet eth2 address '10.0.0.1/24'
+    7  2021-06-01T16:08:18+0000 set interfaces ethernet eth1 description 'LAN'
+    8  2021-06-01T16:08:28+0000 set interfaces ethernet eth2 description 'DMZ'
+    9  2021-06-01T16:08:40+0000 set service ssh port '2022'
+   10  2021-06-01T16:08:45+0000 commit
+   11  2021-06-01T16:08:48+0000 save
+   12  2021-06-01T16:08:51+0000 clear
+   13  2021-06-01T16:08:53+0000 ip a
+   14  2021-06-01T16:09:08+0000 ip link set eth2 down
+   15  2021-06-01T16:09:10+0000 sudo !!
+   16  2021-06-01T16:09:14+0000 sudo ip link set eth2 down
+   17  2021-06-01T16:09:16+0000 ip a
+   18  2021-06-01T16:09:23+0000 clear
+   19  2021-06-01T16:09:26+0000 ping 10.0.0.1
+   20  2021-06-01T16:09:29+0000 ping google.com
+   21  2021-06-01T16:09:30+0000 clear
+   22  2021-06-01T16:09:34+0000 configure
+   23  2021-06-01T16:09:58+0000 set interfaces ethernet eth2 address '172.0.0.1/24'
+   24  2021-06-01T16:10:00+0000 commit
+   25  2021-06-01T16:10:02+0000 save
+   26  2021-06-01T16:10:04+0000 ip a
+   27  2021-06-01T16:11:04+0000 configure
+   28  2021-06-01T16:11:24+0000 delete address '10.0.0.1/24'
+   29  2021-06-01T16:11:48+0000 delete interfaces ethernet eth2 address '10.0.0.1/24'
+   30  2021-06-01T16:11:51+0000 commit
+   31  2021-06-01T16:11:52+0000 save
+   32  2021-06-01T16:11:54+0000 ip a
+   33  2021-06-01T16:11:56+0000 clear
+   34  2021-06-01T16:11:56+0000 ip a
+   35  2021-06-01T16:12:12+0000 ping 10.0.0.1
+   36  2021-06-01T16:12:22+0000 clear
+   37  2021-06-01T16:12:43+0000 clear
+   38  2021-06-01T16:13:12+0000 cat ~/.ssh/authorized_keys 
+   39  2021-06-01T16:13:24+0000 cat <<EOF >> ~/.ssh/authorized_keys 
+   40  2021-06-01T16:13:45+0000 ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAAB/zPcAdyHRElufWDNQ1mZUWp4V9jDmaWX35ApsXgxfMHBuz3n8VLGVJuXodAAxeRbbE7Rws8BQcCH4DAMKKLHYZRdJtk3ZUw7rm0i/aq0wkeld7Yp6H/fv1ud3mudp7/+3fQ3gV8RmAO8+FS4jNBMciqtY6mWThKciwnkBWmH5atl6GsZ1ZQ+Y8+W4hXnaF6UEU1+xZ8ja+hu81a9fhejcV+m3RwT511kW5IXDe6wkq9tsIEC529VGI7XuySYvusbchivWYxmE+TBMmId3voGCfkl8hIemUG3/LvQWeK95B/6vBKDCFlmABn60zxrjPkdknWPbu4zg+VJWnslX+rDqSe2cBpHqQ8yDxegPcmXNKv2Qp0h8HhEljWoLc4U5x4hlceDraWBehj8i4N6p+Yt678+jUpOCwGC8z9l+zUrG6NPvbHZ2aIBC3eUteYPtmScNLvOiFASPo/9GQQDNqZclQZf5QGDToAV2rV1B4jJPV8fv/1rlgen6O1PNitKo9FlUfr0WA1IXev6CiJUt4x210BzhTlD84S2A0gHJRbeVVkjWKMx/vo/wqEKTg/vvzSOhFDDlKUxSsguL5rrtOxdGj4sUtjeVRuDjwk1u1DH8P75rI0R/1QaeDixJbRi8Q1315z+MrvJuvzJpMTieldqffNUnexMZcFox8yI8KlVt2U= kmorgan@mprcs.braincraft.io
+   41  2021-06-01T16:13:45+0000 EOF
+   42  2021-06-01T16:13:57+0000 ls
+   43  2021-06-01T16:13:59+0000 cat history.log 
+   44  2021-06-01T16:14:00+0000 clear
+   45  2021-06-01T16:14:02+0000 clear
+   46  2021-06-01T16:14:04+0000 configure
+   47  2021-06-01T16:14:40+0000 set service dhcp-server shared-network-name LAN subnet 192.168.1.1/24 default-router '192.168.1.1'
+   48  2021-06-01T16:14:47+0000 set service dhcp-server shared-network-name LAN subnet 192.168.1.0/24 default-router '192.168.1.1'
+   49  2021-06-01T16:15:18+0000 set service dhcp-server shared-network-name LAN subnet 192.168.0.0/24 dns-server '192.168.1.1'
+   50  2021-06-01T16:15:41+0000 set service dhcp-server shared-network-name LAN subnet 192.168.1.0/24 domain-name 'fly.lan'
+   51  2021-06-01T16:15:50+0000 set service dhcp-server shared-network-name LAN subnet 192.168.0.0/24 lease '86400'
+   52  2021-06-01T16:16:13+0000 set service dhcp-server shared-network-name LAN subnet 192.168.1.0/24 range 0 start 192.168.1.100
+   53  2021-06-01T16:16:33+0000 set service dhcp-server shared-network-name LAN subnet 192.168.1.0/24 range 0 stop '192.168.1.249'
+   54  2021-06-01T16:16:51+0000 set service dns forwarding listen-on eth1
+   55  2021-06-01T16:17:07+0000 set service dns forwarding cache-size 1000
+   56  2021-06-01T16:18:12+0000 set service dns forwarding name-server 1.1.1.1
+   57  2021-06-01T16:18:16+0000 set service dns forwarding name-server 1.0.0.1
+   58  2021-06-01T16:18:20+0000 set service dns forwarding name-server 8.8.8.8
+   59  2021-06-01T16:18:24+0000 set service dns forwarding name-server 8.8.4.4
+   60  2021-06-01T16:18:44+0000 set system name-server 192.168.1.1
+   61  2021-06-01T16:18:47+0000 commit
+   62  2021-06-01T16:19:33+0000 set service dhcp-server shared-network-name LAN subnet 192.168.1.0/24 default-router '192.168.1.1'
+   63  2021-06-01T16:19:52+0000 set service dns forwarding listen-address '192.168.1.1'
+   64  2021-06-01T16:20:05+0000 set service dns forwarding allow-from '192.168.1.0/16'
+   65  2021-06-01T16:20:11+0000 set service dns forwarding allow-from '192.168.1.0/24'
+   66  2021-06-01T16:20:31+0000 set nat source rule 100 outbound-interface 'eth0'
+   67  2021-06-01T16:20:40+0000 set nat source rule 100 source address '192.168.1.0/24'
+   68  2021-06-01T16:20:46+0000 set nat source rule 100 translation address masquerade
+   69  2021-06-01T16:20:49+0000 commit
+   70  2021-06-01T16:21:12+0000 set service dhcp-server shared-network-name LAN subnet 192.168.1.0/24 dns-server '192.168.1.1'
+   71  2021-06-01T16:21:22+0000 delete service dhcp-server shared-network-name LAN subnet 192.168.0.0/24 dns-server '192.168.1.1'
+   72  2021-06-01T16:21:25+0000 commit
+   73  2021-06-01T16:21:41+0000 set service dhcp-server shared-network-name LAN subnet 192.168.1.0/24 lease '86400'
+   74  2021-06-01T16:21:48+0000 delete service dhcp-server shared-network-name LAN subnet 192.168.0.0/24 lease '86400'
+   75  2021-06-01T16:21:49+0000 commit
+   76  2021-06-01T16:23:13+0000 cat /config/config.boot
+   77  2021-06-01T16:23:19+0000 cat /config/config.boot | grep 192.168
+   78  2021-06-01T16:23:43+0000 show 
+   79  2021-06-01T16:24:27+0000 history | grep 192.168.0
+   80  2021-06-01T16:24:48+0000 set service dhcp-server shared-network-name LAN subnet 192.168.1.0/24 dns-server '192.168.1.1'
+   81  2021-06-01T16:24:59+0000 delete service dhcp-server shared-network-name LAN subnet 192.168.0.0/24 dns-server '192.168.1.1'
+   82  2021-06-01T16:25:05+0000 set service dhcp-server shared-network-name LAN subnet 192.168.1.0/24 dns-server '192.168.1.1'
+   83  2021-06-01T16:25:13+0000 delete service dhcp-server shared-network-name LAN subnet 192.168.1.0/24 dns-server '192.168.1.1'
+   84  2021-06-01T16:25:19+0000 set service dhcp-server shared-network-name LAN subnet 192.168.1.0/24 dns-server '192.168.1.1'
+   85  2021-06-01T16:25:21+0000 commit
+   86  2021-06-01T16:25:25+0000 clear
+   87  2021-06-01T16:25:26+0000 commit
+   88  2021-06-01T16:25:28+0000 show
+   89  2021-06-01T16:25:34+0000 edit
+   90  2021-06-01T16:25:45+0000 edit service dhcp-server shared-network-name LAN subnet 192.168.1.0/24 dns-server '192.168.1.1'
+   91  2021-06-01T16:25:51+0000 edit service dhcp-server shared-network-name LAN
+   92  2021-06-01T16:25:57+0000 edit service dhcp-server shared-network-name
+   93  2021-06-01T16:26:04+0000 show service dhcp-server shared-network-name LAN
+   94  2021-06-01T16:26:07+0000 clear
+   95  2021-06-01T16:26:21+0000 discard
+   96  2021-06-01T16:26:24+0000 show
+   97  2021-06-01T16:26:26+0000 lcear
+   98  2021-06-01T16:26:28+0000 ip a
+   99  2021-06-01T16:26:31+0000 commit
+  100  2021-06-01T16:26:34+0000 exit
+  101  2021-06-01T16:26:37+0000 configure
+  102  2021-06-01T16:26:47+0000 show
+  103  2021-06-01T16:26:50+0000 clear
+  104  2021-06-01T16:26:50+0000 show
+  105  2021-06-01T16:27:07+0000 ping google.com
+  106  2021-06-01T16:27:11+0000 clear; show
+  107  2021-06-01T16:27:48+0000 set interfaces ethernet eth1 address dhcp
+  108  2021-06-01T16:28:00+0000 discard
+  109  2021-06-01T16:28:01+0000 clear
+  110  2021-06-01T16:28:06+0000 show
+  111  2021-06-01T16:28:09+0000 clear
+  112  2021-06-01T16:28:29+0000 cat <<EOF >dhcp.sh
+  113  2021-06-01T16:39:43+0000 set service dhcp-server shared-network-name LAN subnet 192.168.0.0/24 default-router '192.168.0.1'
+  114  2021-06-01T16:39:43+0000 set service dhcp-server shared-network-name LAN subnet 192.168.0.0/24 dns-server '192.168.0.1'
+  115  2021-06-01T16:39:43+0000 set service dhcp-server shared-network-name LAN subnet 192.168.0.0/24 domain-name 'vyos.net'
+  116  2021-06-01T16:39:43+0000 set service dhcp-server shared-network-name LAN subnet 192.168.0.0/24 lease '86400'
+  117  2021-06-01T16:39:43+0000 set service dhcp-server shared-network-name LAN subnet 192.168.0.0/24 range 0 start 192.168.0.9
+  118  2021-06-01T16:39:43+0000 set service dhcp-server shared-network-name LAN subnet 192.168.0.0/24 range 0 stop '192.168.0.254'
+  119  2021-06-01T16:39:43+0000 set service dns forwarding cache-size '0'
+  120  2021-06-01T16:39:43+0000 set service dns forwarding listen-address '192.168.0.1'
+  121  2021-06-01T16:39:43+0000 set service dns forwarding allow-from '192.168.0.0/24'
+  122  2021-06-01T16:39:43+0000 EOF
+  123  2021-06-01T16:28:34+0000 vi dhcp.sh 
+  124  2021-06-01T16:30:43+0000 vi dhcp.sh 
+  125  2021-06-01T16:30:49+0000 source dhcp.sh 
+  126  2021-06-01T16:30:57+0000 commit
+  127  2021-06-01T16:31:00+0000 save
+  128  2021-06-01T16:31:03+0000 clear
+  129  2021-06-01T16:31:04+0000 ip a
+  130  2021-06-01T16:31:10+0000 ls
+  131  2021-06-01T16:31:16+0000 vim nat.sh
+  132  2021-06-01T16:31:18+0000 vi nat.sh
+  133  2021-06-01T16:31:40+0000 configure
+  134  2021-06-01T16:31:43+0000 source nat.sh
+  135  2021-06-01T16:31:51+0000 commit
+  136  2021-06-01T16:31:52+0000 save
+  137  2021-06-01T16:31:53+0000 clear
+  138  2021-06-01T16:32:15+0000 vi fw.sh
+  139  2021-06-01T16:32:17+0000 set firewall name OUTSIDE-IN default-action 'drop'
+  140  2021-06-01T16:32:17+0000 set firewall name OUTSIDE-IN rule 10 action 'accept'
+  141  2021-06-01T16:32:17+0000 set firewall name OUTSIDE-IN rule 10 state established 'enable'
+  142  2021-06-01T16:32:17+0000 set firewall name OUTSIDE-IN rule 10 state related 'enable'
+  143  2021-06-01T16:32:17+0000 set firewall name OUTSIDE-LOCAL default-action 'drop'
+  144  2021-06-01T16:32:17+0000 set firewall name OUTSIDE-LOCAL rule 10 action 'accept'
+  145  2021-06-01T16:32:17+0000 set firewall name OUTSIDE-LOCAL rule 10 state established 'enable'
+  146  2021-06-01T16:32:17+0000 set firewall name OUTSIDE-LOCAL rule 10 state related 'enable'
+  147  2021-06-01T16:32:17+0000 set firewall name OUTSIDE-LOCAL rule 20 action 'accept'
+  148  2021-06-01T16:32:17+0000 set firewall name OUTSIDE-LOCAL rule 20 icmp type-name 'echo-request'
+  149  2021-06-01T16:32:17+0000 set firewall name OUTSIDE-LOCAL rule 20 protocol 'icmp'
+  150  2021-06-01T16:32:20+0000 clear
+  151  2021-06-01T16:32:22+0000 vi fw.sh
+  152  2021-06-01T16:32:42+0000 source fw.sh
+  153  2021-06-01T16:32:54+0000 vi fw.sh
+  154  2021-06-01T16:33:13+0000 vi fw.sh
+  155  2021-06-01T16:33:55+0000 configure
+  156  2021-06-01T16:33:58+0000 source fw.sh
+  157  2021-06-01T16:34:02+0000 commit
+  158  2021-06-01T16:35:27+0000 save
+  159  2021-06-01T16:35:46+0000 clear
+  160  2021-06-01T16:36:12+0000 clear
+  161  2021-06-01T16:37:01+0000 grep red -i /config/config.boot
+  162  2021-06-01T16:37:03+0000 clear
+  163  2021-06-01T16:37:04+0000 grep red -i /config/config.boot
+  164  2021-06-01T16:37:07+0000 clear
+  165  2021-06-01T16:37:11+0000 show
+  166  2021-06-01T16:37:17+0000  clear
+  167  2021-06-01T16:38:25+0000 commit
+  168  2021-06-01T16:38:28+0000 exit
+  169  2021-06-01T16:38:32+0000 exit
+  170  2021-06-01T16:38:33+0000 exit
+  171  2021-06-01T16:38:35+0000 exit
+  172  2021-06-01T16:38:36+0000 quit
+  173  2021-06-01T16:38:37+0000 exit
+  174  2021-06-01T16:38:40+0000 commit
+  175  2021-06-01T16:38:44+0000 save
+  176  2021-06-01T16:38:49+0000 exit
+  177  2021-06-01T16:38:51+0000 exit
+  178  2021-06-01T16:38:51+0000 exit
+  179  2021-06-01T16:38:52+0000 exit
+  180  2021-06-01T16:38:52+0000 exit
+  181  2021-06-01T16:38:53+0000 exit
+  182  2021-06-01T16:38:56+0000 reboot
+  183  2021-06-01T16:05:54+0000 clear
+  184  2021-06-01T16:05:57+0000 configure
+  185  2021-06-01T16:05:54+0000 clear
+  186  2021-06-01T16:05:57+0000 configure
+  187  2021-06-01T16:38:59+0000 sudo reboot
+  188  2021-06-01T16:14:04+0000 configure
+  189  2021-06-01T16:39:49+0000 configure
+  190  2021-06-01T16:05:54+0000 clear
+  191  2021-06-01T16:05:57+0000 configure
+  192  2021-06-01T16:06:30+0000 set interfaces ethernet eth0 address dhcp
+  193  2021-06-01T16:06:43+0000 set interfaces ethernet eth0 description 'WAN'
+  194  2021-06-01T16:07:35+0000 set interfaces ethernet eth1 address '192.168.1.1/24'
+  195  2021-06-01T16:08:08+0000 set interfaces ethernet eth2 address '10.0.0.1/24'
+  196  2021-06-01T16:08:18+0000 set interfaces ethernet eth1 description 'LAN'
+  197  2021-06-01T16:08:28+0000 set interfaces ethernet eth2 description 'DMZ'
+  198  2021-06-01T16:08:40+0000 set service ssh port '2022'
+  199  2021-06-01T16:08:45+0000 commit
+  200  2021-06-01T16:08:48+0000 save
+  201  2021-06-01T16:08:51+0000 clear
+  202  2021-06-01T16:08:53+0000 ip a
+  203  2021-06-01T16:09:08+0000 ip link set eth2 down
+  204  2021-06-01T16:09:10+0000 sudo !!
+  205  2021-06-01T16:09:14+0000 sudo ip link set eth2 down
+  206  2021-06-01T16:09:16+0000 ip a
+  207  2021-06-01T16:09:23+0000 clear
+  208  2021-06-01T16:09:26+0000 ping 10.0.0.1
+  209  2021-06-01T16:09:29+0000 ping google.com
+  210  2021-06-01T16:09:30+0000 clear
+  211  2021-06-01T16:09:34+0000 configure
+  212  2021-06-01T16:09:58+0000 set interfaces ethernet eth2 address '172.0.0.1/24'
+  213  2021-06-01T16:10:00+0000 commit
+  214  2021-06-01T16:10:02+0000 save
+  215  2021-06-01T16:10:04+0000 ip a
+  216  2021-06-01T16:11:04+0000 configure
+  217  2021-06-01T16:11:24+0000 delete address '10.0.0.1/24'
+  218  2021-06-01T16:11:48+0000 delete interfaces ethernet eth2 address '10.0.0.1/24'
+  219  2021-06-01T16:11:51+0000 commit
+  220  2021-06-01T16:11:52+0000 save
+  221  2021-06-01T16:11:54+0000 ip a
+  222  2021-06-01T16:11:56+0000 clear
+  223  2021-06-01T16:11:56+0000 ip a
+  224  2021-06-01T16:12:12+0000 ping 10.0.0.1
+  225  2021-06-01T16:12:22+0000 clear
+  226  2021-06-01T16:12:43+0000 clear
+  227  2021-06-01T16:13:12+0000 cat ~/.ssh/authorized_keys 
+  228  2021-06-01T16:13:24+0000 cat <<EOF >> ~/.ssh/authorized_keys 
+  229  2021-06-01T16:13:45+0000 ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAAB/zPcAdyHRElufWDNQ1mZUWp4V9jDmaWX35ApsXgxfMHBuz3n8VLGVJuXodAAxeRbbE7Rws8BQcCH4DAMKKLHYZRdJtk3ZUw7rm0i/aq0wkeld7Yp6H/fv1ud3mudp7/+3fQ3gV8RmAO8+FS4jNBMciqtY6mWThKciwnkBWmH5atl6GsZ1ZQ+Y8+W4hXnaF6UEU1+xZ8ja+hu81a9fhejcV+m3RwT511kW5IXDe6wkq9tsIEC529VGI7XuySYvusbchivWYxmE+TBMmId3voGCfkl8hIemUG3/LvQWeK95B/6vBKDCFlmABn60zxrjPkdknWPbu4zg+VJWnslX+rDqSe2cBpHqQ8yDxegPcmXNKv2Qp0h8HhEljWoLc4U5x4hlceDraWBehj8i4N6p+Yt678+jUpOCwGC8z9l+zUrG6NPvbHZ2aIBC3eUteYPtmScNLvOiFASPo/9GQQDNqZclQZf5QGDToAV2rV1B4jJPV8fv/1rlgen6O1PNitKo9FlUfr0WA1IXev6CiJUt4x210BzhTlD84S2A0gHJRbeVVkjWKMx/vo/wqEKTg/vvzSOhFDDlKUxSsguL5rrtOxdGj4sUtjeVRuDjwk1u1DH8P75rI0R/1QaeDixJbRi8Q1315z+MrvJuvzJpMTieldqffNUnexMZcFox8yI8KlVt2U= kmorgan@mprcs.braincraft.io
+  230  2021-06-01T16:13:45+0000 EOF
+  231  2021-06-01T16:13:57+0000 ls
+  232  2021-06-01T16:13:59+0000 cat history.log 
+  233  2021-06-01T16:14:00+0000 clear
+  234  2021-06-01T16:14:02+0000 clear
+  235  2021-06-01T16:14:04+0000 configure
+  236  2021-06-01T16:14:40+0000 set service dhcp-server shared-network-name LAN subnet 192.168.1.1/24 default-router '192.168.1.1'
+  237  2021-06-01T16:14:47+0000 set service dhcp-server shared-network-name LAN subnet 192.168.1.0/24 default-router '192.168.1.1'
+  238  2021-06-01T16:15:18+0000 set service dhcp-server shared-network-name LAN subnet 192.168.0.0/24 dns-server '192.168.1.1'
+  239  2021-06-01T16:15:41+0000 set service dhcp-server shared-network-name LAN subnet 192.168.1.0/24 domain-name 'fly.lan'
+  240  2021-06-01T16:15:50+0000 set service dhcp-server shared-network-name LAN subnet 192.168.0.0/24 lease '86400'
+  241  2021-06-01T16:16:13+0000 set service dhcp-server shared-network-name LAN subnet 192.168.1.0/24 range 0 start 192.168.1.100
+  242  2021-06-01T16:16:33+0000 set service dhcp-server shared-network-name LAN subnet 192.168.1.0/24 range 0 stop '192.168.1.249'
+  243  2021-06-01T16:16:51+0000 set service dns forwarding listen-on eth1
+  244  2021-06-01T16:17:07+0000 set service dns forwarding cache-size 1000
+  245  2021-06-01T16:18:12+0000 set service dns forwarding name-server 1.1.1.1
+  246  2021-06-01T16:18:16+0000 set service dns forwarding name-server 1.0.0.1
+  247  2021-06-01T16:18:20+0000 set service dns forwarding name-server 8.8.8.8
+  248  2021-06-01T16:18:24+0000 set service dns forwarding name-server 8.8.4.4
+  249  2021-06-01T16:18:44+0000 set system name-server 192.168.1.1
+  250  2021-06-01T16:18:47+0000 commit
+  251  2021-06-01T16:19:33+0000 set service dhcp-server shared-network-name LAN subnet 192.168.1.0/24 default-router '192.168.1.1'
+  252  2021-06-01T16:19:52+0000 set service dns forwarding listen-address '192.168.1.1'
+  253  2021-06-01T16:20:05+0000 set service dns forwarding allow-from '192.168.1.0/16'
+  254  2021-06-01T16:20:11+0000 set service dns forwarding allow-from '192.168.1.0/24'
+  255  2021-06-01T16:20:31+0000 set nat source rule 100 outbound-interface 'eth0'
+  256  2021-06-01T16:20:40+0000 set nat source rule 100 source address '192.168.1.0/24'
+  257  2021-06-01T16:20:46+0000 set nat source rule 100 translation address masquerade
+  258  2021-06-01T16:20:49+0000 commit
+  259  2021-06-01T16:21:12+0000 set service dhcp-server shared-network-name LAN subnet 192.168.1.0/24 dns-server '192.168.1.1'
+  260  2021-06-01T16:21:22+0000 delete service dhcp-server shared-network-name LAN subnet 192.168.0.0/24 dns-server '192.168.1.1'
+  261  2021-06-01T16:21:25+0000 commit
+  262  2021-06-01T16:21:41+0000 set service dhcp-server shared-network-name LAN subnet 192.168.1.0/24 lease '86400'
+  263  2021-06-01T16:21:48+0000 delete service dhcp-server shared-network-name LAN subnet 192.168.0.0/24 lease '86400'
+  264  2021-06-01T16:21:49+0000 commit
+  265  2021-06-01T16:23:13+0000 cat /config/config.boot
+  266  2021-06-01T16:23:19+0000 cat /config/config.boot | grep 192.168
+  267  2021-06-01T16:23:43+0000 show 
+  268  2021-06-01T16:24:27+0000 history | grep 192.168.0
+  269  2021-06-01T16:24:48+0000 set service dhcp-server shared-network-name LAN subnet 192.168.1.0/24 dns-server '192.168.1.1'
+  270  2021-06-01T16:24:59+0000 delete service dhcp-server shared-network-name LAN subnet 192.168.0.0/24 dns-server '192.168.1.1'
+  271  2021-06-01T16:25:05+0000 set service dhcp-server shared-network-name LAN subnet 192.168.1.0/24 dns-server '192.168.1.1'
+  272  2021-06-01T16:25:13+0000 delete service dhcp-server shared-network-name LAN subnet 192.168.1.0/24 dns-server '192.168.1.1'
+  273  2021-06-01T16:25:19+0000 set service dhcp-server shared-network-name LAN subnet 192.168.1.0/24 dns-server '192.168.1.1'
+  274  2021-06-01T16:25:21+0000 commit
+  275  2021-06-01T16:25:25+0000 clear
+  276  2021-06-01T16:25:26+0000 commit
+  277  2021-06-01T16:25:28+0000 show
+  278  2021-06-01T16:25:34+0000 edit
+  279  2021-06-01T16:25:45+0000 edit service dhcp-server shared-network-name LAN subnet 192.168.1.0/24 dns-server '192.168.1.1'
+  280  2021-06-01T16:25:51+0000 edit service dhcp-server shared-network-name LAN
+  281  2021-06-01T16:25:57+0000 edit service dhcp-server shared-network-name
+  282  2021-06-01T16:26:04+0000 show service dhcp-server shared-network-name LAN
+  283  2021-06-01T16:26:07+0000 clear
+  284  2021-06-01T16:26:21+0000 discard
+  285  2021-06-01T16:26:24+0000 show
+  286  2021-06-01T16:26:26+0000 lcear
+  287  2021-06-01T16:26:28+0000 ip a
+  288  2021-06-01T16:26:31+0000 commit
+  289  2021-06-01T16:26:34+0000 exit
+  290  2021-06-01T16:26:37+0000 configure
+  291  2021-06-01T16:26:47+0000 show
+  292  2021-06-01T16:26:50+0000 clear
+  293  2021-06-01T16:26:50+0000 show
+  294  2021-06-01T16:27:07+0000 ping google.com
+  295  2021-06-01T16:27:11+0000 clear; show
+  296  2021-06-01T16:27:48+0000 set interfaces ethernet eth1 address dhcp
+  297  2021-06-01T16:28:00+0000 discard
+  298  2021-06-01T16:28:01+0000 clear
+  299  2021-06-01T16:28:06+0000 show
+  300  2021-06-01T16:28:09+0000 clear
+  301  2021-06-01T16:28:29+0000 cat <<EOF >dhcp.sh
+  302  2021-06-01T16:39:43+0000 set service dhcp-server shared-network-name LAN subnet 192.168.0.0/24 default-router '192.168.0.1'
+  303  2021-06-01T16:39:43+0000 set service dhcp-server shared-network-name LAN subnet 192.168.0.0/24 dns-server '192.168.0.1'
+  304  2021-06-01T16:39:43+0000 set service dhcp-server shared-network-name LAN subnet 192.168.0.0/24 domain-name 'vyos.net'
+  305  2021-06-01T16:39:43+0000 set service dhcp-server shared-network-name LAN subnet 192.168.0.0/24 lease '86400'
+  306  2021-06-01T16:39:43+0000 set service dhcp-server shared-network-name LAN subnet 192.168.0.0/24 range 0 start 192.168.0.9
+  307  2021-06-01T16:39:43+0000 set service dhcp-server shared-network-name LAN subnet 192.168.0.0/24 range 0 stop '192.168.0.254'
+  308  2021-06-01T16:39:43+0000 set service dns forwarding cache-size '0'
+  309  2021-06-01T16:39:43+0000 set service dns forwarding listen-address '192.168.0.1'
+  310  2021-06-01T16:39:43+0000 set service dns forwarding allow-from '192.168.0.0/24'
+  311  2021-06-01T16:39:43+0000 EOF
+  312  2021-06-01T16:28:34+0000 vi dhcp.sh 
+  313  2021-06-01T16:30:43+0000 vi dhcp.sh 
+  314  2021-06-01T16:30:49+0000 source dhcp.sh 
+  315  2021-06-01T16:30:57+0000 commit
+  316  2021-06-01T16:31:00+0000 save
+  317  2021-06-01T16:31:03+0000 clear
+  318  2021-06-01T16:31:04+0000 ip a
+  319  2021-06-01T16:31:10+0000 ls
+  320  2021-06-01T16:31:16+0000 vim nat.sh
+  321  2021-06-01T16:31:18+0000 vi nat.sh
+  322  2021-06-01T16:31:40+0000 configure
+  323  2021-06-01T16:31:43+0000 source nat.sh
+  324  2021-06-01T16:31:51+0000 commit
+  325  2021-06-01T16:31:52+0000 save
+  326  2021-06-01T16:31:53+0000 clear
+  327  2021-06-01T16:32:15+0000 vi fw.sh
+  328  2021-06-01T16:32:17+0000 set firewall name OUTSIDE-IN default-action 'drop'
+  329  2021-06-01T16:32:17+0000 set firewall name OUTSIDE-IN rule 10 action 'accept'
+  330  2021-06-01T16:32:17+0000 set firewall name OUTSIDE-IN rule 10 state established 'enable'
+  331  2021-06-01T16:32:17+0000 set firewall name OUTSIDE-IN rule 10 state related 'enable'
+  332  2021-06-01T16:32:17+0000 set firewall name OUTSIDE-LOCAL default-action 'drop'
+  333  2021-06-01T16:32:17+0000 set firewall name OUTSIDE-LOCAL rule 10 action 'accept'
+  334  2021-06-01T16:32:17+0000 set firewall name OUTSIDE-LOCAL rule 10 state established 'enable'
+  335  2021-06-01T16:32:17+0000 set firewall name OUTSIDE-LOCAL rule 10 state related 'enable'
+  336  2021-06-01T16:32:17+0000 set firewall name OUTSIDE-LOCAL rule 20 action 'accept'
+  337  2021-06-01T16:32:17+0000 set firewall name OUTSIDE-LOCAL rule 20 icmp type-name 'echo-request'
+  338  2021-06-01T16:32:17+0000 set firewall name OUTSIDE-LOCAL rule 20 protocol 'icmp'
+  339  2021-06-01T16:32:20+0000 clear
+  340  2021-06-01T16:32:22+0000 vi fw.sh
+  341  2021-06-01T16:32:42+0000 source fw.sh
+  342  2021-06-01T16:32:54+0000 vi fw.sh
+  343  2021-06-01T16:33:13+0000 vi fw.sh
+  344  2021-06-01T16:33:55+0000 configure
+  345  2021-06-01T16:33:58+0000 source fw.sh
+  346  2021-06-01T16:34:02+0000 commit
+  347  2021-06-01T16:35:27+0000 save
+  348  2021-06-01T16:35:46+0000 clear
+  349  2021-06-01T16:36:12+0000 clear
+  350  2021-06-01T16:37:01+0000 grep red -i /config/config.boot
+  351  2021-06-01T16:37:03+0000 clear
+  352  2021-06-01T16:37:04+0000 grep red -i /config/config.boot
+  353  2021-06-01T16:37:07+0000 clear
+  354  2021-06-01T16:37:11+0000 show
+  355  2021-06-01T16:37:17+0000  clear
+  356  2021-06-01T16:38:25+0000 commit
+  357  2021-06-01T16:38:28+0000 exit
+  358  2021-06-01T16:38:32+0000 exit
+  359  2021-06-01T16:38:33+0000 exit
+  360  2021-06-01T16:38:35+0000 exit
+  361  2021-06-01T16:38:36+0000 quit
+  362  2021-06-01T16:38:37+0000 exit
+  363  2021-06-01T16:38:40+0000 commit
+  364  2021-06-01T16:38:44+0000 save
+  365  2021-06-01T16:38:49+0000 exit
+  366  2021-06-01T16:38:51+0000 exit
+  367  2021-06-01T16:38:51+0000 exit
+  368  2021-06-01T16:38:52+0000 exit
+  369  2021-06-01T16:38:52+0000 exit
+  370  2021-06-01T16:38:53+0000 exit
+  371  2021-06-01T16:38:56+0000 reboot
+  372  2021-06-01T16:05:54+0000 clear
+  373  2021-06-01T16:05:57+0000 configure
+  374  2021-06-01T16:05:54+0000 clear
+  375  2021-06-01T16:05:57+0000 configure
+  376  2021-06-01T16:38:59+0000 sudo reboot
+  377  2021-06-01T16:14:04+0000 configure
+  378  2021-06-01T16:39:49+0000 configure
+  379  2021-06-01T16:40:11+0000 clear
+  380  2021-06-01T16:40:12+0000 show
+  381  2021-06-01T16:40:16+0000 exit
+  382  2021-06-01T16:40:19+0000 configure
+  383  2021-06-01T16:40:41+0000 commit
+  384  2021-06-01T16:40:43+0000 save
+  385  2021-06-01T16:41:05+0000 cat ~/.ssh/authorized_keys 
+  386  2021-06-01T16:41:40+0000 cat <<EOF >> ~/.ssh/authorized_keys 
+  387  2021-06-01T16:41:46+0000 ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAAB/zPcAdyHRElufWDNQ1mZUWp4V9jDmaWX35ApsXgxfMHBuz3n8VLGVJuXodAAxeRbbE7Rws8BQcCH4DAMKKLHYZRdJtk3ZUw7rm0i/aq0wkeld7Yp6H/fv1ud3mudp7/+3fQ3gV8RmAO8+FS4jNBMciqtY6mWThKciwnkBWmH5atl6GsZ1ZQ+Y8+W4hXnaF6UEU1+xZ8ja+hu81a9fhejcV+m3RwT511kW5IXDe6wkq9tsIEC529VGI7XuySYvusbchivWYxmE+TBMmId3voGCfkl8hIemUG3/LvQWeK95B/6vBKDCFlmABn60zxrjPkdknWPbu4zg+VJWnslX+rDqSe2cBpHqQ8yDxegPcmXNKv2Qp0h8HhEljWoLc4U5x4hlceDraWBehj8i4N6p+Yt678+jUpOCwGC8z9l+zUrG6NPvbHZ2aIBC3eUteYPtmScNLvOiFASPo/9GQQDNqZclQZf5QGDToAV2rV1B4jJPV8fv/1rlgen6O1PNitKo9FlUfr0WA1IXev6CiJUt4x210BzhTlD84S2A0gHJRbeVVkjWKMx/vo/wqEKTg/vvzSOhFDDlKUxSsguL5rrtOxdGj4sUtjeVRuDjwk1u1DH8P75rI0R/1QaeDixJbRi8Q1315z+MrvJuvzJpMTieldqffNUnexMZcFox8yI8KlVt2U= kmorgan@mprcs.braincraft.io
+  388  2021-06-01T16:41:46+0000 EOF
+  389  2021-06-01T16:41:47+0000 clear
+  390  2021-06-01T16:41:58+0000 clear
+  391  2021-06-01T16:42:00+0000 configure
+  392  2021-06-01T16:42:01+0000 clear
+  393  2021-06-01T16:42:06+0000 ip a
+  394  2021-06-01T16:42:42+0000 ping google.com
+  395  2021-06-01T16:42:44+0000 clear
+  396  2021-06-01T16:42:47+0000 ip a
+  397  2021-06-01T16:43:22+0000 ip a
+  398  2021-06-01T16:43:23+0000 clear
+  399  2021-06-01T16:43:24+0000 ip a
+  400  2021-06-01T16:46:12+0000 exit
+  401  2021-06-01T16:46:12+0000 exit
+  402  2021-06-01T16:46:14+0000 exit
+  403  2021-06-01T16:46:28+0000 exit
+  404  2021-06-01T16:46:55+0000 exit
+  405  2021-06-01T16:49:45+0000 clear
+  406  2021-06-01T16:42:00+0000 configure
+  407  2021-06-01T16:50:04+0000 sudo reboot
+  408  2021-06-01T16:51:01+0000 clear
+  409  2021-06-01T16:51:11+0000 cat <<EOF >> ~/.ssh/authorized_keys 
+  410  2021-06-01T16:52:03+0000 ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAAB/zPcAdyHRElufWDNQ1mZUWp4V9jDmaWX35ApsXgxfMHBuz3n8VLGVJuXodAAxeRbbE7Rws8BQcCH4DAMKKLHYZRdJtk3ZUw7rm0i/aq0wkeld7Yp6H/fv1ud3mudp7/+3fQ3gV8RmAO8+FS4jNBMciqtY6mWThKciwnkBWmH5atl6GsZ1ZQ+Y8+W4hXnaF6UEU1+xZ8ja+hu81a9fhejcV+m3RwT511kW5IXDe6wkq9tsIEC529VGI7XuySYvusbchivWYxmE+TBMmId3voGCfkl8hIemUG3/LvQWeK95B/6vBKDCFlmABn60zxrjPkdknWPbu4zg+VJWnslX+rDqSe2cBpHqQ8yDxegPcmXNKv2Qp0h8HhEljWoLc4U5x4hlceDraWBehj8i4N6p+Yt678+jUpOCwGC8z9l+zUrG6NPvbHZ2aIBC3eUteYPtmScNLvOiFASPo/9GQQDNqZclQZf5QGDToAV2rV1B4jJPV8fv/1rlgen6O1PNitKo9FlUfr0WA1IXev6CiJUt4x210BzhTlD84S2A0gHJRbeVVkjWKMx/vo/wqEKTg/vvzSOhFDDlKUxSsguL5rrtOxdGj4sUtjeVRuDjwk1u1DH8P75rI0R/1QaeDixJbRi8Q1315z+MrvJuvzJpMTieldqffNUnexMZcFox8yI8KlVt2U= kmorgan@mprcs.braincraft.io
+  411  2021-06-01T16:52:03+0000 EOF
+  412  2021-06-01T16:51:42+0000 cat <<EOF > /tmp/key
+  413  2021-06-01T16:52:03+0000 ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAAB/zPcAdyHRElufWDNQ1mZUWp4V9jDmaWX35ApsXgxfMHBuz3n8VLGVJuXodAAxeRbbE7Rws8BQcCH4DAMKKLHYZRdJtk3ZUw7rm0i/aq0wkeld7Yp6H/fv1ud3mudp7/+3fQ3gV8RmAO8+FS4jNBMciqtY6mWThKciwnkBWmH5atl6GsZ1ZQ+Y8+W4hXnaF6UEU1+xZ8ja+hu81a9fhejcV+m3RwT511kW5IXDe6wkq9tsIEC529VGI7XuySYvusbchivWYxmE+TBMmId3voGCfkl8hIemUG3/LvQWeK95B/6vBKDCFlmABn60zxrjPkdknWPbu4zg+VJWnslX+rDqSe2cBpHqQ8yDxegPcmXNKv2Qp0h8HhEljWoLc4U5x4hlceDraWBehj8i4N6p+Yt678+jUpOCwGC8z9l+zUrG6NPvbHZ2aIBC3eUteYPtmScNLvOiFASPo/9GQQDNqZclQZf5QGDToAV2rV1B4jJPV8fv/1rlgen6O1PNitKo9FlUfr0WA1IXev6CiJUt4x210BzhTlD84S2A0gHJRbeVVkjWKMx/vo/wqEKTg/vvzSOhFDDlKUxSsguL5rrtOxdGj4sUtjeVRuDjwk1u1DH8P75rI0R/1QaeDixJbRi8Q1315z+MrvJuvzJpMTieldqffNUnexMZcFox8yI8KlVt2U= kmorgan@mprcs.braincraft.io
+  414  2021-06-01T16:52:03+0000 EOF
+  415  2021-06-01T16:52:04+0000 clear
+  416  2021-06-01T16:52:08+0000 configure
+  417  2021-06-01T16:52:09+0000 clear
+  418  2021-06-01T16:52:44+0000 set system login user vyos authentication public-keys usrbinkat@mprcs type ssh-rsa
+  419  2021-06-01T16:52:53+0000 set system login user vyos authentication public-keys usrbinkat@mprcs key /tmp/key
+  420  2021-06-01T16:52:55+0000 show
+  421  2021-06-01T16:53:16+0000 set system login user vyos authentication public-keys usrbinkat@mprcs key $(pwd)/.ssh/authorized_keys
+  422  2021-06-01T16:53:23+0000 show
+  423  2021-06-01T16:53:45+0000 delete user myvyosuser
+  424  2021-06-01T16:53:57+0000 delete system login user myvyosuser
+  425  2021-06-01T16:54:00+0000 show
+  426  2021-06-01T16:54:37+0000 delete system login user myvyosuser
+  427  2021-06-01T16:54:40+0000 commit
+  428  2021-06-01T16:54:44+0000 show
+  429  2021-06-01T16:54:55+0000 pwd
+  430  2021-06-01T16:55:09+0000 set system login user vyos authentication public-keys usrbinkat@mprcs key /home/vyos/.ssh/authorized_keys
+  431  2021-06-01T16:55:13+0000 commit
+  432  2021-06-01T16:55:16+0000 show
+  433  2021-06-01T16:55:52+0000 cat <<EOF > ~/.ssh/id_rsa.pub
+  434  2021-06-01T16:58:06+0000 ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAAB/zPcAdyHRElufWDNQ1mZUWp4V9jDmaWX35ApsXgxfMHBuz3n8VLGVJuXodAAxeRbbE7Rws8BQcCH4DAMKKLHYZRdJtk3ZUw7rm0i/aq0wkeld7Yp6H/fv1ud3mudp7/+3fQ3gV8RmAO8+FS4jNBMciqtY6mWThKciwnkBWmH5atl6GsZ1ZQ+Y8+W4hXnaF6UEU1+xZ8ja+hu81a9fhejcV+m3RwT511kW5IXDe6wkq9tsIEC529VGI7XuySYvusbchivWYxmE+TBMmId3voGCfkl8hIemUG3/LvQWeK95B/6vBKDCFlmABn60zxrjPkdknWPbu4zg+VJWnslX+rDqSe2cBpHqQ8yDxegPcmXNKv2Qp0h8HhEljWoLc4U5x4hlceDraWBehj8i4N6p+Yt678+jUpOCwGC8z9l+zUrG6NPvbHZ2aIBC3eUteYPtmScNLvOiFASPo/9GQQDNqZclQZf5QGDToAV2rV1B4jJPV8fv/1rlgen6O1PNitKo9FlUfr0WA1IXev6CiJUt4x210BzhTlD84S2A0gHJRbeVVkjWKMx/vo/wqEKTg/vvzSOhFDDlKUxSsguL5rrtOxdGj4sUtjeVRuDjwk1u1DH8P75rI0R/1QaeDixJbRi8Q1315z+MrvJuvzJpMTieldqffNUnexMZcFox8yI8KlVt2U=
+  435  2021-06-01T16:58:06+0000 EOF
+  436  2021-06-01T16:56:22+0000 set system login user vyos authentication public-keys usrbinkat@mprcs key /home/vyos/.ssh/id_rsa.pub
+  437  2021-06-01T16:56:27+0000 cat ~/.ssh/id_rsa.pub 
+  438  2021-06-01T16:56:31+0000 commit
+  439  2021-06-01T16:56:34+0000 save
+  440  2021-06-01T16:56:38+0000 reboot
+  441  2021-06-01T16:56:46+0000 save
+  442  2021-06-01T16:56:48+0000 exit
+  443  2021-06-01T16:56:48+0000 exit
+  444  2021-06-01T16:56:51+0000 reboot
+  445  2021-06-01T16:58:11+0000 cat ~/.ssh/authorized_keys 
+  446  2021-06-01T16:58:49+0000 configure
+  447  2021-06-01T16:59:23+0000 login user vyos authentication public-keys usrbinkat@mprcs key AAAAB3NzaC1yc2EAAAADAQABAAAB/zPcAdyHRElufWDNQ1mZUWp4V9jDmaWX35ApsXgxfMHBuz3n8VLGVJuXodAAxeRbbE7Rws8BQcCH4DAMKKLHYZRdJtk3ZUw7rm0i/aq0wkeld7Yp6H/fv1ud3mudp7/+3fQ3gV8RmAO8+FS4jNBMciqtY6mWThKciwnkBWmH5atl6GsZ1ZQ+Y8+W4hXnaF6UEU1+xZ8ja+hu81a9fhejcV+m3RwT511kW5IXDe6wkq9tsIEC529VGI7XuySYvusbchivWYxmE+TBMmId3voGCfkl8hIemUG3/LvQWeK95B/6vBKDCFlmABn60zxrjPkdknWPbu4zg+VJWnslX+rDqSe2cBpHqQ8yDxegPcmXNKv2Qp0h8HhEljWoLc4U5x4hlceDraWBehj8i4N6p+Yt678+jUpOCwGC8z9l+zUrG6NPvbHZ2aIBC3eUteYPtmScNLvOiFASPo/9GQQDNqZclQZf5QGDToAV2rV1B4jJPV8fv/1rlgen6O1PNitKo9FlUfr0WA1IXev6CiJUt4x210BzhTlD84S2A0gHJRbeVVkjWKMx/vo/wqEKTg/vvzSOhFDDlKUxSsguL5rrtOxdGj4sUtjeVRuDjwk1u1DH8P75rI0R/1QaeDixJbRi8Q1315z+MrvJuvzJpMTieldqffNUnexMZcFox8yI8KlVt2U=
+  448  2021-06-01T16:59:37+0000 clear
+  449  2021-06-01T17:00:00+0000 clear
+  450  2021-06-01T17:00:25+0000 set system login user vyos authentication public-keys usrbinkat@mprcs key ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAAB/zPcAdyHRElufWDNQ1mZUWp4V9jDmaWX35ApsXgxfMHBuz3n8VLGVJuXodAAxeRbbE7Rws8BQcCH4DAMKKLHYZRdJtk3ZUw7rm0i/aq0wkeld7Yp6H/fv1ud3mudp7/+3fQ3gV8RmAO8+FS4jNBMciqtY6mWThKciwnkBWmH5atl6GsZ1ZQ+Y8+W4hXnaF6UEU1+xZ8ja+hu81a9fhejcV+m3RwT511kW5IXDe6wkq9tsIEC529VGI7XuySYvusbchivWYxmE+TBMmId3voGCfkl8hIemUG3/LvQWeK95B/6vBKDCFlmABn60zxrjPkdknWPbu4zg+VJWnslX+rDqSe2cBpHqQ8yDxegPcmXNKv2Qp0h8HhEljWoLc4U5x4hlceDraWBehj8i4N6p+Yt678+jUpOCwGC8z9l+zUrG6NPvbHZ2aIBC3eUteYPtmScNLvOiFASPo/9GQQDNqZclQZf5QGDToAV2rV1B4jJPV8fv/1rlgen6O1PNitKo9FlUfr0WA1IXev6CiJUt4x210BzhTlD84S2A0gHJRbeVVkjWKMx/vo/wqEKTg/vvzSOhFDDlKUxSsguL5rrtOxdGj4sUtjeVRuDjwk1u1DH8P75rI0R/1QaeDixJbRi8Q1315z+MrvJuvzJpMTieldqffNUnexMZcFox8yI8KlVt2U=
+  451  2021-06-01T17:00:38+0000 show
+  452  2021-06-01T17:01:13+0000 set system login user vyos authentication public-keys usrbinkat@mprcs key AAAAB3NzaC1yc2EAAAADAQABAAAB/zPcAdyHRElufWDNQ1mZUWp4V9jDmaWX35ApsXgxfMHBuz3n8VLGVJuXodAAxeRbbE7Rws8BQcCH4DAMKKLHYZRdJtk3ZUw7rm0i/aq0wkeld7Yp6H/fv1ud3mudp7/+3fQ3gV8RmAO8+FS4jNBMciqtY6mWThKciwnkBWmH5atl6GsZ1ZQ+Y8+W4hXnaF6UEU1+xZ8ja+hu81a9fhejcV+m3RwT511kW5IXDe6wkq9tsIEC529VGI7XuySYvusbchivWYxmE+TBMmId3voGCfkl8hIemUG3/LvQWeK95B/6vBKDCFlmABn60zxrjPkdknWPbu4zg+VJWnslX+rDqSe2cBpHqQ8yDxegPcmXNKv2Qp0h8HhEljWoLc4U5x4hlceDraWBehj8i4N6p+Yt678+jUpOCwGC8z9l+zUrG6NPvbHZ2aIBC3eUteYPtmScNLvOiFASPo/9GQQDNqZclQZf5QGDToAV2rV1B4jJPV8fv/1rlgen6O1PNitKo9FlUfr0WA1IXev6CiJUt4x210BzhTlD84S2A0gHJRbeVVkjWKMx/vo/wqEKTg/vvzSOhFDDlKUxSsguL5rrtOxdGj4sUtjeVRuDjwk1u1DH8P75rI0R/1QaeDixJbRi8Q1315z+MrvJuvzJpMTieldqffNUnexMZcFox8yI8KlVt2U=
+  453  2021-06-01T17:01:15+0000 commit
+  454  2021-06-01T17:01:17+0000 save
+  455  2021-06-01T17:01:19+0000 exit
+  456  2021-06-01T17:01:19+0000 exit
+  457  2021-06-01T17:01:21+0000 reboot
+  458  2021-06-01T17:02:09+0000 clear
+  459  2021-06-01T17:02:10+0000 show
+  460  2021-06-01T17:02:14+0000 show config
+  461  2021-06-01T17:02:21+0000 show config > config.boot
+  462  2021-06-01T17:02:27+0000 vi config.boot 
+  463  2021-06-01T17:03:22+0000 clear
+  464  2021-06-01T17:03:24+0000 exit
+  465  2021-06-01T17:26:48+0000 clear
+  466  2021-06-01T17:26:53+0000 show interfaces
+  467  2021-06-01T17:27:01+0000 quit
+  468  2021-06-01T17:27:04+0000 exit
+  469  2021-06-01T17:27:22+0000 history >> history.log 
+set service dhcp-server shared-network-name LAN subnet 192.168.1.0/24 default-router '192.168.1.1'
+set service dhcp-server shared-network-name LAN subnet 192.168.1.0/24 dns-server '192.168.1.1'
+set service dhcp-server shared-network-name LAN subnet 192.168.1.0/24 domain-name 'fly.lan'
+set service dhcp-server shared-network-name LAN subnet 192.168.1.0/24 lease '86400'
+set service dhcp-server shared-network-name LAN subnet 192.168.1.0/24 range 0 start 192.168.1.100
+set service dhcp-server shared-network-name LAN subnet 192.168.1.0/24 range 0 stop '192.168.1.249'
+
+set service dns forwarding cache-size '0'
+set service dns forwarding listen-address '192.168.1.1'
+set service dns forwarding allow-from '192.168.1.0/24'
+set firewall name WAN-IN default-action 'drop'
+set firewall name WAN-IN rule 10 action 'accept'
+set firewall name WAN-IN rule 10 state established 'enable'
+set firewall name WAN-IN rule 10 state related 'enable'
+
+set firewall name WAN-LOCAL default-action 'drop'
+set firewall name WAN-LOCAL rule 10 action 'accept'
+set firewall name WAN-LOCAL rule 10 state established 'enable'
+set firewall name WAN-LOCAL rule 10 state related 'enable'
+set firewall name WAN-LOCAL rule 20 action 'accept'
+set firewall name WAN-LOCAL rule 20 icmp type-name 'echo-request'
+set firewall name WAN-LOCAL rule 20 protocol 'icmp'
+set firewall name WAN-LOCAL rule 20 state new 'enable'
+
+set firewall name WAN-LOCAL rule 30 action 'drop'
+set firewall name WAN-LOCAL rule 30 destination port '22'
+set firewall name WAN-LOCAL rule 30 protocol 'tcp'
+set firewall name WAN-LOCAL rule 30 recent count '4'
+set firewall name WAN-LOCAL rule 30 recent time '60'
+set firewall name WAN-LOCAL rule 30 state new 'enable'
+
+set firewall name WAN-LOCAL rule 31 action 'accept'
+set firewall name WAN-LOCAL rule 31 destination port '22'
+set firewall name WAN-LOCAL rule 31 protocol 'tcp'
+set firewall name WAN-LOCAL rule 31 state new 'enable'
+
+set interfaces ethernet eth0 firewall in name 'WAN-IN'
+set interfaces ethernet eth0 firewall local name 'WAN-LOCAL'
+set nat source rule 100 outbound-interface 'eth0'
+set nat source rule 100 source address '192.168.1.0/24'
+set nat source rule 100 translation address masquerade

@@ -1,41 +1,68 @@
 ---
+apiVersion: cdi.kubevirt.io/v1beta1
+kind: DataVolume
+metadata:
+  name: kargo-ubuntu-latest
+  namespace: kargo
+spec:
+  source:
+    registry:
+      url: "docker://quay.io/containercraft/ubuntu:latest"
+  pvc:
+    accessModes:
+      - ReadWriteOnce
+    resources:
+      requests:
+        storage: 512Gi
+---
 apiVersion: kubevirt.io/v1alpha3
 kind: VirtualMachine
 metadata:
-  name: kargo-microk8s
+  name: microk8s-kongdev
   namespace: kargo
   labels:
-    app: kargo-microk8s-singleNode
+    app: microk8s-kongdev
 spec:
   running: true
+  dataVolumeTemplates:
+  - metadata:
+      name: microk8s-vda-root
+      annotations:
+        kubevirt.io/provisionOnNode: mordor
+    spec:
+      pvc:
+        accessModes:
+        - ReadWriteOnce
+        resources:
+          requests:
+            storage: 512Gi
+        storageClassName: openebs-hostpath-hdd
+      source:
+        pvc:
+          name: kargo-ubuntu-latest
+          namespace: kargo
   template:
     spec:
       nodeSelector:
         node-role.kubernetes.io/kubevirt: ""
       domain:
-        clock:
-          utc: {}
-          timer: {}
         cpu:
-          sockets: 4
-          threads: 1
-          cores: 1
-          model: host-passthrough
+          cores: 8
+          threads: 2
+          sockets: 1
+          model: host-model
           dedicatedCpuPlacement: false
         resources:
           requests:
-            devices.kubevirt.io/kvm: "1"
-            memory: 8Gi
-        machine:
-          type: pc-q35-rhel8.2.0
+            memory: 32Gi
         devices:
           autoattachPodInterface: false
           autoattachSerialConsole: true
-          autoattachGraphicsDevice: true
+          autoattachGraphicsDevice: false
           networkInterfaceMultiqueue: true
           rng: {}
           disks:
-            - name: containerdisk
+            - name: root-disk
               bootOrder: 1
               disk:
                 bus: virtio
@@ -47,24 +74,25 @@ spec:
             model: virtio
             bootOrder: 2
             bridge: {}
+        machine:
+          type: pc-q35-rhel8.2.0
         features:
           smm:
             enabled: true
         firmware:
           bootloader:
             efi:
-              secureBoot: false
-      hostname: kargo-microk8s
+              secureBoot: true
+      hostname: kongee
       networks:
       - name: enp1s0
         multus:
           networkName: kargo-net-attach-def-br0
       terminationGracePeriodSeconds: 0
       volumes:
-        - name: containerdisk
-          containerDisk:
-            image: quay.io/containercraft/ubuntu:21.04
-            imagePullPolicy: Always
+        - name: root-disk
+          dataVolume:
+            name: microk8s-vda-root
         - name: cloudinitdisk
           cloudInitNoCloud:
             networkData: |
@@ -110,6 +138,6 @@ spec:
                 - "chown -R ubuntu:ubuntu /home/ubuntu"
                 - "sudo usermod -a -G microk8s ubuntu"
                 - "sudo chown -f -R ubuntu ~/.kube"
-#               - "microk8s.enable metallb:10.0.0.5-10.0.0.9"
-#               - "microk8s status --wait-ready"
+                - "microk8s.enable metallb:10.0.0.5-10.0.0.9"
+                - "microk8s status --wait-ready"
 #               - kubectl patch storageclass openebs-hostpath -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'

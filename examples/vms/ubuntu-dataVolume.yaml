@@ -1,0 +1,16 @@
+---
+apiVersion: cdi.kubevirt.io/v1beta1
+kind: DataVolume
+metadata:
+  name: kargo-ubuntu-latest
+  namespace: kargo
+spec:
+  source:
+    registry:
+      url: "docker://quay.io/containercraft/ubuntu:latest"
+  pvc:
+    accessModes:
+      - ReadWriteOnce
+    resources:
+      requests:
+        storage: 512Gi
