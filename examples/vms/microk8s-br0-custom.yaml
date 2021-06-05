@@ -1,20 +1,4 @@
 ---
-apiVersion: cdi.kubevirt.io/v1beta1
-kind: DataVolume
-metadata:
-  name: kargo-ubuntu-latest
-  namespace: kargo
-spec:
-  source:
-    registry:
-      url: "docker://quay.io/containercraft/ubuntu:latest"
-  pvc:
-    accessModes:
-      - ReadWriteOnce
-    resources:
-      requests:
-        storage: 512Gi
----
 apiVersion: kubevirt.io/v1alpha3
 kind: VirtualMachine
 metadata:
@@ -26,7 +10,7 @@ spec:
   running: true
   dataVolumeTemplates:
   - metadata:
-      name: microk8s-vda-root
+      name: ubuntu-vda-root
       annotations:
         kubevirt.io/provisionOnNode: mordor
     spec:
@@ -35,8 +19,8 @@ spec:
         - ReadWriteOnce
         resources:
           requests:
-            storage: 512Gi
-        storageClassName: openebs-hostpath-hdd
+            storage: 96Gi
+        storageClassName: openebs-hostpath-optane
       source:
         pvc:
           name: kargo-ubuntu-latest
@@ -58,7 +42,7 @@ spec:
         devices:
           autoattachPodInterface: false
           autoattachSerialConsole: true
-          autoattachGraphicsDevice: false
+          autoattachGraphicsDevice: true
           networkInterfaceMultiqueue: true
           rng: {}
           disks:
@@ -76,13 +60,13 @@ spec:
             bridge: {}
         machine:
           type: pc-q35-rhel8.2.0
-        features:
-          smm:
-            enabled: true
-        firmware:
-          bootloader:
-            efi:
-              secureBoot: true
+#       features:
+#         smm:
+#           enabled: true
+#       firmware:
+#         bootloader:
+#           efi:
+#             secureBoot: false
       hostname: kongee
       networks:
       - name: enp1s0
@@ -92,7 +76,7 @@ spec:
       volumes:
         - name: root-disk
           dataVolume:
-            name: microk8s-vda-root
+            name: ubuntu-vda-root
         - name: cloudinitdisk
           cloudInitNoCloud:
             networkData: |

@@ -7,10 +7,10 @@ metadata:
 spec:
   source:
     registry:
-      url: "docker://quay.io/containercraft/ubuntu:latest"
+      url: "docker://quay.io/containercraft/ubuntu:21.04"
   pvc:
     accessModes:
       - ReadWriteOnce
     resources:
       requests:
-        storage: 512Gi
+        storage: 64Gi
