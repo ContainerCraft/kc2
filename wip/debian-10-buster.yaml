@@ -2,10 +2,10 @@
 apiVersion: kubevirt.io/v1alpha3
 kind: VirtualMachine
 metadata:
-  name: ubuntu-n01
+  name: debian-n01
   namespace: kargo
   labels:
-    app: ubuntu
+    app: debian
 spec:
   running: true
   template:
@@ -56,7 +56,7 @@ spec:
           bootloader:
             efi:
               secureBoot: false
-      hostname: ubuntu
+      hostname: debian
       networks:
       - name: eth0
         multus:
@@ -65,7 +65,7 @@ spec:
       volumes:
         - name: containerdisk
           containerDisk:
-            image: quay.io/containercraft/ubuntu:21.04
+            image: quay.io/containercraft/debian:10
             imagePullPolicy: Always
         - name: cloudinitdisk
           cloudInitNoCloud:
@@ -74,10 +74,10 @@ spec:
               ethernets:
                 eth0:
                   addresses:
-                    - 10.0.0.18/24
+                    - 192.168.1.19/24
                   dhcp4: false
                   dhcp6: false
-                  gateway4: 10.0.0.1
+                  gateway4: 192.168.1.1
                   nameservers:
                     addresses:
                     - 8.8.8.8
@@ -86,10 +86,10 @@ spec:
                     - kargo.lab
                 enp1s0:
                   addresses:
-                    - 10.0.0.18/24
+                    - 192.168.1.19/24
                   dhcp4: false
                   dhcp6: false
-                  gateway4: 10.0.0.1
+                  gateway4: 192.168.1.1
                   nameservers:
                     addresses:
                     - 8.8.8.8
@@ -101,7 +101,7 @@ spec:
               ssh_pwauth: true
               chpasswd:
                 list: |
-                   ubuntu:ubuntu
+                   debian:debian
                 expire: False
               users:
                 - default
@@ -111,6 +111,6 @@ spec:
                   shell: /bin/bash
                   ssh-authorized-keys:
                     - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAAB/zPcAdyHRElufWDNQ1mZUWp4V9jDmaWX35ApsXgxfMHBuz3n8VLGVJuXodAAxeRbbE7Rws8BQcCH4DAMKKLHYZRdJtk3ZUw7rm0i/aq0wkeld7Yp6H/fv1ud3mudp7/+3fQ3gV8RmAO8+FS4jNBMciqtY6mWThKciwnkBWmH5atl6GsZ1ZQ+Y8+W4hXnaF6UEU1+xZ8ja+hu81a9fhejcV+m3RwT511kW5IXDe6wkq9tsIEC529VGI7XuySYvusbchivWYxmE+TBMmId3voGCfkl8hIemUG3/LvQWeK95B/6vBKDCFlmABn60zxrjPkdknWPbu4zg+VJWnslX+rDqSe2cBpHqQ8yDxegPcmXNKv2Qp0h8HhEljWoLc4U5x4hlceDraWBehj8i4N6p+Yt678+jUpOCwGC8z9l+zUrG6NPvbHZ2aIBC3eUteYPtmScNLvOiFASPo/9GQQDNqZclQZf5QGDToAV2rV1B4jJPV8fv/1rlgen6O1PNitKo9FlUfr0WA1IXev6CiJUt4x210BzhTlD84S2A0gHJRbeVVkjWKMx/vo/wqEKTg/vvzSOhFDDlKUxSsguL5rrtOxdGj4sUtjeVRuDjwk1u1DH8P75rI0R/1QaeDixJbRi8Q1315z+MrvJuvzJpMTieldqffNUnexMZcFox8yI8KlVt2U= kmorgan@mprcs.braincraft.io
-              hostname: ubuntu
+              hostname: debian
               runcmd:
                 - echo $(date) > /tmp/complete
