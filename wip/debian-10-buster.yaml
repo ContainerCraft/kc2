@@ -47,15 +47,15 @@ spec:
           interfaces:
           - name: eth0
             model: virtio
-            bootOrder: 2
             bridge: {}
-        features:
-          smm:
-            enabled: true
-        firmware:
-          bootloader:
-            efi:
-              secureBoot: false
+#           bootOrder: 2
+#       features:
+#         smm:
+#           enabled: true
+#       firmware:
+#         bootloader:
+#           efi:
+#             secureBoot: false
       hostname: debian
       networks:
       - name: eth0
