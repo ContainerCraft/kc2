@@ -1,0 +1,69 @@
+---
+apiVersion: kubevirt.io/v1alpha3
+kind: VirtualMachine
+metadata:
+  name: test-vyos-rolling
+  namespace: kargo
+  labels:
+    app: vyos-rolling
+spec:
+  running: true
+  template:
+    spec:
+      nodeSelector:
+        #node-role.kubernetes.io/edge: ""
+        node-role.kubernetes.io/kubevirt: ""
+        kubernetes.io/hostname: spindle
+      terminationGracePeriodSeconds: 0
+      hostname: vyos-rolling
+      domain:
+        cpu:
+          cores: 2
+          threads: 1
+          sockets: 1
+          dedicatedCpuPlacement: false
+          model: host-model
+        machine:
+          type: pc-q35-rhel8.2.0
+        resources:
+          requests:
+            memory: 2Gi
+        devices:
+          autoattachPodInterface: false
+          autoattachSerialConsole: true
+          autoattachGraphicsDevice: true
+          networkInterfaceMultiqueue: false
+          rng: {}
+          disks:
+            - name: containerdisk
+              bootOrder: 1
+              disk:
+                bus: virtio
+            - name: cloudinitdisk
+              disk:
+                bus: virtio
+          interfaces:
+          - name: eth0
+            model: virtio
+            bridge: {}
+          - name: eth1
+            model: virtio
+            bridge: {}
+      networks:
+      - name: eth0
+        multus:
+          networkName: kargo-net-attach-def-br0
+      - name: eth1
+        multus:
+          networkName: kargo-net-attach-def-br0
+      volumes:
+        - name: containerdisk
+          containerDisk:
+            image: quay.io/containercraft/vyos:1.4-rolling
+            imagePullPolicy: Always
+        - name: cloudinitdisk
+          cloudInitConfigDrive:
+            userData: |
+              #cloud-config
+              vyos_config_commands:
+                - set interfaces ethernet eth0 address 'dhcp'
