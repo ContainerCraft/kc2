@@ -1,0 +1,15 @@
+sh run
+configure terminal
+ip route 0.0.0.0/0 10.0.0.1   
+configure terminal
+ip route 172.16.100.0/24 wg01  
+sh run
+configure terminal
+ip route 172.16.100.0/24 172.16.100.2   
+configure terminal
+ip route 172.16.100.0/24 172.16.100.1   
+configure terminal
+no ip route 172.16.100.0/24 172.16.100.1
+configure terminal
+ip route 172.16.100.0/24 wg02  
+sh run

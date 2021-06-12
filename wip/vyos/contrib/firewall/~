@@ -1,0 +1,10 @@
+[Interface]
+PrivateKey = KIskh1d5/bigpCn+TJwMcph9t35TdDxVhA1DYiuaZGU=
+Address = 172.16.100.3/24
+DNS = 1.1.1.1
+
+[Peer]
+PublicKey = 3NW1Oie3nIxKVbjnHNUrsuN0OOBDLeSTnDiGjuLJEWg=
+AllowedIPs = 0.0.0.0/0
+Endpoint = 143.198.141.243:46176
+PersistentKeepalive = 15

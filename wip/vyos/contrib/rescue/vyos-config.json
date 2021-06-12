@@ -1,0 +1,200 @@
+firewall {
+    all-ping enable
+    broadcast-ping disable
+    config-trap disable
+    ipv6-receive-redirects disable
+    ipv6-src-route disable
+    ip-src-route disable
+    log-martians enable
+    name OUTSIDE-IN {
+        default-action drop
+        rule 10 {
+            action accept
+            state {
+                established enable
+                related enable
+            }
+        }
+    }
+    name OUTSIDE-LOCAL {
+        default-action drop
+        rule 10 {
+            action accept
+            state {
+                established enable
+                related enable
+            }
+        }
+        rule 20 {
+            action accept
+            icmp {
+                type-name echo-request
+            }
+            protocol icmp
+        }
+    }
+    name WAN-IN {
+        default-action drop
+        rule 10 {
+            action accept
+            state {
+                established enable
+                related enable
+            }
+        }
+    }
+    name WAN-LOCAL {
+        default-action drop
+        rule 10 {
+            action accept
+            state {
+                established enable
+                related enable
+            }
+        }
+        rule 20 {
+            action accept
+            icmp {
+                type-name echo-request
+            }
+            protocol icmp
+            state {
+                new enable
+            }
+        }
+        rule 30 {
+            action drop
+            destination {
+                port 22
+            }
+            protocol tcp
+            recent {
+                count 4
+                time 60
+            }
+            state {
+                new enable
+            }
+        }
+        rule 31 {
+            action accept
+            destination {
+                port 22
+            }
+            protocol tcp
+            state {
+                new enable
+            }
+        }
+    }
+    receive-redirects disable
+    send-redirects enable
+    source-validation disable
+    syn-cookies enable
+    twa-hazards-protection disable
+}
+interfaces {
+    ethernet eth0 {
+        address dhcp
+        address dhcpv6
+        description WAN
+        firewall {
+            in {
+                name WAN-IN
+            }
+            local {
+                name WAN-LOCAL
+            }
+        }
+    }
+    ethernet eth1 {
+        address 192.168.1.1/24
+        description LAN
+    }
+    ethernet eth2 {
+        address 172.0.0.1/24
+        description DMZ
+    }
+    loopback lo {
+    }
+}
+nat {
+    source {
+        rule 100 {
+            outbound-interface eth0
+            source {
+                address 192.168.1.0/24
+            }
+            translation {
+                address masquerade
+            }
+        }
+    }
+}
+service {
+    dhcp-server {
+        shared-network-name LAN {
+            subnet 192.168.1.0/24 {
+                default-router 192.168.1.1
+                dns-server 192.168.1.1
+                domain-name fly.lan
+                lease 86400
+                range 0 {
+                    start 192.168.1.100
+                    stop 192.168.1.249
+                }
+            }
+        }
+    }
+    dns {
+        forwarding {
+            allow-from 192.168.1.0/24
+            cache-size 0
+            listen-address 192.168.1.1
+            name-server 1.1.1.1
+            name-server 1.0.0.1
+            name-server 8.8.8.8
+            name-server 8.8.4.4
+        }
+    }
+    ssh {
+        disable-password-authentication
+        port 2022
+    }
+}
+system {
+    config-management {
+        commit-revisions 100
+    }
+    host-name vyos
+    login {
+        user vyos {
+            authentication {
+                encrypted-password ****************
+                public-keys usrbinkat@mprcs {
+                    key ****************
+                    type ssh-rsa
+                }
+            }
+        }
+    }
+    name-server 192.168.1.1
+    ntp {
+        server 0.pool.ntp.org {
+        }
+        server 1.pool.ntp.org {
+        }
+        server 2.pool.ntp.org {
+        }
+    }
+    syslog {
+        global {
+            facility all {
+                level notice
+            }
+            facility protocols {
+                level debug
+            }
+        }
+    }
+}

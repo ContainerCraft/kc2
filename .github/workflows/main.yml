@@ -31,6 +31,35 @@ jobs:
     - name: Code Checkout
       uses: actions/checkout@v2.3.4
 
+    - name: Prepare Vyos 1.4-rolling Image
+      run: |
+        set -ex ;\
+        ./images/vyos/run.sh; \
+        file /tmp/vyos-build/packer_build/qemu/vyos_qemu_image.img ;\
+        du -sh /tmp/vyos-build/packer_build/qemu/vyos_qemu_image.img ;\
+        echo;
+
+    - name: Build Vyos Cradle
+      run: |
+        PATH=${PATH}:$(pwd) \
+        cradle --image-name quay.io/containercraft/vyos --image-tag 1.4 --image-file /tmp/vyos-build/packer_build/qemu/vyos_qemu_image.img ;\
+        echo;
+
+    - name: Login Quay.io
+      uses: docker/login-action@v1.9.0
+      with:
+        logout: false
+        registry: quay.io
+        username: ${{ secrets.ROBOT_USER_QUAY }}
+        password: ${{ secrets.ROBOT_TOKEN_QUAY }}
+
+    - name: Push Vyos 1.4-rolling Cradle
+      run: |
+        set -ex ;\
+        podman push quay.io/containercraft/vyos:1.4 ;\
+        podman push docker://quay.io/containercraft/vyos:1.4 docker://quay.io/containercraft/vyos:1.4-rolling-$(date +%Y%m%d) ;\
+        echo;
+
     - name: Prepare Ubuntu Image
       run: |
         set -ex ;\
