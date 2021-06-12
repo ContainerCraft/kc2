@@ -9,7 +9,7 @@ BOOT_CONFIG_PATH_LIVE=/vyos/data/live-build-config/includes.chroot/opt/vyatta/et
 rm -rf /tmp/vyos-build
 git clone ${REPO} /tmp/vyos-build
 docker pull docker.io/vyos/vyos-build:current;
-time docker run --rm -it -w /vyos \
+time docker run --rm -t -w /vyos \
     --privileged --entrypoint ./build.sh \
     --sysctl net.ipv6.conf.lo.disable_ipv6=0 \
     -e GOSU_UID=$(id -u) -e GOSU_GID=$(id -g) \
