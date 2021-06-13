@@ -6,9 +6,11 @@ BOOT_CONFIG_PATH_OPENSTACK=/vyos/tools/cloud-init/openstack/config.boot.default
 BOOT_CONFIG_PATH_LIVE=/vyos/data/live-build-config/includes.chroot/opt/vyatta/etc/config.boot.default 
 
 #   --privileged --entrypoint bash \
-rm -rf /tmp/vyos-build
+sudo rm -rf /tmp/vyos-build
 git clone ${REPO} /tmp/vyos-build
 docker pull docker.io/vyos/vyos-build:current;
+
+START=">> $(date) >> Started .."
 time docker run --rm -t -w /vyos \
     --privileged --entrypoint ./build.sh \
     --sysctl net.ipv6.conf.lo.disable_ipv6=0 \
@@ -19,5 +21,10 @@ time docker run --rm -t -w /vyos \
     --volume $(pwd)/images/vyos:/vyos/artifacts \
     --volume /tmp/vyos-build:/vyos \
   docker.io/vyos/vyos-build:current
+FINISH=">> $(date) >> Completed .."
 
-echo ">> $(date) >> Complete .."
+echo "
+$START
+$FINISH
+"
+

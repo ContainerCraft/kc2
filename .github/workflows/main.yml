@@ -58,6 +58,8 @@ jobs:
         set -ex ;\
         podman push quay.io/containercraft/vyos:1.4 ;\
         podman push docker://quay.io/containercraft/vyos:1.4 docker://quay.io/containercraft/vyos:1.4-rolling-$(date +%Y%m%d) ;\
+        podman image prune --all --force ;\
+        rm -rf /tmp/vyos-build ;\
         echo;
 
     - name: Prepare Ubuntu Image
@@ -90,6 +92,7 @@ jobs:
         set -ex ;\
         podman push quay.io/containercraft/ubuntu:18.04 ;\
         podman push docker://quay.io/containercraft/ubuntu:18.04 docker://quay.io/containercraft/ubuntu:bionic ;\
+        podman image prune --all --force ;\
         echo;
         
     - name: Prepare Debian Image
@@ -122,6 +125,7 @@ jobs:
         set -ex ;\
         podman push quay.io/containercraft/debian:9 ;\
         podman push docker://quay.io/containercraft/debian:9 docker://quay.io/containercraft/debian:latest ;\
+        podman image prune --all --force ;\
         echo;
 
     - name: Prepare Debian Image
@@ -154,6 +158,7 @@ jobs:
         set -ex ;\
         podman push quay.io/containercraft/debian:10 ;\
         podman push docker://quay.io/containercraft/debian:10 docker://quay.io/containercraft/debian:latest ;\
+        podman image prune --all --force ;\
         echo;
 
     - name: Prepare Ubuntu Image
@@ -186,6 +191,7 @@ jobs:
         set -ex ;\
         podman push quay.io/containercraft/ubuntu:21.04 ;\
         podman push docker://quay.io/containercraft/ubuntu:21.04 docker://quay.io/containercraft/ubuntu:latest ;\
+        podman image prune --all --force ;\
         echo;
         
     - name: Cleanup
@@ -227,6 +233,7 @@ jobs:
         set -ex ;\
         podman push quay.io/containercraft/fedora:34 ;\
         podman push docker://quay.io/containercraft/fedora:34 docker://quay.io/containercraft/fedora:latest ;\
+        podman image prune --all --force ;\
         echo;
         
     - name: Cleanup
