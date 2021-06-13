@@ -8,6 +8,7 @@ BOOT_CONFIG_PATH_LIVE=/vyos/data/live-build-config/includes.chroot/opt/vyatta/et
 #   --privileged --entrypoint bash \
 sudo rm -rf /tmp/vyos-build
 git clone ${REPO} /tmp/vyos-build
+sed -i 's/300s/600s/g' /tmp/vyos-build/scripts/packer.json
 docker pull docker.io/vyos/vyos-build:current;
 
 START=">> $(date) >> Started .."
