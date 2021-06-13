@@ -10,3 +10,4 @@
 make iso
 make openstack
 make qemu
+mv /tmp/vyos-build/packer_build/qemu/vyos_qemu_image.img /vyos/artifacts/image.qcow2
