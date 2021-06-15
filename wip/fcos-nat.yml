@@ -1,16 +1,12 @@
 ---
 # https://github.com/kubevirt/kubevirt/blob/master/docs/cloud-init.md
-# password hash from package `dnf install whois`
-#   - echo core | mkpasswd --method=SHA-512 --rounds=4096 --stdin
-# username:password
-#   - core:core
 apiVersion: kubevirt.io/v1alpha3
 kind: VirtualMachine
 metadata:
-  name: coreos
+  name: fcos
   namespace: kargo
   labels:
-    app: coreos
+    app: fcos
 spec:
   running: true
   template:
@@ -28,13 +24,13 @@ spec:
             devices.kubevirt.io/kvm: "1"
         machine:
           type: pc-q35-rhel8.3.0
-        features:
-          smm:
-            enabled: true
-        firmware:
-          bootloader:
-            efi:
-              secureBoot: true
+#       features:
+#         smm:
+#           enabled: true
+#       firmware:
+#         bootloader:
+#           efi:
+#             secureBoot: true
         clock:
           utc: {}
           timer: {}
@@ -58,15 +54,14 @@ spec:
       networks:
       - name: eth0
         pod: {}
-      hostname: coreos
+      hostname: fcos
       terminationGracePeriodSeconds: 0
       volumes:
         - name: containerdisk
           containerDisk:
-#           image: quay.io/containercraft/coreos:fc-4.8.0
-            image: quay.io/containercraft/coreos:4.7.7
-            imagePullPolicy: Always
+            image: quay.io/containercraft/fcos:34
+            imagePullPolicy: IfNotPresent
         - name: cloudinitdisk
           cloudInitConfigDrive:
             userData: |-
-              {"ignition":{"version":"3.2.0"},"passwd":{"users":[{"groups":["sudo","wheel"],"name":"core","passwordHash":"$6$rounds=4096$whbv6cQSMyyRcCgy$7P8t6rK66I/sjZYUcc7j38FRgpPVyou8lD6KUJwMaOHxV122hteL8iZ66gbrEjMJ5jsanIbWbCYZSzoxhyR/z1"}]}}
+              {"ignition":{"version":"3.2.0"},"passwd":{"users":[{"groups":["sudo","wheel","docker"],"name":"core","passwordHash":"$y$j9T$y5LotUmYJ7yuj.znxN7qC.$hBn83XsK5cMgPOXdpWQdzYesxIsB/a23XSmNV5OFRC9"}]},"storage":{"files":[{"path":"/etc/ssh/sshd_config.d/20-enable-passwords.conf","contents":{"source":"data:,PasswordAuthentication%20yes%0A"},"mode":420}]}}

@@ -1,0 +1,17 @@
+variant: fcos
+version: 1.3.0
+passwd:
+  users:
+    - name: core
+      password_hash: $y$j9T$y5LotUmYJ7yuj.znxN7qC.$hBn83XsK5cMgPOXdpWQdzYesxIsB/a23XSmNV5OFRC9
+      groups:
+        - sudo
+        - wheel
+        - docker
+storage:
+  files:
+    - path: /etc/ssh/sshd_config.d/20-enable-passwords.conf
+      mode: 0644
+      contents:
+        inline: |
+          PasswordAuthentication yes
