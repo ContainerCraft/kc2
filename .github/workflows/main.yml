@@ -31,18 +31,23 @@ jobs:
     - name: Code Checkout
       uses: actions/checkout@v2.3.4
 
-    - name: Prepare Vyos 1.4-rolling Image
+    - name: Prepare Fedora Image
       run: |
         set -ex ;\
-        ./images/vyos/run.sh; \
-        file /vyos/artifacts/image.qcow2 ;\
-        du -sh /vyos/artifacts/image.qcow2 ;\
+        curl --output /tmp/fedora.qcow2 -L "https://mirror.arizona.edu/fedora/linux/releases/34/Cloud/x86_64/images/Fedora-Cloud-Base-34-1.2.x86_64.qcow2" ;\
+        qemu-img resize /tmp/fedora.qcow2 +16G ;\
+        sudo virt-sysprep -a /tmp/fedora.qcow2 --password fedora:password:fedora ;\
+        sudo virt-customize -a /tmp/fedora.qcow2 --install 'tmux,git,vim,net-tools,qemu-guest-agent' ;\
+        sudo virt-customize -a /tmp/fedora.qcow2 --run-command 'systemctl enable qemu-guest-agent' ;\
+        sudo virt-customize -a /tmp/fedora.qcow2 --run-command "dnf clean all && rm -rf /var/cache/dnf" ;\
         echo;
 
-    - name: Build Vyos Cradle
+        #sudo virt-customize -a /tmp/fedora.qcow2 --run-command "grubby --update-kernel=ALL --args 'cgroup_memory=1 cgroup_enable=cpuset cgroup_enable=memory systemd.unified_cgroup_hierarchy=0 intel_iommu=on iommu=pt rd.driver.pre=vfio-pci pci=realloc'" ;\
+
+    - name: Build Fedora Cradle
       run: |
         PATH=${PATH}:$(pwd) \
-        cradle --image-name quay.io/containercraft/vyos --image-tag 1.4 --image-file $(pwd)/images/vyos/image.qcow2 ;\
+        cradle --image-name quay.io/containercraft/fedora --image-tag 34 --image-file /tmp/fedora.qcow2 ;\
         echo;
 
     - name: Login Quay.io
@@ -53,15 +58,17 @@ jobs:
         username: ${{ secrets.ROBOT_USER_QUAY }}
         password: ${{ secrets.ROBOT_TOKEN_QUAY }}
 
-    - name: Push Vyos 1.4-rolling Cradle
+    - name: Push Fedora Cradle
       run: |
         set -ex ;\
-        podman push quay.io/containercraft/vyos:1.4 ;\
-        podman push docker://quay.io/containercraft/vyos:1.4 docker://quay.io/containercraft/vyos:1.4-rolling-$(date +%Y%m%d) ;\
+        podman push quay.io/containercraft/fedora:34 ;\
+        podman push docker://quay.io/containercraft/fedora:34 docker://quay.io/containercraft/fedora:latest ;\
         podman image prune --all --force ;\
-        sudo rm -rf $(pwd)/images/vyos/image.qcow2 ;\
-        sudo rm -rf /tmp/vyos-build ;\
         echo;
+        
+    - name: Cleanup
+      run: |
+        rm -rf /tmp/cradle /tmp/*qcow*
 
     - name: Prepare Ubuntu Image
       run: |
@@ -199,44 +206,35 @@ jobs:
       run: |
         rm -rf /tmp/cradle /tmp/*qcow*
 
-    - name: Prepare Fedora Image
-      run: |
-        set -ex ;\
-        curl --output /tmp/fedora.qcow2 -L "https://download.fedoraproject.org/pub/fedora/linux/releases/34/Cloud/x86_64/images/Fedora-Cloud-Base-34-1.2.x86_64.qcow2" ;\
-        qemu-img resize /tmp/fedora.qcow2 +22G ;\
-        sudo virt-sysprep -a /tmp/fedora.qcow2 --password fedora:password:fedora ;\
-        sudo virt-customize -a /tmp/fedora.qcow2 --install 'tmux,git,vim,net-tools,qemu-guest-agent' ;\
-        sudo virt-customize -a /tmp/fedora.qcow2 --run-command 'systemctl enable qemu-guest-agent' ;\
-        sudo virt-customize -a /tmp/fedora.qcow2 --update ;\
-        echo;
+        #    - name: Prepare Vyos 1.4-rolling Image
+        #      run: |
+        #        set -ex ;\
+        #        ./images/vyos/run.sh; \
+        #        file /vyos/artifacts/image.qcow2 ;\
+        #        du -sh /vyos/artifacts/image.qcow2 ;\
+        #        echo;
+        #
+        #    - name: Build Vyos Cradle
+        #      run: |
+        #        PATH=${PATH}:$(pwd) \
+        #        cradle --image-name quay.io/containercraft/vyos --image-tag 1.4 --image-file $(pwd)/images/vyos/image.qcow2 ;\
+        #        echo;
+        #
+        #    - name: Login Quay.io
+        #      uses: docker/login-action@v1.9.0
+        #      with:
+        #        logout: false
+        #        registry: quay.io
+        #        username: ${{ secrets.ROBOT_USER_QUAY }}
+        #        password: ${{ secrets.ROBOT_TOKEN_QUAY }}
+        #
+        #    - name: Push Vyos 1.4-rolling Cradle
+        #      run: |
+        #        set -ex ;\
+        #        podman push quay.io/containercraft/vyos:1.4 ;\
+        #        podman push docker://quay.io/containercraft/vyos:1.4 docker://quay.io/containercraft/vyos:1.4-rolling-$(date +%Y%m%d) ;\
+        #        podman image prune --all --force ;\
+        #        sudo rm -rf $(pwd)/images/vyos/image.qcow2 ;\
+        #        sudo rm -rf /tmp/vyos-build ;\
+        #        echo;
 
-        #sudo virt-customize -a /tmp/fedora.qcow2 --run-command "dnf update -y" ;\
-        #sudo virt-customize -a /tmp/fedora.qcow2 --run-command "dnf upgrade -y" ;\
-        #sudo virt-customize -a /tmp/fedora.qcow2 --run-command "dnf clean all && rm -rf /var/cache/dnf" ;\
-        #sudo virt-customize -a /tmp/fedora.qcow2 --run-command "grubby --update-kernel=ALL --args 'cgroup_memory=1 cgroup_enable=cpuset cgroup_enable=memory systemd.unified_cgroup_hierarchy=0 intel_iommu=on iommu=pt rd.driver.pre=vfio-pci pci=realloc'" ;\
-
-    - name: Build Fedora Cradle
-      run: |
-        PATH=${PATH}:$(pwd) \
-        cradle --image-name quay.io/containercraft/fedora --image-tag 34 --image-file /tmp/fedora.qcow2 ;\
-        echo;
-
-    - name: Login Quay.io
-      uses: docker/login-action@v1.9.0
-      with:
-        logout: false
-        registry: quay.io
-        username: ${{ secrets.ROBOT_USER_QUAY }}
-        password: ${{ secrets.ROBOT_TOKEN_QUAY }}
-
-    - name: Push Fedora Cradle
-      run: |
-        set -ex ;\
-        podman push quay.io/containercraft/fedora:34 ;\
-        podman push docker://quay.io/containercraft/fedora:34 docker://quay.io/containercraft/fedora:latest ;\
-        podman image prune --all --force ;\
-        echo;
-        
-    - name: Cleanup
-      run: |
-        rm -rf /tmp/cradle /tmp/*qcow*
