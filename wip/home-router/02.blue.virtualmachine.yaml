@@ -1,0 +1,100 @@
+---
+apiVersion: kubevirt.io/v1alpha3
+kind: VirtualMachine
+metadata:
+  name: vyos-wan0-blue-rev01
+  namespace: kargo
+  labels:
+    app: vyos-wan0-blue-rev01
+spec:
+  running: true
+  dataVolumeTemplates:
+  - metadata:
+      name: vyos-sda-root
+      annotations:
+        kubevirt.io/provisionOnNode: qotom
+    spec:
+      config:
+        featureGates:
+        - HonorWaitForFirstConsumer
+      nodeSelector:
+        node-role.kubernetes.io/wan: ""
+      pvc:
+        accessModes:
+        - ReadWriteOnce
+        resources:
+          requests:
+            storage: 11Gi
+        storageClassName: hostpath-provisioner
+      source:
+        registry:
+          url: "docker://quay.io/containercraft/vyos:1.4-rolling"
+          name: vyos-1.4-rolling
+  template:
+    spec:
+      nodeSelector:
+        node-role.kubernetes.io/wan: ""
+      terminationGracePeriodSeconds: 0
+      hostname: vyos-wan0-blue-rev01
+      domain:
+        cpu:
+          cores: 2
+          threads: 1
+          sockets: 1
+          dedicatedCpuPlacement: false
+          model: host-model
+        machine:
+          type: pc-q35-rhel8.3.0
+        resources:
+          requests:
+            memory: 2Gi
+        devices:
+          autoattachPodInterface: false
+          autoattachSerialConsole: true
+          autoattachGraphicsDevice: false
+          networkInterfaceMultiqueue: false
+          rng: {}
+          disks:
+            - name: root-disk
+              bootOrder: 1
+              disk:
+                bus: virtio
+            - name: cloudinitdisk
+              disk:
+                bus: virtio
+          interfaces:
+          - name: eth0
+            model: virtio
+            bridge: {}
+          - name: eth1
+            model: virtio
+            bridge: {}
+          - name: eth2
+            model: virtio
+            bridge: {}
+        features:
+          smm:
+            enabled: true
+        firmware:
+          bootloader:
+            efi:
+              secureBoot: false
+      networks:
+      - name: eth0
+        multus:
+          networkName: kargo-net-attach-def-wan0
+      - name: eth1
+        multus:
+          networkName: kargo-net-attach-def-br0
+      - name: eth2
+        multus:
+          networkName: kargo-net-attach-def-dmz0
+      volumes:
+        - name: root-disk
+          dataVolume:
+            name: vyos-sda-root
+        - name: cloudinitdisk
+          cloudInitConfigDrive:
+            userData: "#cloud-config"
+            secretRef:
+              name: vyos-router-cloud-config-user-data
