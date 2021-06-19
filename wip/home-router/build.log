@@ -1,1 +1,0 @@
-kubectl create secret -n kargo generic vyos-router-cloud-config-user-data --from-file=01.user-data-cmds.yaml

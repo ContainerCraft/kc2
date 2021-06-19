@@ -1,0 +1,42 @@
+apiVersion: kubevirt.io/v1alpha3
+kind: VirtualMachine
+metadata:
+  generation: 1
+  labels:
+    kubevirt.io/os: linux
+  name: vm1
+spec:
+  running: true
+  template:
+    metadata:
+      labels:
+        kubevirt.io/domain: vm1
+    spec:
+      nodeSelector: #nodeSelector matches nodes where performance key has high as value.
+        node-role.kubernetes.io/wan: ""
+      domain:
+        cpu:
+          cores: 2
+        devices:
+          disks:
+          - disk:
+              bus: virtio
+            name: disk0
+          - cdrom:
+              bus: sata
+              readonly: true
+            name: cloudinitdisk
+        machine:
+          type: q35
+        resources:
+          requests:
+            memory: 2G
+      volumes:
+      - name: disk0
+        containerDisk:
+          image: quay.io/containercraft/vyos:1.4-rolling
+          imagePullPolicy: Always
+      - name: cloudinitdisk
+        cloudInitNoCloud:
+          secretRef:
+            name: wan0vyos-cloudconfig

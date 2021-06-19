@@ -1,18 +1,20 @@
----
 apiVersion: kubevirt.io/v1alpha3
 kind: VirtualMachine
 metadata:
-  name: vyos-wan0-blue-rev01
+  name: vyos-blue-wan0-rev01
   namespace: kargo
+  generation: 1
   labels:
-    app: vyos-wan0-blue-rev01
+    kubevirt.io/os: linux
+    node: "qotom"
+    app: vyos-wan0
 spec:
   running: true
   dataVolumeTemplates:
   - metadata:
-      name: vyos-sda-root
+      name: vyos-blue-wan0-root-vda
       annotations:
-        kubevirt.io/provisionOnNode: qotom
+        kubevirt.io/provisionOnNode: "qotom"
     spec:
       config:
         featureGates:
@@ -24,30 +26,31 @@ spec:
         - ReadWriteOnce
         resources:
           requests:
-            storage: 11Gi
+            storage: 8G
         storageClassName: hostpath-provisioner
       source:
         registry:
           url: "docker://quay.io/containercraft/vyos:1.4-rolling"
-          name: vyos-1.4-rolling
   template:
+    metadata:
+      labels:
+        kubevirt.io/domain: vyos
     spec:
       nodeSelector:
         node-role.kubernetes.io/wan: ""
       terminationGracePeriodSeconds: 0
-      hostname: vyos-wan0-blue-rev01
       domain:
         cpu:
           cores: 2
           threads: 1
           sockets: 1
-          dedicatedCpuPlacement: false
           model: host-model
+          dedicatedCpuPlacement: false
         machine:
           type: pc-q35-rhel8.3.0
         resources:
           requests:
-            memory: 2Gi
+            memory: 2G
         devices:
           autoattachPodInterface: false
           autoattachSerialConsole: true
@@ -55,13 +58,13 @@ spec:
           networkInterfaceMultiqueue: false
           rng: {}
           disks:
-            - name: root-disk
-              bootOrder: 1
-              disk:
-                bus: virtio
-            - name: cloudinitdisk
-              disk:
-                bus: virtio
+          - name: disk-vda-root
+            disk:
+              bus: virtio
+          - name: cloudinitdisk
+            cdrom:
+              bus: sata
+              readonly: true
           interfaces:
           - name: eth0
             model: virtio
@@ -72,13 +75,6 @@ spec:
           - name: eth2
             model: virtio
             bridge: {}
-        features:
-          smm:
-            enabled: true
-        firmware:
-          bootloader:
-            efi:
-              secureBoot: false
       networks:
       - name: eth0
         multus:
@@ -90,11 +86,10 @@ spec:
         multus:
           networkName: kargo-net-attach-def-dmz0
       volumes:
-        - name: root-disk
-          dataVolume:
-            name: vyos-sda-root
-        - name: cloudinitdisk
-          cloudInitConfigDrive:
-            userData: "#cloud-config"
-            secretRef:
-              name: vyos-router-cloud-config-user-data
+      - name: disk-vda-root
+        dataVolume:
+          name: vyos-blue-wan0-root-vda
+      - name: cloudinitdisk
+        cloudInitNoCloud:
+          secretRef:
+            name: wan0vyos-cloudconfig
