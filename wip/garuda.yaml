@@ -2,16 +2,16 @@
 apiVersion: kubevirt.io/v1alpha3
 kind: VirtualMachine
 metadata:
-  name: fedora34-n01
+  name: garuda
   namespace: kargo
   labels:
-    app: fedora34
+    app: garuda
 spec:
   running: true
   template:
     spec:
       nodeSelector:
-        kubernetes.io/hostname: spindle
+        kubernetes.io/hostname: t640n01
         node-role.kubernetes.io/kubevirt: ""
       domain:
         clock:
@@ -19,21 +19,21 @@ spec:
           utc: {}
         cpu:
           sockets: 1
-          threads: 1
+          threads: 2
           cores: 4
           model: host-passthrough
           dedicatedCpuPlacement: false
         resources:
           requests:
             devices.kubevirt.io/kvm: "1"
-            memory: 16Gi
+            memory: 8G
         machine:
           type: pc-q35-rhel8.3.0
         devices:
-          autoattachPodInterface: false
           autoattachSerialConsole: true
-          autoattachGraphicsDevice: true
           networkInterfaceMultiqueue: true
+          autoattachGraphicsDevice: true
+          autoattachPodInterface: false
           rng: {}
           disks:
             - name: containerdisk
@@ -48,7 +48,7 @@ spec:
             model: virtio
             bootOrder: 2
             bridge: {}
-      hostname: fedora34
+      hostname: garuda
       networks:
       - name: eth0
         multus:
@@ -57,14 +57,14 @@ spec:
       volumes:
         - name: containerdisk
           containerDisk:
-            image: quay.io/containercraft/fedora:34
+            image: quay.io/containercraft/garuda:dragonized
             imagePullPolicy: Always
         - name: cloudinitdisk
           cloudInitNoCloud:
             userData: |
               #cloud-config
-              hostname: fedora34-n01
-              fqdn: fedora34-n01.fly.lab
+              hostname: garuda
+              fqdn: garuda.plutarch.codectl.lab
               ssh_pwauth: true
               disable_root: false
               chpasswd:
@@ -73,7 +73,7 @@ spec:
                 expire: False
               users:
                 - default
-                - name: usrbinkat
+                - name: garuda
                   sudo: ['ALL=(ALL) NOPASSWD:ALL']
                   groups: wheel
                   shell: /bin/bash
@@ -82,6 +82,9 @@ spec:
                     - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAAB/zPcAdyHRElufWDNQ1mZUWp4V9jDmaWX35ApsXgxfMHBuz3n8VLGVJuXodAAxeRbbE7Rws8BQcCH4DAMKKLHYZRdJtk3ZUw7rm0i/aq0wkeld7Yp6H/fv1ud3mudp7/+3fQ3gV8RmAO8+FS4jNBMciqtY6mWThKciwnkBWmH5atl6GsZ1ZQ+Y8+W4hXnaF6UEU1+xZ8ja+hu81a9fhejcV+m3RwT511kW5IXDe6wkq9tsIEC529VGI7XuySYvusbchivWYxmE+TBMmId3voGCfkl8hIemUG3/LvQWeK95B/6vBKDCFlmABn60zxrjPkdknWPbu4zg+VJWnslX+rDqSe2cBpHqQ8yDxegPcmXNKv2Qp0h8HhEljWoLc4U5x4hlceDraWBehj8i4N6p+Yt678+jUpOCwGC8z9l+zUrG6NPvbHZ2aIBC3eUteYPtmScNLvOiFASPo/9GQQDNqZclQZf5QGDToAV2rV1B4jJPV8fv/1rlgen6O1PNitKo9FlUfr0WA1IXev6CiJUt4x210BzhTlD84S2A0gHJRbeVVkjWKMx/vo/wqEKTg/vvzSOhFDDlKUxSsguL5rrtOxdGj4sUtjeVRuDjwk1u1DH8P75rI0R/1QaeDixJbRi8Q1315z+MrvJuvzJpMTieldqffNUnexMZcFox8yI8KlVt2U= kmorgan@mprcs.braincraft.io
               runcmd:
                 - [touch .autorelabel]
-                - [echo $(date) > /root/complete]
+                - "curl -sfL https://raw.githubusercontent.com/redhat-et/microshift/main/install.sh | sh -"
+                - "sleep 60"
+                - "echo a3ViZWN0bCBwYXRjaCBzdG9yYWdlY2xhc3Mga3ViZXZpcnQtaG9zdHBhdGgtcHJvdmlzaW9uZXIgLXAgJ3sibWV0YWRhdGEiOiB7ImFubm90YXRpb25zIjp7InN0b3JhZ2VjbGFzcy5rdWJlcm5ldGVzLmlvL2lzLWRlZmF1bHQtY2xhc3MiOiJ0cnVlIn19fScK | base64 -d | bash"
+                - "sleep 3"
                 - [reboot]
               final_message: ">> UserData Processing Complete"

@@ -8,23 +8,6 @@ metadata:
     app: microk8s
 spec:
   running: true
-  dataVolumeTemplates:
-  - metadata:
-      name: ubuntu-vda-root
-      annotations:
-        kubevirt.io/provisionOnNode: t640n01
-    spec:
-      pvc:
-        accessModes:
-        - ReadWriteOnce
-        resources:
-          requests:
-            storage: 96G
-        storageClassName: hostpath-provisioner
-      source:
-        pvc:
-          name: kargo-ubuntu-latest
-          namespace: kargo
   template:
     spec:
       nodeSelector:
@@ -69,8 +52,9 @@ spec:
       terminationGracePeriodSeconds: 0
       volumes:
         - name: root-disk
-          dataVolume:
-            name: ubuntu-vda-root
+          containerDisk:
+            image: quay.io/containercraft/ubuntu:latest
+            imagePullPolicy: Always
         - name: cloudinitdisk
           cloudInitNoCloud:
             networkData: |

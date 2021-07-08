@@ -74,7 +74,7 @@ build_path               = args.build_path
 container_context        = (args.build_path + "/" + datetimestr)
 qcow2_staging_path       = (container_context + "/rootfs/disk/image.qcow2")
 docker_file              = ("FROM " + args.cradle_image + "\n" + "ADD " + "./rootfs /")
-container_build_cmd      = "podman build --isolation='chroot'"
+container_build_cmd      = "docker build"
 
 
 # Create temp cradle build directory tree
