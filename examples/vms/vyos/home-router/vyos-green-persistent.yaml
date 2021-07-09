@@ -1,7 +1,7 @@
 apiVersion: kubevirt.io/v1alpha3
 kind: VirtualMachine
 metadata:
-  name: vyos-blue-wan0-rev01
+  name: vyos-green-wan0-rev01
   namespace: kargo
   generation: 1
   labels:
@@ -12,7 +12,7 @@ spec:
   running: true
   dataVolumeTemplates:
   - metadata:
-      name: vyos-blue-wan0-root-vda
+      name: vyos-green-wan0-root-vda
       annotations:
         kubevirt.io/provisionOnNode: "qotom"
     spec:
@@ -31,6 +31,7 @@ spec:
       source:
         registry:
           url: "docker://quay.io/containercraft/vyos:1.4-rolling"
+          imagePullPolicy: Always
   template:
     metadata:
       labels:
@@ -88,7 +89,7 @@ spec:
       volumes:
       - name: disk-vda-root
         dataVolume:
-          name: vyos-blue-wan0-root-vda
+          name: vyos-green-wan0-root-vda
       - name: cloudinitdisk
         cloudInitNoCloud:
           secretRef:

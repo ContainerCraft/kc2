@@ -18,15 +18,17 @@ spec:
           timer: {}
           utc: {}
         cpu:
-          sockets: 1
-          threads: 2
           cores: 4
+          threads: 2
+          sockets: 1
           model: host-passthrough
           dedicatedCpuPlacement: false
         resources:
           requests:
             devices.kubevirt.io/kvm: "1"
-            memory: 8G
+            memory: 12G
+          limits:
+            memory: 12G
         machine:
           type: pc-q35-rhel8.3.0
         devices:

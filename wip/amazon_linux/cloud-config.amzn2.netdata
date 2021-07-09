@@ -1,0 +1,12 @@
+#cloud-config
+#vim:syntax=yaml
+users:
+  - default
+chpasswd:
+  list: |
+    ec2-user:ec2-user
+write_files:
+  - path: /etc/cloud/cloud.cfg.d/80_disable_network_after_firstboot.cfg
+    content: |
+      network:
+        config: disabled
