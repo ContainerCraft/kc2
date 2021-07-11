@@ -1,0 +1,27 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pvc-test
+  namespace: kargo
+  annotations:
+    kubevirt.io/provisionOnNode: t640n01
+    hostPathProvisionerIdentity: kubevirt.io/hostpath-provisioner
+spec:
+  accessModes:
+  - ReadWriteOnce
+  capacity:
+    storage: 128Gi
+  hostPath:
+    path: /srv/storage/optane
+    type: ""
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: kubernetes.io/hostname
+          operator: In
+          values:
+          - t640n01
+  persistentVolumeReclaimPolicy: Delete
+  storageClassName: hostpath-provisioner
+  volumeMode: Filesystem
