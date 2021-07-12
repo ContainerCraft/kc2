@@ -33,7 +33,7 @@ jobs:
     - name: Build Debian Cradle
       run: |
         PATH=${PATH}:$(pwd) \
-        cradle --image-name quay.io/containercraft/debian --image-tag 9 --image-file /tmp/debian.qcow2 ;\
+        cradle --image-name quay.io/containercraft/debian --image-tag 10 --image-file /tmp/debian.qcow2 ;\
         echo;
 
     - name: Login Quay.io
