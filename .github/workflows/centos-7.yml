@@ -33,7 +33,7 @@ jobs:
     - name: Build Centos Cradle
       run: |
         PATH=${PATH}:$(pwd) \
-        cradle --image-name quay.io/containercraft/centos --image-tag 34 --image-file /tmp/centos.qcow2 ;\
+        cradle --image-name quay.io/containercraft/centos --image-tag 7 --image-file /tmp/centos.qcow2 ;\
         echo;
 
     - name: Login Quay.io
@@ -47,8 +47,7 @@ jobs:
     - name: Push Centos Cradle
       run: |
         set -ex ;\
-        podman push quay.io/containercraft/centos:34 ;\
-        podman push docker://quay.io/containercraft/centos:34 docker://quay.io/containercraft/centos:latest ;\
+        podman push quay.io/containercraft/centos:7 ;\
         podman image prune --all --force ;\
         echo;
         
