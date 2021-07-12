@@ -1,0 +1,45 @@
+all:
+  hosts:
+    kargo00:
+      ip: 192.168.1.60
+      access_ip: 192.168.1.60
+      ansible_host: 192.168.1.60
+      ansible_connection: ssh
+      ansible_user: fedora
+      ansible_port: 22
+    kargo01:
+      ip: 192.168.1.61
+      access_ip: 192.168.1.61
+      ansible_host: 192.168.1.61
+      ansible_connection: ssh
+      ansible_user: fedora
+      ansible_port: 22
+    kargo02:
+      ip: 192.168.1.62
+      access_ip: 192.168.1.62
+      ansible_host: 192.168.1.62
+      ansible_connection: ssh
+      ansible_user: fedora
+      ansible_port: 22
+  children:
+    kube_control_plane:
+      hosts:
+        kargo00:
+        kargo01:
+        kargo02:
+    kube_node:
+      hosts:
+        kargo00:
+        kargo01:
+        kargo02:
+    etcd:
+      hosts:
+        kargo00:
+        kargo01:
+        kargo02:
+    k8s_cluster:
+      children:
+        kube_control_plane:
+        kube_node:
+    calico_rr:
+      hosts: {}
