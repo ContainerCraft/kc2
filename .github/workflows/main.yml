@@ -65,6 +65,15 @@ jobs:
         repository: ${{ github.repository }}
         client-payload: '{"ref": "${{ github.ref }}", "sha": "${{ github.sha }}"}'
 
+    - name: Build CentOS 7
+      if: success()
+      uses: peter-evans/repository-dispatch@v1.1.3
+      with:
+        event-type: centos-7
+        token: ${{ secrets.GH_ACTIONS_TOKEN }}
+        repository: ${{ github.repository }}
+        client-payload: '{"ref": "${{ github.ref }}", "sha": "${{ github.sha }}"}'
+
     - name: Build Fedora 34
       if: success()
       uses: peter-evans/repository-dispatch@v1.1.3
