@@ -30,7 +30,7 @@ jobs:
         sudo virt-customize -a /tmp/centos.qcow2 --install 'git,vim,htop,tmux,net-tools,qemu-guest-agent' ;\
         sudo virt-customize -a /tmp/centos.qcow2 --run-command "sed -i 's/SELINUX=enforcing/SELINUX=permissive/g' /etc/selinux/config" ;\
         sudo virt-customize -a /tmp/centos.qcow2 --run-command 'systemctl enable qemu-guest-agent' ;\
-        sudo virt-customize -a /tmp/centos.qcow2 --run-command "dnf update && dnf clean all && rm -rf /var/cache/dnf" ;\
+        sudo virt-customize -a /tmp/centos.qcow2 --run-command "dnf update -y && dnf clean all && rm -rf /var/cache/dnf" ;\
         echo;
 
     - name: Build Centos Cradle
