@@ -34,7 +34,7 @@ jobs:
     - name: Prepare Ubuntu 20.04 Image
       run: |
         set -ex ;\
-        curl --output /tmp/ubuntu.qcow2 -L "https://cloud-images.ubuntu.com/groovy/current/groovy-server-cloudimg-amd64.img" ;\
+        curl --output /tmp/ubuntu.qcow2 -L "https://cloud-images.ubuntu.com/focal/current/focal-server-cloudimg-amd64.img" ;\
         qemu-img resize /tmp/ubuntu.qcow2 +48G ;\
         sudo virt-sysprep -a /tmp/ubuntu.qcow2 --password ubuntu:password:ubuntu ;\
         sudo virt-customize -a /tmp/ubuntu.qcow2 --install 'ansible,python,tmux,git,vim,net-tools,qemu-guest-agent,cloud-init,cloud-initramfs-growroot' ;\
@@ -60,7 +60,7 @@ jobs:
       run: |
         set -ex ;\
         podman push quay.io/containercraft/ubuntu:20.04 ;\
-        podman push docker://quay.io/containercraft/ubuntu:20.04 docker://quay.io/containercraft/ubuntu:groovy ;\
+        podman push docker://quay.io/containercraft/ubuntu:20.04 docker://quay.io/containercraft/ubuntu:focal ;\
         podman image prune --all --force ;\
         echo;
         
