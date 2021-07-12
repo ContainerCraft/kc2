@@ -20,11 +20,56 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
 
+    - name: Build Debian 9 Stretch
+      if: success()
+      uses: peter-evans/repository-dispatch@v1.1.3
+      with:
+        event-type: debian-9
+        token: ${{ secrets.GH_ACTIONS_TOKEN }}
+        repository: ${{ github.repository }}
+        client-payload: '{"ref": "${{ github.ref }}", "sha": "${{ github.sha }}"}'
+
+    - name: Build Debian 10 Buster
+      if: success()
+      uses: peter-evans/repository-dispatch@v1.1.3
+      with:
+        event-type: debian-10
+        token: ${{ secrets.GH_ACTIONS_TOKEN }}
+        repository: ${{ github.repository }}
+        client-payload: '{"ref": "${{ github.ref }}", "sha": "${{ github.sha }}"}'
+
+    - name: Build Ubuntu 18.04
+      if: success()
+      uses: peter-evans/repository-dispatch@v1.1.3
+      with:
+        event-type: ubuntu-1804
+        token: ${{ secrets.GH_ACTIONS_TOKEN }}
+        repository: ${{ github.repository }}
+        client-payload: '{"ref": "${{ github.ref }}", "sha": "${{ github.sha }}"}'
+
     - name: Build Ubuntu 20.04
       if: success()
       uses: peter-evans/repository-dispatch@v1.1.3
       with:
         event-type: ubuntu-2004
+        token: ${{ secrets.GH_ACTIONS_TOKEN }}
+        repository: ${{ github.repository }}
+        client-payload: '{"ref": "${{ github.ref }}", "sha": "${{ github.sha }}"}'
+
+    - name: Build Ubuntu 21.04
+      if: success()
+      uses: peter-evans/repository-dispatch@v1.1.3
+      with:
+        event-type: ubuntu-2104
+        token: ${{ secrets.GH_ACTIONS_TOKEN }}
+        repository: ${{ github.repository }}
+        client-payload: '{"ref": "${{ github.ref }}", "sha": "${{ github.sha }}"}'
+
+    - name: Build Fedora 34
+      if: success()
+      uses: peter-evans/repository-dispatch@v1.1.3
+      with:
+        event-type: fedora-34
         token: ${{ secrets.GH_ACTIONS_TOKEN }}
         repository: ${{ github.repository }}
         client-payload: '{"ref": "${{ github.ref }}", "sha": "${{ github.sha }}"}'

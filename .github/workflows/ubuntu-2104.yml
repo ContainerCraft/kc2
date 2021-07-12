@@ -1,0 +1,90 @@
+name: Ubuntu 21.04 Hirsute Hippo
+on:
+  repository_dispatch:
+    types:
+    - 'ubuntu-2104'
+
+jobs:
+  build:
+    runs-on: ubuntu-20.04
+    steps:
+
+    - name: Install Dependencies
+      run: |
+        set -ex ;\
+        sudo apt-get update -y ;\
+        sudo apt-get install -y libguestfs-tools ;\
+        echo;
+
+    - name: Code Checkout
+      uses: actions/checkout@v2.3.4
+
+    - name: Prepare Ubuntu Hirsute Hippo 21.04 Image
+      run: |
+        set -ex ;\
+        curl --output /tmp/ubuntu.qcow2 -L "https://cloud-images.ubuntu.com/releases/hirsute/release/ubuntu-21.04-server-cloudimg-amd64-disk-kvm.img" ;\
+        qemu-img resize /tmp/ubuntu.qcow2 +48G ;\
+        sudo virt-sysprep -a /tmp/ubuntu.qcow2 --password ubuntu:password:ubuntu ;\
+        sudo virt-customize -a /tmp/ubuntu.qcow2 --install 'tmux,git,vim,net-tools,qemu-guest-agent,cloud-init,cloud-initramfs-growroot' ;\
+        sudo virt-customize -a /tmp/ubuntu.qcow2 --run-command 'systemctl enable qemu-guest-agent' ;\
+        sudo virt-customize -a /tmp/ubuntu.qcow2 --update ;\
+        echo;
+
+    - name: Build Ubuntu Cradle
+      run: |
+        PATH=${PATH}:$(pwd) \
+        cradle --image-name quay.io/containercraft/ubuntu --image-tag 21.04 --image-file /tmp/ubuntu.qcow2 ;\
+        echo;
+
+    - name: Login Quay.io
+      uses: docker/login-action@v1.10.0
+      with:
+        logout: false
+        registry: quay.io
+        username: ${{ secrets.ROBOT_USER_QUAY }}
+        password: ${{ secrets.ROBOT_TOKEN_QUAY }}
+
+    - name: Push Ubuntu Cradle
+      run: |
+        set -ex ;\
+        podman push quay.io/containercraft/ubuntu:21.04 ;\
+        podman push docker://quay.io/containercraft/ubuntu:21.04 docker://quay.io/containercraft/ubuntu:hirsute ;\
+        podman image prune --all --force ;\
+        echo;
+        
+    - name: Cleanup
+      run: |
+        rm -rf /tmp/cradle /tmp/*qcow*
+
+        #    - name: Prepare Vyos 1.4-rolling Image
+        #      run: |
+        #        set -ex ;\
+        #        ./images/vyos/run.sh; \
+        #        file /vyos/artifacts/image.qcow2 ;\
+        #        du -sh /vyos/artifacts/image.qcow2 ;\
+        #        echo;
+        #
+        #    - name: Build Vyos Cradle
+        #      run: |
+        #        PATH=${PATH}:$(pwd) \
+        #        cradle --image-name quay.io/containercraft/vyos --image-tag 1.4 --image-file $(pwd)/images/vyos/image.qcow2 ;\
+        #        echo;
+        #
+        #    - name: Login Quay.io
+        #      uses: docker/login-action@v1.10.0
+        #      with:
+        #        logout: false
+        #        registry: quay.io
+        #        username: ${{ secrets.ROBOT_USER_QUAY }}
+        #        password: ${{ secrets.ROBOT_TOKEN_QUAY }}
+        #
+        #    - name: Push Vyos 1.4-rolling Cradle
+        #      run: |
+        #        set -ex ;\
+        #        podman push quay.io/containercraft/vyos:1.4 ;\
+        #        podman push docker://quay.io/containercraft/vyos:1.4 docker://quay.io/containercraft/vyos:1.4-rolling-$(date +%Y%m%d) ;\
+        #        podman image prune --all --force ;\
+        #        sudo rm -rf $(pwd)/images/vyos/image.qcow2 ;\
+        #        sudo rm -rf /tmp/vyos-build ;\
+        #        echo;
+
