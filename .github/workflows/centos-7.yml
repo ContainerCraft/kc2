@@ -27,7 +27,7 @@ jobs:
         sudo virt-sysprep -a /tmp/centos.qcow2 --password centos:password:centos ;\
         sudo virt-customize -a /tmp/centos.qcow2 --install 'tmux,git,vim,net-tools,qemu-guest-agent' ;\
         sudo virt-customize -a /tmp/centos.qcow2 --run-command 'systemctl enable qemu-guest-agent' ;\
-        sudo virt-customize -a /tmp/centos.qcow2 --run-command "dnf clean all && rm -rf /var/cache/dnf" ;\
+        sudo virt-customize -a /tmp/centos.qcow2 --run-command "yum clean all && rm -rf /var/cache/dnf" ;\
         echo;
 
     - name: Build Centos Cradle
