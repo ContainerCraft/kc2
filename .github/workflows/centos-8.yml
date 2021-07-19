@@ -53,7 +53,7 @@ jobs:
       run: |
         set -ex ;\
         podman push quay.io/containercraft/centos:8 ;\
-        podman push docker://quay.io/containercraft/centos:8 docker://quay.io/containercraft/centos:latest ;\
+        podman push quay.io/containercraft/centos:8 docker://quay.io/containercraft/centos:latest ;\
         podman image prune --all --force ;\
         echo;
         

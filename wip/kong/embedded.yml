@@ -1,0 +1,606 @@
+---
+apiVersion: kubevirt.io/v1
+kind: VirtualMachineInstance
+metadata:
+  annotations:
+    kubevirt.io/latest-observed-api-version: v1
+    kubevirt.io/storage-observed-api-version: v1alpha3
+  creationTimestamp: "2021-07-01T21:32:13Z"
+  finalizers:
+  - foregroundDeleteVirtualMachine
+  generation: 33
+  labels:
+    kubevirt.io/domain: konghybridembedded
+    kubevirt.io/nodeName: spindle
+  name: kongcontrolplane00
+  namespace: kargo
+  ownerReferences:
+  - apiVersion: kubevirt.io/v1
+    blockOwnerDeletion: true
+    controller: true
+    kind: VirtualMachine
+    name: kongcontrolplane00
+    uid: baff84e8-06bd-4202-a4bd-d5b7b9e8a9e2
+  resourceVersion: "10877317"
+  uid: cca24aa1-cd1d-44e6-b2a4-398adbcce439
+spec:
+  domain:
+    clock:
+      timer: {}
+      utc: {}
+    cpu:
+      cores: 2
+      model: host-passthrough
+      sockets: 1
+      threads: 2
+    devices:
+      autoattachGraphicsDevice: false
+      autoattachPodInterface: false
+      autoattachSerialConsole: true
+      disks:
+      - bootOrder: 1
+        disk:
+          bus: virtio
+        name: vda-root-disk
+      - cdrom:
+          bus: sata
+          readonly: true
+          tray: closed
+        name: cloudinitdisk
+      interfaces:
+      - bridge: {}
+        model: virtio
+        name: enp1s0
+      networkInterfaceMultiqueue: false
+      rng: {}
+    features:
+      acpi:
+        enabled: true
+    firmware:
+      uuid: 669a696e-b8ed-55c5-9a0c-d61fb5b6a2ee
+    machine:
+      type: pc-q35-rhel8.3.0
+    resources:
+      requests:
+        cpu: 100m
+        memory: 2G
+  networks:
+  - multus:
+      networkName: kargo-net-attach-def-br0
+    name: enp1s0
+  nodeSelector:
+    node-role.kubernetes.io/kubevirt: ""
+  terminationGracePeriodSeconds: 0
+  volumes:
+  - containerDisk:
+      image: quay.io/containercraft/ubuntu:bionic
+      imagePullPolicy: Always
+    name: vda-root-disk
+  - cloudInitNoCloud:
+      networkData: |
+        version: 2
+        ethernets:
+          enp1s0:
+            addresses:
+              - 192.168.1.27/24
+            dhcp4: false
+            dhcp6: false
+            gateway4: 192.168.1.1
+            nameservers:
+              addresses:
+              - 192.168.1.1
+              search:
+              - plutarch.codectl.lab
+      userData: |
+        #cloud-config
+        ssh_pwauth: true
+        hostname: kongcontrolplane00
+        chpasswd:
+          expire: False
+          list: |
+            ubuntu:ubuntu
+        users:
+          - default
+          - name: ubuntu
+            sudo: ['ALL=(ALL) NOPASSWD:ALL']
+            groups: sudo
+            shell: /bin/bash
+            ssh-authorized-keys:
+              - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAAB/zPcAdyHRElufWDNQ1mZUWp4V9jDmaWX35ApsXgxfMHBuz3n8VLGVJuXodAAxeRbbE7Rws8BQcCH4DAMKKLHYZRdJtk3ZUw7rm0i/aq0wkeld7Yp6H/fv1ud3mudp7/+3fQ3gV8RmAO8+FS4jNBMciqtY6mWThKciwnkBWmH5atl6GsZ1ZQ+Y8+W4hXnaF6UEU1+xZ8ja+hu81a9fhejcV+m3RwT511kW5IXDe6wkq9tsIEC529VGI7XuySYvusbchivWYxmE+TBMmId3voGCfkl8hIemUG3/LvQWeK95B/6vBKDCFlmABn60zxrjPkdknWPbu4zg+VJWnslX+rDqSe2cBpHqQ8yDxegPcmXNKv2Qp0h8HhEljWoLc4U5x4hlceDraWBehj8i4N6p+Yt678+jUpOCwGC8z9l+zUrG6NPvbHZ2aIBC3eUteYPtmScNLvOiFASPo/9GQQDNqZclQZf5QGDToAV2rV1B4jJPV8fv/1rlgen6O1PNitKo9FlUfr0WA1IXev6CiJUt4x210BzhTlD84S2A0gHJRbeVVkjWKMx/vo/wqEKTg/vvzSOhFDDlKUxSsguL5rrtOxdGj4sUtjeVRuDjwk1u1DH8P75rI0R/1QaeDixJbRi8Q1315z+MrvJuvzJpMTieldqffNUnexMZcFox8yI8KlVt2U= usrbinkat@mprcs
+        runcmd:
+          - cp /etc/skel/.bashrc /root/.bashrc
+          - "echo 'ulimit -n 4096' | tee -a /root/.bashrc"
+          - "cat /home/ubuntu/.ssh/authorized_keys | tee -a /root/.ssh/authorized_keys"
+          - apt-get update -y
+          - apt-get upgrade -y
+          - apt-get install -y --install-recommends jq tmux lnav httpie postgresql postgresql-contrib
+          - 'echo "IyEvYmluL2Jhc2ggLXgKc2V0IC1vIHBpcGVmYWlsCnN1IC0gcG9zdGdyZXMgLWMgXAoicHNxbCA8PF9fRU5EX18KQ1JFQVRFIFVTRVIga29uZzsKQ1JFQVRFIERBVEFCQVNFIGtvbmcgT1dORVIga29uZzsKQUxURVIgVVNFUiBrb25nIFdJVEggcGFzc3dvcmQgJ2tvbmcnOwpfX0VORF9fIgplY2hvICJsb2NhbGhvc3Q6NTQzMjprb25nOmtvbmc6a29uZyIgPiAvcm9vdC8ucGdwYXNzCmNobW9kIDA2MDAgL3Jvb3QvLnBncGFzcwovdXNyL2Jpbi9wc3FsIC1VIGtvbmcgLWggbG9jYWxob3N0IC1jICdzZWxlY3Qgbm93KCknCg==" | base64 -d | bash'
+    name: cloudinitdisk
+status:
+  activePods:
+    09d18786-ed2b-4408-b7a6-7fc3fac664c0: spindle
+  conditions:
+  - lastProbeTime: null
+    lastTransitionTime: null
+    status: "True"
+    type: LiveMigratable
+  - lastProbeTime: null
+    lastTransitionTime: "2021-07-01T21:32:17Z"
+    status: "True"
+    type: Ready
+  - lastProbeTime: "2021-07-01T22:22:10Z"
+    lastTransitionTime: null
+    status: "True"
+    type: AgentConnected
+  guestOSInfo: {}
+  interfaces:
+  - interfaceName: enp1s0
+    ipAddress: 192.168.1.27
+    ipAddresses:
+    - 192.168.1.27
+    - fe80::14cb:ddff:fe22:aef7
+    mac: 16:cb:dd:22:ae:f7
+    name: enp1s0
+  launcherContainerImageVersion: quay.io/kubevirt/virt-launcher:v0.41.0
+  migrationMethod: BlockMigration
+  nodeName: spindle
+  phase: Running
+  qosClass: Burstable
+  volumeStatus:
+  - name: cloudinitdisk
+    target: sda
+  - name: vda-root-disk
+    target: vda
+---
+apiVersion: kubevirt.io/v1
+kind: VirtualMachineInstance
+metadata:
+  annotations:
+    kubevirt.io/latest-observed-api-version: v1
+    kubevirt.io/storage-observed-api-version: v1alpha3
+  creationTimestamp: "2021-07-01T21:32:10Z"
+  finalizers:
+  - foregroundDeleteVirtualMachine
+  generation: 33
+  labels:
+    kubevirt.io/domain: konghybridembedded
+    kubevirt.io/nodeName: spindle
+  name: kongcontrolplane01
+  namespace: kargo
+  ownerReferences:
+  - apiVersion: kubevirt.io/v1
+    blockOwnerDeletion: true
+    controller: true
+    kind: VirtualMachine
+    name: kongcontrolplane01
+    uid: 16689b4d-44d8-415d-9784-5b2db2bbb872
+  resourceVersion: "10877399"
+  uid: 2c1bce0c-63be-46d6-b14f-bedb9f3de0a6
+spec:
+  domain:
+    clock:
+      timer: {}
+      utc: {}
+    cpu:
+      cores: 2
+      model: host-passthrough
+      sockets: 1
+      threads: 2
+    devices:
+      autoattachGraphicsDevice: false
+      autoattachPodInterface: false
+      autoattachSerialConsole: true
+      disks:
+      - bootOrder: 1
+        disk:
+          bus: virtio
+        name: vda-root-disk
+      - cdrom:
+          bus: sata
+          readonly: true
+          tray: closed
+        name: cloudinitdisk
+      interfaces:
+      - bridge: {}
+        model: virtio
+        name: enp1s0
+      networkInterfaceMultiqueue: false
+      rng: {}
+    features:
+      acpi:
+        enabled: true
+    firmware:
+      uuid: 919d5add-2fe2-5dc6-806f-2a49c386f67e
+    machine:
+      type: pc-q35-rhel8.3.0
+    resources:
+      requests:
+        cpu: 100m
+        memory: 2G
+  networks:
+  - multus:
+      networkName: kargo-net-attach-def-br0
+    name: enp1s0
+  nodeSelector:
+    node-role.kubernetes.io/kubevirt: ""
+  terminationGracePeriodSeconds: 0
+  volumes:
+  - containerDisk:
+      image: quay.io/containercraft/ubuntu:bionic
+      imagePullPolicy: Always
+    name: vda-root-disk
+  - cloudInitNoCloud:
+      networkData: |
+        version: 2
+        ethernets:
+          enp1s0:
+            addresses:
+              - 192.168.1.28/24
+            dhcp4: false
+            dhcp6: false
+            gateway4: 192.168.1.1
+            nameservers:
+              addresses:
+              - 192.168.1.1
+              search:
+              - plutarch.codectl.lab
+      userData: |
+        #cloud-config
+        ssh_pwauth: true
+        hostname: kongcontrolplane01
+        chpasswd:
+          expire: False
+          list: |
+            ubuntu:ubuntu
+        users:
+          - default
+          - name: ubuntu
+            sudo: ['ALL=(ALL) NOPASSWD:ALL']
+            groups: sudo
+            shell: /bin/bash
+            ssh-authorized-keys:
+              - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAAB/zPcAdyHRElufWDNQ1mZUWp4V9jDmaWX35ApsXgxfMHBuz3n8VLGVJuXodAAxeRbbE7Rws8BQcCH4DAMKKLHYZRdJtk3ZUw7rm0i/aq0wkeld7Yp6H/fv1ud3mudp7/+3fQ3gV8RmAO8+FS4jNBMciqtY6mWThKciwnkBWmH5atl6GsZ1ZQ+Y8+W4hXnaF6UEU1+xZ8ja+hu81a9fhejcV+m3RwT511kW5IXDe6wkq9tsIEC529VGI7XuySYvusbchivWYxmE+TBMmId3voGCfkl8hIemUG3/LvQWeK95B/6vBKDCFlmABn60zxrjPkdknWPbu4zg+VJWnslX+rDqSe2cBpHqQ8yDxegPcmXNKv2Qp0h8HhEljWoLc4U5x4hlceDraWBehj8i4N6p+Yt678+jUpOCwGC8z9l+zUrG6NPvbHZ2aIBC3eUteYPtmScNLvOiFASPo/9GQQDNqZclQZf5QGDToAV2rV1B4jJPV8fv/1rlgen6O1PNitKo9FlUfr0WA1IXev6CiJUt4x210BzhTlD84S2A0gHJRbeVVkjWKMx/vo/wqEKTg/vvzSOhFDDlKUxSsguL5rrtOxdGj4sUtjeVRuDjwk1u1DH8P75rI0R/1QaeDixJbRi8Q1315z+MrvJuvzJpMTieldqffNUnexMZcFox8yI8KlVt2U= usrbinkat@mprcs
+        runcmd:
+          - cp /etc/skel/.bashrc /root/.bashrc
+          - "echo 'ulimit -n 4096' | tee -a /root/.bashrc"
+          - "cat /home/ubuntu/.ssh/authorized_keys | tee -a /root/.ssh/authorized_keys"
+          - apt-get update -y
+          - apt-get upgrade -y
+          - apt-get install -y --install-recommends jq tmux lnav httpie postgresql postgresql-contrib
+          - 'echo "IyEvYmluL2Jhc2ggLXgKc2V0IC1vIHBpcGVmYWlsCnN1IC0gcG9zdGdyZXMgLWMgXAoicHNxbCA8PF9fRU5EX18KQ1JFQVRFIFVTRVIga29uZzsKQ1JFQVRFIERBVEFCQVNFIGtvbmcgT1dORVIga29uZzsKQUxURVIgVVNFUiBrb25nIFdJVEggcGFzc3dvcmQgJ2tvbmcnOwpfX0VORF9fIgplY2hvICJsb2NhbGhvc3Q6NTQzMjprb25nOmtvbmc6a29uZyIgPiAvcm9vdC8ucGdwYXNzCmNobW9kIDA2MDAgL3Jvb3QvLnBncGFzcwovdXNyL2Jpbi9wc3FsIC1VIGtvbmcgLWggbG9jYWxob3N0IC1jICdzZWxlY3Qgbm93KCknCg==" | base64 -d | bash'
+    name: cloudinitdisk
+status:
+  activePods:
+    50ba06a2-bbf5-4bef-b0c8-ed5229f3e5d3: spindle
+  conditions:
+  - lastProbeTime: null
+    lastTransitionTime: null
+    status: "True"
+    type: LiveMigratable
+  - lastProbeTime: null
+    lastTransitionTime: "2021-07-01T21:32:15Z"
+    status: "True"
+    type: Ready
+  - lastProbeTime: "2021-07-01T22:22:31Z"
+    lastTransitionTime: null
+    status: "True"
+    type: AgentConnected
+  guestOSInfo: {}
+  interfaces:
+  - interfaceName: enp1s0
+    ipAddress: 192.168.1.28
+    ipAddresses:
+    - 192.168.1.28
+    - fe80::c6d:adff:fefc:741c
+    mac: 0e:6d:ad:fc:74:1c
+    name: enp1s0
+  launcherContainerImageVersion: quay.io/kubevirt/virt-launcher:v0.41.0
+  migrationMethod: BlockMigration
+  nodeName: spindle
+  phase: Running
+  qosClass: Burstable
+  volumeStatus:
+  - name: cloudinitdisk
+    target: sda
+  - name: vda-root-disk
+    target: vda
+---
+apiVersion: kubevirt.io/v1
+kind: VirtualMachineInstance
+metadata:
+  annotations:
+    kubevirt.io/latest-observed-api-version: v1
+    kubevirt.io/storage-observed-api-version: v1alpha3
+  creationTimestamp: "2021-07-01T21:32:09Z"
+  finalizers:
+  - foregroundDeleteVirtualMachine
+  generation: 33
+  labels:
+    kubevirt.io/domain: konghybridembedded
+    kubevirt.io/nodeName: spindle
+  name: kongdataplane00
+  namespace: kargo
+  ownerReferences:
+  - apiVersion: kubevirt.io/v1
+    blockOwnerDeletion: true
+    controller: true
+    kind: VirtualMachine
+    name: kongdataplane00
+    uid: 859bd091-64d9-44dc-b9e2-d661daea0e99
+  resourceVersion: "10877423"
+  uid: e2c69ea3-5b2a-401e-9e64-e47d31bd53c1
+spec:
+  domain:
+    clock:
+      timer: {}
+      utc: {}
+    cpu:
+      cores: 2
+      model: host-passthrough
+      sockets: 1
+      threads: 1
+    devices:
+      autoattachGraphicsDevice: false
+      autoattachPodInterface: false
+      autoattachSerialConsole: true
+      disks:
+      - bootOrder: 1
+        disk:
+          bus: virtio
+        name: vda-root-disk
+      - cdrom:
+          bus: sata
+          readonly: true
+          tray: closed
+        name: cloudinitdisk
+      interfaces:
+      - bridge: {}
+        model: virtio
+        name: enp1s0
+      networkInterfaceMultiqueue: false
+      rng: {}
+    features:
+      acpi:
+        enabled: true
+    firmware:
+      uuid: c067f56f-761e-5434-bfa9-b925e57d5807
+    machine:
+      type: pc-q35-rhel8.3.0
+    resources:
+      requests:
+        cpu: 100m
+        memory: 2G
+  networks:
+  - multus:
+      networkName: kargo-net-attach-def-br0
+    name: enp1s0
+  nodeSelector:
+    node-role.kubernetes.io/kubevirt: ""
+  terminationGracePeriodSeconds: 0
+  volumes:
+  - containerDisk:
+      image: quay.io/containercraft/ubuntu:bionic
+      imagePullPolicy: Always
+    name: vda-root-disk
+  - cloudInitNoCloud:
+      networkData: |
+        version: 2
+        ethernets:
+          enp1s0:
+            addresses:
+              - 192.168.1.29/24
+            dhcp4: false
+            dhcp6: false
+            gateway4: 192.168.1.1
+            nameservers:
+              addresses:
+              - 192.168.1.1
+              search:
+              - plutarch.codectl.lab
+      userData: |
+        #cloud-config
+        ssh_pwauth: true
+        hostname: kongdataplane00
+        chpasswd:
+          expire: False
+          list: |
+            ubuntu:ubuntu
+        users:
+          - default
+          - name: ubuntu
+            sudo: ['ALL=(ALL) NOPASSWD:ALL']
+            groups: sudo
+            shell: /bin/bash
+            ssh-authorized-keys:
+              - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAAB/zPcAdyHRElufWDNQ1mZUWp4V9jDmaWX35ApsXgxfMHBuz3n8VLGVJuXodAAxeRbbE7Rws8BQcCH4DAMKKLHYZRdJtk3ZUw7rm0i/aq0wkeld7Yp6H/fv1ud3mudp7/+3fQ3gV8RmAO8+FS4jNBMciqtY6mWThKciwnkBWmH5atl6GsZ1ZQ+Y8+W4hXnaF6UEU1+xZ8ja+hu81a9fhejcV+m3RwT511kW5IXDe6wkq9tsIEC529VGI7XuySYvusbchivWYxmE+TBMmId3voGCfkl8hIemUG3/LvQWeK95B/6vBKDCFlmABn60zxrjPkdknWPbu4zg+VJWnslX+rDqSe2cBpHqQ8yDxegPcmXNKv2Qp0h8HhEljWoLc4U5x4hlceDraWBehj8i4N6p+Yt678+jUpOCwGC8z9l+zUrG6NPvbHZ2aIBC3eUteYPtmScNLvOiFASPo/9GQQDNqZclQZf5QGDToAV2rV1B4jJPV8fv/1rlgen6O1PNitKo9FlUfr0WA1IXev6CiJUt4x210BzhTlD84S2A0gHJRbeVVkjWKMx/vo/wqEKTg/vvzSOhFDDlKUxSsguL5rrtOxdGj4sUtjeVRuDjwk1u1DH8P75rI0R/1QaeDixJbRi8Q1315z+MrvJuvzJpMTieldqffNUnexMZcFox8yI8KlVt2U= usrbinkat@mprcs
+        runcmd:
+          - cp /etc/skel/.bashrc /root/.bashrc
+          - echo 'ulimit -n 4096' | tee -a /root/.bashrc
+          - apt-get update -y
+          - apt-get upgrade -y
+    name: cloudinitdisk
+status:
+  activePods:
+    5f5defda-2626-4dc2-802d-b7d662865f91: spindle
+  conditions:
+  - lastProbeTime: null
+    lastTransitionTime: null
+    status: "True"
+    type: LiveMigratable
+  - lastProbeTime: null
+    lastTransitionTime: "2021-07-01T21:32:14Z"
+    status: "True"
+    type: Ready
+  - lastProbeTime: "2021-07-01T22:22:36Z"
+    lastTransitionTime: null
+    status: "True"
+    type: AgentConnected
+  guestOSInfo: {}
+  interfaces:
+  - interfaceName: enp1s0
+    ipAddress: 192.168.1.29
+    ipAddresses:
+    - 192.168.1.29
+    - fe80::ce5:13ff:fed6:3413
+    mac: 0e:e5:13:d6:34:13
+    name: enp1s0
+  launcherContainerImageVersion: quay.io/kubevirt/virt-launcher:v0.41.0
+  migrationMethod: BlockMigration
+  nodeName: spindle
+  phase: Running
+  qosClass: Burstable
+  volumeStatus:
+  - name: cloudinitdisk
+    target: sda
+  - name: vda-root-disk
+    target: vda
+---
+apiVersion: kubevirt.io/v1
+kind: VirtualMachineInstance
+metadata:
+  annotations:
+    kubevirt.io/latest-observed-api-version: v1
+    kubevirt.io/storage-observed-api-version: v1alpha3
+  creationTimestamp: "2021-07-01T21:32:08Z"
+  finalizers:
+  - foregroundDeleteVirtualMachine
+  generation: 33
+  labels:
+    kubevirt.io/domain: konghybridembedded
+    kubevirt.io/nodeName: spindle
+  name: kongdataplane01
+  namespace: kargo
+  ownerReferences:
+  - apiVersion: kubevirt.io/v1
+    blockOwnerDeletion: true
+    controller: true
+    kind: VirtualMachine
+    name: kongdataplane01
+    uid: bf6b05cc-f073-4427-96a2-1665d3074b04
+  resourceVersion: "10877454"
+  uid: f1d486b3-6c56-462b-919f-aea1b7e2e27e
+spec:
+  domain:
+    clock:
+      timer: {}
+      utc: {}
+    cpu:
+      cores: 2
+      model: host-passthrough
+      sockets: 1
+      threads: 1
+    devices:
+      autoattachGraphicsDevice: false
+      autoattachPodInterface: false
+      autoattachSerialConsole: true
+      disks:
+      - bootOrder: 1
+        disk:
+          bus: virtio
+        name: vda-root-disk
+      - cdrom:
+          bus: sata
+          readonly: true
+          tray: closed
+        name: cloudinitdisk
+      interfaces:
+      - bridge: {}
+        model: virtio
+        name: enp1s0
+      networkInterfaceMultiqueue: false
+      rng: {}
+    features:
+      acpi:
+        enabled: true
+    firmware:
+      uuid: 8daa6459-5607-508b-b838-57df3689c67e
+    machine:
+      type: pc-q35-rhel8.3.0
+    resources:
+      requests:
+        cpu: 100m
+        memory: 2G
+  networks:
+  - multus:
+      networkName: kargo-net-attach-def-br0
+    name: enp1s0
+  nodeSelector:
+    node-role.kubernetes.io/kubevirt: ""
+  terminationGracePeriodSeconds: 0
+  volumes:
+  - containerDisk:
+      image: quay.io/containercraft/ubuntu:bionic
+      imagePullPolicy: Always
+    name: vda-root-disk
+  - cloudInitNoCloud:
+      networkData: |
+        version: 2
+        ethernets:
+          enp1s0:
+            addresses:
+              - 192.168.1.30/24
+            dhcp4: false
+            dhcp6: false
+            gateway4: 192.168.1.1
+            nameservers:
+              addresses:
+              - 192.168.1.1
+              search:
+              - plutarch.codectl.lab
+      userData: |
+        #cloud-config
+        ssh_pwauth: true
+        hostname: kongdataplane01
+        chpasswd:
+          expire: False
+          list: |
+            ubuntu:ubuntu
+        users:
+          - default
+          - name: ubuntu
+            sudo: ['ALL=(ALL) NOPASSWD:ALL']
+            groups: sudo
+            shell: /bin/bash
+            ssh-authorized-keys:
+              - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAAB/zPcAdyHRElufWDNQ1mZUWp4V9jDmaWX35ApsXgxfMHBuz3n8VLGVJuXodAAxeRbbE7Rws8BQcCH4DAMKKLHYZRdJtk3ZUw7rm0i/aq0wkeld7Yp6H/fv1ud3mudp7/+3fQ3gV8RmAO8+FS4jNBMciqtY6mWThKciwnkBWmH5atl6GsZ1ZQ+Y8+W4hXnaF6UEU1+xZ8ja+hu81a9fhejcV+m3RwT511kW5IXDe6wkq9tsIEC529VGI7XuySYvusbchivWYxmE+TBMmId3voGCfkl8hIemUG3/LvQWeK95B/6vBKDCFlmABn60zxrjPkdknWPbu4zg+VJWnslX+rDqSe2cBpHqQ8yDxegPcmXNKv2Qp0h8HhEljWoLc4U5x4hlceDraWBehj8i4N6p+Yt678+jUpOCwGC8z9l+zUrG6NPvbHZ2aIBC3eUteYPtmScNLvOiFASPo/9GQQDNqZclQZf5QGDToAV2rV1B4jJPV8fv/1rlgen6O1PNitKo9FlUfr0WA1IXev6CiJUt4x210BzhTlD84S2A0gHJRbeVVkjWKMx/vo/wqEKTg/vvzSOhFDDlKUxSsguL5rrtOxdGj4sUtjeVRuDjwk1u1DH8P75rI0R/1QaeDixJbRi8Q1315z+MrvJuvzJpMTieldqffNUnexMZcFox8yI8KlVt2U= usrbinkat@mprcs
+        runcmd:
+          - cp /etc/skel/.bashrc /root/.bashrc
+          - echo 'ulimit -n 4096' | tee -a /root/.bashrc
+          - apt-get update -y
+          - apt-get upgrade -y
+    name: cloudinitdisk
+status:
+  activePods:
+    9e356f91-09a9-45c1-a226-7b4afe77ee12: spindle
+  conditions:
+  - lastProbeTime: null
+    lastTransitionTime: null
+    status: "True"
+    type: LiveMigratable
+  - lastProbeTime: null
+    lastTransitionTime: "2021-07-01T21:32:12Z"
+    status: "True"
+    type: Ready
+  - lastProbeTime: "2021-07-01T22:22:43Z"
+    lastTransitionTime: null
+    status: "True"
+    type: AgentConnected
+  guestOSInfo: {}
+  interfaces:
+  - interfaceName: enp1s0
+    ipAddress: 192.168.1.30
+    ipAddresses:
+    - 192.168.1.30
+    - fe80::381a:d5ff:fe4f:39ef
+    mac: 3a:1a:d5:4f:39:ef
+    name: enp1s0
+  launcherContainerImageVersion: quay.io/kubevirt/virt-launcher:v0.41.0
+  migrationMethod: BlockMigration
+  nodeName: spindle
+  phase: Running
+  qosClass: Burstable
+  volumeStatus:
+  - name: cloudinitdisk
+    target: sda
+  - name: vda-root-disk
+    target: vda

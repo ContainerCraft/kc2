@@ -48,8 +48,8 @@ jobs:
       run: |
         set -ex ;\
         podman push quay.io/containercraft/debian:10 ;\
-        podman push docker://quay.io/containercraft/debian:10 docker://quay.io/containercraft/debian:latest ;\
-        podman push docker://quay.io/containercraft/debian:10 docker://quay.io/containercraft/debian:buster ;\
+        podman push quay.io/containercraft/debian:10 docker://quay.io/containercraft/debian:latest ;\
+        podman push quay.io/containercraft/debian:10 docker://quay.io/containercraft/debian:buster ;\
         podman image prune --all --force ;\
         echo;
 

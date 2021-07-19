@@ -48,6 +48,6 @@ jobs:
       run: |
         set -ex ;\
         podman push quay.io/containercraft/ubuntu:18.04 ;\
-        podman push docker://quay.io/containercraft/ubuntu:18.04 docker://quay.io/containercraft/ubuntu:bionic ;\
+        podman push quay.io/containercraft/ubuntu:18.04 docker://quay.io/containercraft/ubuntu:bionic ;\
         podman image prune --all --force ;\
         echo;

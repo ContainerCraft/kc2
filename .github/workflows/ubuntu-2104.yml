@@ -48,7 +48,7 @@ jobs:
       run: |
         set -ex ;\
         podman push quay.io/containercraft/ubuntu:21.04 ;\
-        podman push docker://quay.io/containercraft/ubuntu:21.04 docker://quay.io/containercraft/ubuntu:hirsute ;\
+        podman push quay.io/containercraft/ubuntu:21.04 docker://quay.io/containercraft/ubuntu:hirsute ;\
         podman image prune --all --force ;\
         echo;
         
