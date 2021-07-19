@@ -59,4 +59,4 @@ jobs:
         
     - name: Cleanup
       run: |
-        rm -rf /tmp/cradle /tmp/*qcow*
+        sudo rm -rf /tmp/cradle /tmp/*qcow*
