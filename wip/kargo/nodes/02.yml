@@ -1,0 +1,156 @@
+---
+apiVersion: kubevirt.io/v1alpha3
+kind: VirtualMachine
+metadata:
+  name: kargo02-green
+  namespace: kargo
+  labels:
+    app: kargodev
+    cluster: green
+    kubevirt.io/os: linux
+spec:
+  running: true
+  dataVolumeTemplates:
+  - metadata:
+      namespace: kargo
+      name: kargo-kargo02-green-root-vda
+      annotations:
+        kubevirt.io/provisionOnNode: node2
+        hostPathProvisionerIdentity: kubevirt.io/hostpath-provisioner
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      capacity:
+        storage: 64G
+#     hostPath:
+#       path: /srv/storage/optane
+#       type: ""
+      config:
+        featureGates:
+        - HonorWaitForFirstConsumer
+      nodeAffinity:
+        required:
+          nodeSelectorTerms:
+          - matchExpressions:
+            - key: kubernetes.io/hostname
+              operator: In
+              values:
+              - node2
+      pvc:
+        accessModes:
+        - ReadWriteOnce
+        hostPath:
+          path: /srv/storage/optane
+        resources:
+          requests:
+            storage: 64G
+        storageClassName: hostpath-provisioner
+      source:
+        registry:
+          url: "docker://quay.io/containercraft/fedora:latest"
+          imagePullPolicy: Always
+      persistentVolumeReclaimPolicy: Delete
+      storageClassName: hostpath-provisioner
+      volumeMode: Filesystem
+  template:
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: node2
+        node-role.kubernetes.io/kubevirt: ""
+      domain:
+        clock:
+          timer: {}
+          utc: {}
+        cpu:
+          cores: 6
+          threads: 1
+          sockets: 1
+          model: host-passthrough
+          dedicatedCpuPlacement: false
+        resources:
+          requests:
+            devices.kubevirt.io/kvm: "1"
+            memory: 8G
+        machine:
+          type: pc-q35-rhel8.3.0
+        devices:
+          autoattachPodInterface: false
+          autoattachSerialConsole: true
+          autoattachGraphicsDevice: true
+          networkInterfaceMultiqueue: true
+          rng: {}
+          disks:
+            - name: disk-vda-root
+              bootOrder: 1
+              disk:
+                bus: virtio
+            - name: cloudinitdisk
+              disk:
+                bus: virtio
+          interfaces:
+          - name: eth0
+            model: virtio
+            bootOrder: 2
+            bridge: {}
+      hostname: kargo02
+      networks:
+      - name: eth0
+        multus:
+          networkName: kargo-net-attach-def-br0
+      terminationGracePeriodSeconds: 0
+      volumes:
+        - name: disk-vda-root
+          dataVolume:
+            name: kargo-kargo02-green-root-vda
+        - name: cloudinitdisk
+          cloudInitNoCloud:
+            networkData: |
+              version: 2
+              ethernets:
+                eth0:
+                  dhcp4: false
+                  dhcp6: false
+              bridges:
+                br0:
+                  dhcp4: false
+                  dhcp6: false
+                  addresses:
+                    - 192.168.1.62/24
+                  gateway4: 192.168.1.1
+                  interfaces:
+                    - eth0
+                  nameservers:
+                    search:
+                      - plutarch.codectl.lab
+                    addresses:
+                      - 192.168.1.1
+                  macaddress: "fe:a5:55:81:33:5f"
+            userData: |
+              #cloud-config
+              hostname: kargo02
+              fqdn: kargo02.plutarch.codectl.lab
+              ssh_pwauth: true
+              disable_root: true
+              chpasswd:
+                list: |
+                  fedora:fedora
+                expire: False
+              users:
+                - default
+                - name: fedora
+                  sudo: ['ALL=(ALL) NOPASSWD:ALL']
+                  groups: wheel
+                  shell: /bin/bash
+                  lock_passwd: false
+                  ssh-authorized-keys:
+                    - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAAB/zPcAdyHRElufWDNQ1mZUWp4V9jDmaWX35ApsXgxfMHBuz3n8VLGVJuXodAAxeRbbE7Rws8BQcCH4DAMKKLHYZRdJtk3ZUw7rm0i/aq0wkeld7Yp6H/fv1ud3mudp7/+3fQ3gV8RmAO8+FS4jNBMciqtY6mWThKciwnkBWmH5atl6GsZ1ZQ+Y8+W4hXnaF6UEU1+xZ8ja+hu81a9fhejcV+m3RwT511kW5IXDe6wkq9tsIEC529VGI7XuySYvusbchivWYxmE+TBMmId3voGCfkl8hIemUG3/LvQWeK95B/6vBKDCFlmABn60zxrjPkdknWPbu4zg+VJWnslX+rDqSe2cBpHqQ8yDxegPcmXNKv2Qp0h8HhEljWoLc4U5x4hlceDraWBehj8i4N6p+Yt678+jUpOCwGC8z9l+zUrG6NPvbHZ2aIBC3eUteYPtmScNLvOiFASPo/9GQQDNqZclQZf5QGDToAV2rV1B4jJPV8fv/1rlgen6O1PNitKo9FlUfr0WA1IXev6CiJUt4x210BzhTlD84S2A0gHJRbeVVkjWKMx/vo/wqEKTg/vvzSOhFDDlKUxSsguL5rrtOxdGj4sUtjeVRuDjwk1u1DH8P75rI0R/1QaeDixJbRi8Q1315z+MrvJuvzJpMTieldqffNUnexMZcFox8yI8KlVt2U= kmorgan@mprcs.braincraft.io
+              runcmd:
+                - "nmcli con mod $(nmcli con show | awk '/br0/{print $3}') bridge.mac-address fe:a5:55:81:33:5f"
+                - nmcli networking off
+                - sleep 1
+                - nmcli networking on
+                - sleep 6
+                - dnf update -y
+                - dnf upgrade -y
+                - reboot
+              final_message: ">> UserData Processing Complete"

@@ -1,98 +1,105 @@
 ---
-apiVersion: cdi.kubevirt.io/v1beta1
-kind: DataVolume
-metadata:
-  name: ccio-coreos-4.7
-  namespace: kargo
-spec:
-  source:
-    registry:
-      url: "docker://quay.io/containercraft/coreos:latest"
-  pvc:
-    accessModes:
-      - ReadWriteOnce
-    resources:
-      requests:
-        storage: 32Gi
----
-# https://github.com/kubevirt/kubevirt/blob/master/docs/cloud-init.md
 apiVersion: kubevirt.io/v1alpha3
 kind: VirtualMachine
 metadata:
   name: coreos
   namespace: kargo
+  generation: 1
   labels:
+    kubevirt.io/os: linux
+    node: "t640n01"
     app: coreos
 spec:
+  running: true
   dataVolumeTemplates:
   - metadata:
-      name: coreos-sda-root
+      namespace: kargo
+      name: pv-coreos-root-vda
+      annotations:
+        kubevirt.io/provisionOnNode: t640n01
+        hostPathProvisionerIdentity: kubevirt.io/hostpath-provisioner
     spec:
+      accessModes:
+      - ReadWriteOnce
+      capacity:
+        storage: 64G
+      hostPath:
+        path: /srv/storage/optane
+        type: ""
+      config:
+        featureGates:
+        - HonorWaitForFirstConsumer
+      nodeAffinity:
+        required:
+          nodeSelectorTerms:
+          - matchExpressions:
+            - key: kubernetes.io/hostname
+              operator: In
+              values:
+              - t640n01
       pvc:
         accessModes:
         - ReadWriteOnce
+        hostPath:
+          path: /srv/storage/optane
         resources:
           requests:
             storage: 64G
-        storageClassName: local-path
+        storageClassName: hostpath-provisioner
       source:
-        pvc:
-          name: ccio-coreos-4.7
-          namespace: kargo
-  running: true
+        registry:
+          url: "docker://quay.io/containercraft/coreos:latest"
+          imagePullPolicy: Always
+      persistentVolumeReclaimPolicy: Delete
+      storageClassName: hostpath-provisioner
+      volumeMode: Filesystem
   template:
+    metadata:
+      labels:
+        kubevirt.io/domain: coreos
     spec:
       nodeSelector:
-        node-role.kubernetes.io/kubevirt: ""
+        node-role.kubernetes.io/hypervisor-xlarge: ""
+      terminationGracePeriodSeconds: 0
       domain:
         cpu:
-          sockets: 8
-          threads: 1
           cores: 1
+          threads: 1
+          sockets: 8
+          model: host-passthrough
+          dedicatedCpuPlacement: false
+        machine:
+          type: pc-q35-rhel8.3.0
+        resources:
+          requests:
+            memory: 8G
         devices:
+          autoattachPodInterface: false
+          autoattachSerialConsole: true
+          autoattachGraphicsDevice: true
+          networkInterfaceMultiqueue: false
+          rng: {}
           disks:
-            - name: root-disk
-              bootOrder: 1
-              disk:
-                bus: virtio
-            - name: cloudinitdisk
-              disk:
-                bus: virtio
+          - name: coreos-root-vda
+            disk:
+              bus: virtio
+          - name: cloudinitdisk
+            cdrom:
+              bus: sata
+              readonly: true
           interfaces:
           - name: eth0
             model: virtio
-            bootOrder: 2
             bridge: {}
-          networkInterfaceMultiqueue: true
-          rng: {}
-        machine:
-          type: pc-q35-rhel8.2.0
-        resources:
-          requests:
-            memory: 16Gi
-      hostname: coreos
       networks:
       - name: eth0
         multus:
-          networkName: br0
-      terminationGracePeriodSeconds: 0
+          networkName: kargo-net-attach-def-wan0
       volumes:
-        - name: root-disk
-          dataVolume:
-            name: coreos-sda-root
-        - name: cloudinitdisk
-          cloudInitConfigDrive:
-            userData: |-
-              {"ignition":{"version":"3.1.0"},"passwd":{"users":[{"name":"core","passwordHash":"","sshAuthorizedKeys":["ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAAB/zPcAdyHRElufWDNQ1mZUWp4V9jDmaWX35ApsXgxfMHBuz3n8VLGVJuXodAAxeRbbE7Rws8BQcCH4DAMKKLHYZRdJtk3ZUw7rm0i/aq0wkeld7Yp6H/fv1ud3mudp7/+3fQ3gV8RmAO8+FS4jNBMciqtY6mWThKciwnkBWmH5atl6GsZ1ZQ+Y8+W4hXnaF6UEU1+xZ8ja+hu81a9fhejcV+m3RwT511kW5IXDe6wkq9tsIEC529VGI7XuySYvusbchivWYxmE+TBMmId3voGCfkl8hIemUG3/LvQWeK95B/6vBKDCFlmABn60zxrjPkdknWPbu4zg+VJWnslX+rDqSe2cBpHqQ8yDxegPcmXNKv2Qp0h8HhEljWoLc4U5x4hlceDraWBehj8i4N6p+Yt678+jUpOCwGC8z9l+zUrG6NPvbHZ2aIBC3eUteYPtmScNLvOiFASPo/9GQQDNqZclQZf5QGDToAV2rV1B4jJPV8fv/1rlgen6O1PNitKo9FlUfr0WA1IXev6CiJUt4x210BzhTlD84S2A0gHJRbeVVkjWKMx/vo/wqEKTg/vvzSOhFDDlKUxSsguL5rrtOxdGj4sUtjeVRuDjwk1u1DH8P75rI0R/1QaeDixJbRi8Q1315z+MrvJuvzJpMTieldqffNUnexMZcFox8yI8KlVt2U= kmorgan@mprcs.braincraft.io"]}]}}
-
-
-
-
-
-
-
-
-
-
-
-
+      - name: coreos-root-vda
+        dataVolume:
+          name: pv-coreos-root-vda
+      - name: cloudinitdisk
+        cloudInitConfigDrive:
+          userData: |-
+            {"ignition":{"version":"3.1.0"},"passwd":{"users":[{"name":"core","passwordHash":"","sshAuthorizedKeys":["ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAAB/zPcAdyHRElufWDNQ1mZUWp4V9jDmaWX35ApsXgxfMHBuz3n8VLGVJuXodAAxeRbbE7Rws8BQcCH4DAMKKLHYZRdJtk3ZUw7rm0i/aq0wkeld7Yp6H/fv1ud3mudp7/+3fQ3gV8RmAO8+FS4jNBMciqtY6mWThKciwnkBWmH5atl6GsZ1ZQ+Y8+W4hXnaF6UEU1+xZ8ja+hu81a9fhejcV+m3RwT511kW5IXDe6wkq9tsIEC529VGI7XuySYvusbchivWYxmE+TBMmId3voGCfkl8hIemUG3/LvQWeK95B/6vBKDCFlmABn60zxrjPkdknWPbu4zg+VJWnslX+rDqSe2cBpHqQ8yDxegPcmXNKv2Qp0h8HhEljWoLc4U5x4hlceDraWBehj8i4N6p+Yt678+jUpOCwGC8z9l+zUrG6NPvbHZ2aIBC3eUteYPtmScNLvOiFASPo/9GQQDNqZclQZf5QGDToAV2rV1B4jJPV8fv/1rlgen6O1PNitKo9FlUfr0WA1IXev6CiJUt4x210BzhTlD84S2A0gHJRbeVVkjWKMx/vo/wqEKTg/vvzSOhFDDlKUxSsguL5rrtOxdGj4sUtjeVRuDjwk1u1DH8P75rI0R/1QaeDixJbRi8Q1315z+MrvJuvzJpMTieldqffNUnexMZcFox8yI8KlVt2U= kmorgan@mprcs.braincraft.io"]}]}}
