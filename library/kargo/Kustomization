@@ -1,0 +1,12 @@
+---
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: kargo
+metadata:
+  name: kargo-overcloud
+commonLabels:
+  containercraft.io/project: kargo
+resources:
+- node1.yaml
+- node2.yaml
+- node3.yaml
