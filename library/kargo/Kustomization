@@ -7,6 +7,6 @@ metadata:
 commonLabels:
   containercraft.io/project: kargo
 resources:
-- node1.yaml
-- node2.yaml
-- node3.yaml
+- node1.yml
+- node2.yml
+- node3.yml
