@@ -2,7 +2,7 @@
 apiVersion: kubevirt.io/v1alpha3
 kind: VirtualMachine
 metadata:
-  name: kargo03-green
+  name: node3-green
   namespace: kargo
   labels:
     app: kargodev
@@ -13,7 +13,7 @@ spec:
   dataVolumeTemplates:
   - metadata:
       namespace: kargo
-      name: kargo-kargo03-green-root-vda
+      name: kargo-node3-green-root-vda
       annotations:
         kubevirt.io/provisionOnNode: node3
         hostPathProvisionerIdentity: kubevirt.io/hostpath-provisioner
@@ -92,7 +92,7 @@ spec:
             model: virtio
             bootOrder: 2
             bridge: {}
-      hostname: kargo03
+      hostname: node3
       networks:
       - name: eth0
         multus:
@@ -101,7 +101,7 @@ spec:
       volumes:
         - name: disk-vda-root
           dataVolume:
-            name: kargo-kargo03-green-root-vda
+            name: kargo-node3-green-root-vda
         - name: cloudinitdisk
           cloudInitNoCloud:
             networkData: |
@@ -121,14 +121,14 @@ spec:
                     - eth0
                   nameservers:
                     search:
-                      - plutarch.codectl.lab
+                      - codectl.arpa
                     addresses:
                       - 192.168.1.1
                   macaddress: "fe:a6:55:81:33:5f"
             userData: |
               #cloud-config
-              hostname: kargo03
-              fqdn: kargo03.plutarch.codectl.lab
+              hostname: node3
+              fqdn: node3.codectl.arpa
               ssh_pwauth: true
               disable_root: true
               chpasswd:
