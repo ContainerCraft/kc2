@@ -7,6 +7,7 @@ metadata:
 commonLabels:
   containercraft.io/project: kargo
 resources:
+- net-attach-def.yml
 - node1.yml
 - node2.yml
 - node3.yml
