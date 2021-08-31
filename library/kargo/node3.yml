@@ -3,7 +3,7 @@ apiVersion: kubevirt.io/v1alpha3
 kind: VirtualMachine
 metadata:
   name: node3-green
-  namespace: overcloud
+  namespace: kargo
   labels:
     app: kargodev
     cluster: green
@@ -12,7 +12,7 @@ spec:
   running: true
   dataVolumeTemplates:
   - metadata:
-      namespace: overcloud
+      namespace: kargo
       name: kargo-node3-green-root-vda
       annotations:
         kubevirt.io/provisionOnNode: node3
