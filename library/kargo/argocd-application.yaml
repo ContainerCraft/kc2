@@ -1,7 +1,9 @@
+# kubectl apply -f https://git.io/JEQvY
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
   name: overcloud
+  namespace: argocd
 spec:
   destination:
     name: ''
