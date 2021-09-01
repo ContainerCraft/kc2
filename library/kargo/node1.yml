@@ -49,6 +49,7 @@ spec:
 #              - node1
   template:
     spec:
+      evictionStrategy: LiveMigrate
       nodeSelector:
         kargo-zone.containercraft.io/a: ""
        #kubernetes.io/hostname: node1
