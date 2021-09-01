@@ -65,7 +65,7 @@ spec:
         resources:
           requests:
             devices.kubevirt.io/kvm: "1"
-            memory: 32G
+            memory: 16G
           limits:
             memory: 16G
         machine:
