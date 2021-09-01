@@ -15,8 +15,8 @@ spec:
       namespace: kargo
       name: kargo-node1-green-root-vda
       annotations:
-        kubevirt.io/provisionOnNode: node1
         hostPathProvisionerIdentity: kubevirt.io/ceph-filesystem
+       #kubevirt.io/provisionOnNode: node1
     spec:
       accessModes:
       - ReadWriteMany
@@ -25,14 +25,6 @@ spec:
       config:
         featureGates:
         - HonorWaitForFirstConsumer
-      nodeAffinity:
-        required:
-          nodeSelectorTerms:
-          - matchExpressions:
-            - key: kubernetes.io/hostname
-              operator: In
-              values:
-              - node1
       pvc:
         accessModes:
         - ReadWriteMany
@@ -47,11 +39,19 @@ spec:
       persistentVolumeReclaimPolicy: Delete
       storageClassName: ceph-filesystem
       volumeMode: Filesystem
+#      nodeAffinity:
+#        required:
+#          nodeSelectorTerms:
+#          - matchExpressions:
+#            - key: kubernetes.io/hostname
+#              operator: In
+#              values:
+#              - node1
   template:
     spec:
       nodeSelector:
-        kubernetes.io/hostname: node1
-        node-role.kubernetes.io/kubevirt: ""
+        node-role.kubernetes.io/availabilityzone: "a"
+       #kubernetes.io/hostname: node1
       domain:
         clock:
           timer: {}
@@ -65,6 +65,8 @@ spec:
         resources:
           requests:
             devices.kubevirt.io/kvm: "1"
+            memory: 16G
+          limits:
             memory: 16G
         machine:
           type: pc-q35-rhel8.3.0

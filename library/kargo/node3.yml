@@ -15,32 +15,19 @@ spec:
       namespace: kargo
       name: kargo-node3-green-root-vda
       annotations:
-        kubevirt.io/provisionOnNode: node3
         hostPathProvisionerIdentity: kubevirt.io/ceph-filesystem
+       #kubevirt.io/provisionOnNode: node3
     spec:
       accessModes:
       - ReadWriteMany
       capacity:
         storage: 64G
-#     hostPath:
-#       path: /srv/storage/optane
-#       type: ""
       config:
         featureGates:
         - HonorWaitForFirstConsumer
-      nodeAffinity:
-        required:
-          nodeSelectorTerms:
-          - matchExpressions:
-            - key: kubernetes.io/hostname
-              operator: In
-              values:
-              - node3
       pvc:
         accessModes:
         - ReadWriteMany
-        hostPath:
-          path: /srv/storage/optane
         resources:
           requests:
             storage: 64G
@@ -52,11 +39,19 @@ spec:
       persistentVolumeReclaimPolicy: Delete
       storageClassName: ceph-filesystem
       volumeMode: Filesystem
+#      nodeAffinity:
+#        required:
+#          nodeSelectorTerms:
+#          - matchExpressions:
+#            - key: kubernetes.io/hostname
+#              operator: In
+#              values:
+#              - node3
   template:
     spec:
       nodeSelector:
-        kubernetes.io/hostname: node3
-        node-role.kubernetes.io/kubevirt: ""
+        node-role.kubernetes.io/availabilityzone: "c"
+       #kubernetes.io/hostname: node3
       domain:
         clock:
           timer: {}
@@ -71,6 +66,8 @@ spec:
           requests:
             devices.kubevirt.io/kvm: "1"
             memory: 32G
+          limits:
+            memory: 16G
         machine:
           type: pc-q35-rhel8.3.0
         devices:
