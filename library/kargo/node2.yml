@@ -12,7 +12,7 @@ spec:
   running: true
   dataVolumeTemplates:
   - metadata:
-      name: overcloud-node2-green-root-vda
+      name: node2-green-root-vda
       namespace: kargo
      #annotations:
      #  hostPathProvisionerIdentity: kubevirt.io/hostpath-provisioner
@@ -98,7 +98,7 @@ spec:
       volumes:
         - name: disk-vda-root
           dataVolume:
-            name: overcloud-node2-green-root-vda
+            name: node2-green-root-vda
         - name: cloudinitdisk
           cloudInitNoCloud:
             networkData: |
