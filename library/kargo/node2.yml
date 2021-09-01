@@ -12,11 +12,11 @@ spec:
   running: true
   dataVolumeTemplates:
   - metadata:
-      namespace: kargo
       name: overcloud-node2-green-root-vda
-      annotations:
-        hostPathProvisionerIdentity: kubevirt.io/ceph-filesystem
-       #kubevirt.io/provisionOnNode: node2
+      namespace: kargo
+     #annotations:
+     #  hostPathProvisionerIdentity: kubevirt.io/hostpath-provisioner
+     #  kubevirt.io/provisionOnNode: node2
     spec:
       accessModes:
       - ReadWriteMany
@@ -35,7 +35,7 @@ spec:
       source:
         registry:
           url: "docker://quay.io/containercraft/fedora:latest"
-          imagePullPolicy: Always
+          imagePullPolicy: IfNotPresent
       persistentVolumeReclaimPolicy: Delete
       storageClassName: ceph-filesystem
       volumeMode: Filesystem
@@ -50,7 +50,7 @@ spec:
   template:
     spec:
       nodeSelector:
-        node-role.kubernetes.io/availabilityzone: "b"
+        kargo-zone.containercraft.io/b: ""
        #kubernetes.io/hostname: node2
       domain:
         clock:
