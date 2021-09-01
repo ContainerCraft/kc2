@@ -16,15 +16,12 @@ spec:
       name: kargo-node1-green-root-vda
       annotations:
         kubevirt.io/provisionOnNode: node1
-        hostPathProvisionerIdentity: kubevirt.io/hostpath-provisioner
+        hostPathProvisionerIdentity: kubevirt.io/ceph-filesystem
     spec:
       accessModes:
-      - ReadWriteOnce
+      - ReadWriteMany
       capacity:
         storage: 64G
-#     hostPath:
-#       path: /srv/storage/optane
-#       type: ""
       config:
         featureGates:
         - HonorWaitForFirstConsumer
@@ -38,19 +35,17 @@ spec:
               - node1
       pvc:
         accessModes:
-        - ReadWriteOnce
-        hostPath:
-          path: /srv/storage/optane
+        - ReadWriteMany
         resources:
           requests:
             storage: 64G
-        storageClassName: hostpath-provisioner
+        storageClassName: ceph-filesystem
       source:
         registry:
           url: "docker://quay.io/containercraft/fedora:latest"
           imagePullPolicy: Always
       persistentVolumeReclaimPolicy: Delete
-      storageClassName: hostpath-provisioner
+      storageClassName: ceph-filesystem
       volumeMode: Filesystem
   template:
     spec:

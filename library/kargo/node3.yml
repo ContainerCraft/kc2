@@ -16,10 +16,10 @@ spec:
       name: kargo-node3-green-root-vda
       annotations:
         kubevirt.io/provisionOnNode: node3
-        hostPathProvisionerIdentity: kubevirt.io/hostpath-provisioner
+        hostPathProvisionerIdentity: kubevirt.io/ceph-filesystem
     spec:
       accessModes:
-      - ReadWriteOnce
+      - ReadWriteMany
       capacity:
         storage: 64G
 #     hostPath:
@@ -38,19 +38,19 @@ spec:
               - node3
       pvc:
         accessModes:
-        - ReadWriteOnce
+        - ReadWriteMany
         hostPath:
           path: /srv/storage/optane
         resources:
           requests:
             storage: 64G
-        storageClassName: hostpath-provisioner
+        storageClassName: ceph-filesystem
       source:
         registry:
           url: "docker://quay.io/containercraft/fedora:latest"
           imagePullPolicy: Always
       persistentVolumeReclaimPolicy: Delete
-      storageClassName: hostpath-provisioner
+      storageClassName: ceph-filesystem
       volumeMode: Filesystem
   template:
     spec:
