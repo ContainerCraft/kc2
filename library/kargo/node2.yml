@@ -1,4 +1,34 @@
 ---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: node2-green-pvc-vdb-ceph
+  namespace: kargo
+spec:
+  storageClassName: nvme-ceph-filesystem
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 64G
+    limits:
+      storage: 64G
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: node2-green-pvc-vdc-ceph
+  namespace: kargo
+spec:
+  storageClassName: nvme-ceph-filesystem
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 64G
+    limits:
+      storage: 64G
+---
 apiVersion: kubevirt.io/v1alpha3
 kind: VirtualMachine
 metadata:
@@ -12,11 +42,8 @@ spec:
   running: true
   dataVolumeTemplates:
   - metadata:
-      name: node2-green-root-vda
+      name: node2-green-volume-vda-root
       namespace: kargo
-     #annotations:
-     #  hostPathProvisionerIdentity: kubevirt.io/hostpath-provisioner
-     #  kubevirt.io/provisionOnNode: node2
     spec:
       accessModes:
       - ReadWriteMany
@@ -31,28 +58,19 @@ spec:
         resources:
           requests:
             storage: 64G
-        storageClassName: ceph-filesystem
+        storageClassName: nvme-ceph-filesystem
       source:
         registry:
           url: "docker://quay.io/containercraft/fedora:latest"
           imagePullPolicy: IfNotPresent
       persistentVolumeReclaimPolicy: Delete
-      storageClassName: ceph-filesystem
+      storageClassName: nvme-ceph-filesystem
       volumeMode: Filesystem
-#      nodeAffinity:
-#        required:
-#          nodeSelectorTerms:
-#          - matchExpressions:
-#            - key: kubernetes.io/hostname
-#              operator: In
-#              values:
-#              - node2
   template:
     spec:
       evictionStrategy: LiveMigrate
       nodeSelector:
-        kargo-zone.containercraft.io/b: ""
-       #kubernetes.io/hostname: node2
+        kargo-zone.containercraft.io/a: ""
       domain:
         clock:
           timer: {}
@@ -65,8 +83,8 @@ spec:
           dedicatedCpuPlacement: false
         resources:
           requests:
-            devices.kubevirt.io/kvm: "1"
             memory: 16G
+            devices.kubevirt.io/kvm: "1"
           limits:
             memory: 16G
         machine:
@@ -78,8 +96,14 @@ spec:
           networkInterfaceMultiqueue: true
           rng: {}
           disks:
-            - name: disk-vda-root
+            - name: node2-green-disk-vda-root
               bootOrder: 1
+              disk:
+                bus: virtio
+            - name: node2-green-disk-vdb-ceph
+              disk:
+                bus: virtio
+            - name: node2-green-disk-vdc-ceph
               disk:
                 bus: virtio
             - name: cloudinitdisk
@@ -97,9 +121,15 @@ spec:
           networkName: kargo-net-attach-def-br0
       terminationGracePeriodSeconds: 0
       volumes:
-        - name: disk-vda-root
+        - name: node2-green-disk-vda-root
           dataVolume:
-            name: node2-green-root-vda
+            name: node2-green-volume-vda-root
+        - name: node2-green-disk-vdb-ceph
+          persistentVolumeClaim:
+            claimName: node2-green-pvc-vdb-ceph
+        - name: node2-green-disk-vdc-ceph
+          persistentVolumeClaim:
+            claimName: node2-green-pvc-vdc-ceph
         - name: cloudinitdisk
           cloudInitNoCloud:
             networkData: |
@@ -113,20 +143,20 @@ spec:
                   dhcp4: false
                   dhcp6: false
                   addresses:
-                    - 192.168.1.62/24
+                    - 192.168.1.61/24
                   gateway4: 192.168.1.1
                   interfaces:
                     - eth0
                   nameservers:
                     search:
-                      - codectl.arpa
+                      - home.arpa
                     addresses:
                       - 192.168.1.1
-                  macaddress: "fe:a5:55:81:33:5f"
+                  macaddress: "fe:a4:55:81:33:5f"
             userData: |
               #cloud-config
               hostname: node2
-              fqdn: node2.codectl.arpa
+              fqdn: node2.home.arpa
               ssh_pwauth: true
               disable_root: true
               chpasswd:
@@ -143,7 +173,7 @@ spec:
                   ssh-authorized-keys:
                     - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAAB/zPcAdyHRElufWDNQ1mZUWp4V9jDmaWX35ApsXgxfMHBuz3n8VLGVJuXodAAxeRbbE7Rws8BQcCH4DAMKKLHYZRdJtk3ZUw7rm0i/aq0wkeld7Yp6H/fv1ud3mudp7/+3fQ3gV8RmAO8+FS4jNBMciqtY6mWThKciwnkBWmH5atl6GsZ1ZQ+Y8+W4hXnaF6UEU1+xZ8ja+hu81a9fhejcV+m3RwT511kW5IXDe6wkq9tsIEC529VGI7XuySYvusbchivWYxmE+TBMmId3voGCfkl8hIemUG3/LvQWeK95B/6vBKDCFlmABn60zxrjPkdknWPbu4zg+VJWnslX+rDqSe2cBpHqQ8yDxegPcmXNKv2Qp0h8HhEljWoLc4U5x4hlceDraWBehj8i4N6p+Yt678+jUpOCwGC8z9l+zUrG6NPvbHZ2aIBC3eUteYPtmScNLvOiFASPo/9GQQDNqZclQZf5QGDToAV2rV1B4jJPV8fv/1rlgen6O1PNitKo9FlUfr0WA1IXev6CiJUt4x210BzhTlD84S2A0gHJRbeVVkjWKMx/vo/wqEKTg/vvzSOhFDDlKUxSsguL5rrtOxdGj4sUtjeVRuDjwk1u1DH8P75rI0R/1QaeDixJbRi8Q1315z+MrvJuvzJpMTieldqffNUnexMZcFox8yI8KlVt2U= kmorgan@mprcs.braincraft.io
               runcmd:
-                - "nmcli con mod $(nmcli con show | awk '/br0/{print $3}') bridge.mac-address fe:a5:55:81:33:5f"
+                - "nmcli con mod $(nmcli con show | awk '/br0/{print $3}') bridge.mac-address fe:a4:55:81:33:5f"
                 - nmcli networking off
                 - sleep 1
                 - nmcli networking on

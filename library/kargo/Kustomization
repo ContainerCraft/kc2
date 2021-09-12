@@ -9,6 +9,7 @@ commonLabels:
   containercraft.io/project: "qubo-kubespray-overcloud"
 resources:
 - net-attach-def.yml
+- featuregate.yml
 - node1.yml
 - node2.yml
 - node3.yml

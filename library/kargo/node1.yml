@@ -1,4 +1,34 @@
 ---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: node1-green-pvc-vdb-ceph
+  namespace: kargo
+spec:
+  storageClassName: nvme-ceph-filesystem
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 64G
+    limits:
+      storage: 64G
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: node1-green-pvc-vdc-ceph
+  namespace: kargo
+spec:
+  storageClassName: nvme-ceph-filesystem
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 64G
+    limits:
+      storage: 64G
+---
 apiVersion: kubevirt.io/v1alpha3
 kind: VirtualMachine
 metadata:
@@ -12,11 +42,8 @@ spec:
   running: true
   dataVolumeTemplates:
   - metadata:
-      name: kargo-node1-green-root-vda
+      name: node1-green-volume-vda-root
       namespace: kargo
-     #annotations:
-     #  hostPathProvisionerIdentity: kubevirt.io/hostpath-provisioner
-     #  kubevirt.io/provisionOnNode: node1
     spec:
       accessModes:
       - ReadWriteMany
@@ -31,28 +58,19 @@ spec:
         resources:
           requests:
             storage: 64G
-        storageClassName: ceph-filesystem
+        storageClassName: nvme-ceph-filesystem
       source:
         registry:
           url: "docker://quay.io/containercraft/fedora:latest"
           imagePullPolicy: IfNotPresent
       persistentVolumeReclaimPolicy: Delete
-      storageClassName: ceph-filesystem
+      storageClassName: nvme-ceph-filesystem
       volumeMode: Filesystem
-#      nodeAffinity:
-#        required:
-#          nodeSelectorTerms:
-#          - matchExpressions:
-#            - key: kubernetes.io/hostname
-#              operator: In
-#              values:
-#              - node1
   template:
     spec:
       evictionStrategy: LiveMigrate
       nodeSelector:
         kargo-zone.containercraft.io/a: ""
-       #kubernetes.io/hostname: node1
       domain:
         clock:
           timer: {}
@@ -65,8 +83,8 @@ spec:
           dedicatedCpuPlacement: false
         resources:
           requests:
-            devices.kubevirt.io/kvm: "1"
             memory: 16G
+            devices.kubevirt.io/kvm: "1"
           limits:
             memory: 16G
         machine:
@@ -78,8 +96,14 @@ spec:
           networkInterfaceMultiqueue: true
           rng: {}
           disks:
-            - name: disk-vda-root
+            - name: node1-green-disk-vda-root
               bootOrder: 1
+              disk:
+                bus: virtio
+            - name: node1-green-disk-vdb-ceph
+              disk:
+                bus: virtio
+            - name: node1-green-disk-vdc-ceph
               disk:
                 bus: virtio
             - name: cloudinitdisk
@@ -97,9 +121,15 @@ spec:
           networkName: kargo-net-attach-def-br0
       terminationGracePeriodSeconds: 0
       volumes:
-        - name: disk-vda-root
+        - name: node1-green-disk-vda-root
           dataVolume:
-            name: kargo-node1-green-root-vda
+            name: node1-green-volume-vda-root
+        - name: node1-green-disk-vdb-ceph
+          persistentVolumeClaim:
+            claimName: node1-green-pvc-vdb-ceph
+        - name: node1-green-disk-vdc-ceph
+          persistentVolumeClaim:
+            claimName: node1-green-pvc-vdc-ceph
         - name: cloudinitdisk
           cloudInitNoCloud:
             networkData: |
@@ -119,14 +149,14 @@ spec:
                     - eth0
                   nameservers:
                     search:
-                      - codectl.arpa
+                      - home.arpa
                     addresses:
                       - 192.168.1.1
                   macaddress: "fe:a4:55:81:33:5f"
             userData: |
               #cloud-config
               hostname: node1
-              fqdn: node1.codectl.arpa
+              fqdn: node1.home.arpa
               ssh_pwauth: true
               disable_root: true
               chpasswd:

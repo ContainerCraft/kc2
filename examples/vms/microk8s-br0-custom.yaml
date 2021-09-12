@@ -6,40 +6,55 @@ metadata:
   namespace: kargo
   labels:
     app: microk8s
+    kubevirt.io/os: linux
 spec:
   running: true
   dataVolumeTemplates:
   - metadata:
-      name: ubuntu-vda-root
-      annotations:
-        kubevirt.io/provisionOnNode: t640n01
+      name: microk8s-vda-root
+      namespace: kargo
     spec:
+      accessModes:
+      - ReadWriteMany
+      capacity:
+        storage: 64G
+      config:
+        featureGates:
+        - HonorWaitForFirstConsumer
       pvc:
         accessModes:
-        - ReadWriteOnce
+        - ReadWriteMany
         resources:
           requests:
-            storage: 96G
-        storageClassName: hostpath-provisioner
+            storage: 64G
+        storageClassName: nvme-ceph-filesystem
       source:
-        pvc:
-          name: kargo-ubuntu-latest
-          namespace: kargo
+        registry:
+          url: "docker://quay.io/containercraft/ubuntu:21.04"
+          imagePullPolicy: IfNotPresent
+      persistentVolumeReclaimPolicy: Delete
+      storageClassName: nvme-ceph-filesystem
+      volumeMode: Filesystem
   template:
     spec:
+      evictionStrategy: LiveMigrate
       nodeSelector:
-        kubernetes.io/hostname: t640n01
-        node-role.kubernetes.io/kubevirt: ""
+        kargo-zone.containercraft.io/all: ""
       domain:
         cpu:
-          cores: 4
-          threads: 2
-          sockets: 1
-          model: host-passthrough
           dedicatedCpuPlacement: false
+          model: host-passthrough
+          threads: 4
+          sockets: 1
+          cores: 1
         resources:
           requests:
-            memory: 8Gi
+            memory: 16G
+            devices.kubevirt.io/kvm: "1"
+          limits:
+            memory: 16G
+        machine:
+          type: pc-q35-rhel8.3.0
         devices:
           autoattachPodInterface: false
           autoattachSerialConsole: true
@@ -47,7 +62,7 @@ spec:
           networkInterfaceMultiqueue: true
           rng: {}
           disks:
-            - name: root-disk
+            - name: disk-vda-root
               bootOrder: 1
               disk:
                 bus: virtio
@@ -59,18 +74,16 @@ spec:
             model: virtio
             bootOrder: 2
             bridge: {}
-        machine:
-          type: pc-q35-rhel8.3.0
-      hostname: kongee
+      hostname: "microk8s"
       networks:
       - name: enp1s0
         multus:
           networkName: kargo-net-attach-def-br0
       terminationGracePeriodSeconds: 0
       volumes:
-        - name: root-disk
+        - name: disk-vda-root
           dataVolume:
-            name: ubuntu-vda-root
+            name: microk8s-vda-root
         - name: cloudinitdisk
           cloudInitNoCloud:
             networkData: |
@@ -86,14 +99,14 @@ spec:
                     addresses:
                     - 192.168.1.1
                     search:
-                    - microk8s.codectl.lab
+                    - microk8s.home.arpa
             userData: |
               #cloud-config
               ssh_pwauth: true
               chpasswd:
+                expire: False
                 list: |
                    ubuntu:ubuntu
-                expire: False
               users:
                 - default
                 - name: ubuntu
@@ -102,7 +115,7 @@ spec:
                   shell: /bin/bash
                   ssh-authorized-keys:
                     - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAAB/zPcAdyHRElufWDNQ1mZUWp4V9jDmaWX35ApsXgxfMHBuz3n8VLGVJuXodAAxeRbbE7Rws8BQcCH4DAMKKLHYZRdJtk3ZUw7rm0i/aq0wkeld7Yp6H/fv1ud3mudp7/+3fQ3gV8RmAO8+FS4jNBMciqtY6mWThKciwnkBWmH5atl6GsZ1ZQ+Y8+W4hXnaF6UEU1+xZ8ja+hu81a9fhejcV+m3RwT511kW5IXDe6wkq9tsIEC529VGI7XuySYvusbchivWYxmE+TBMmId3voGCfkl8hIemUG3/LvQWeK95B/6vBKDCFlmABn60zxrjPkdknWPbu4zg+VJWnslX+rDqSe2cBpHqQ8yDxegPcmXNKv2Qp0h8HhEljWoLc4U5x4hlceDraWBehj8i4N6p+Yt678+jUpOCwGC8z9l+zUrG6NPvbHZ2aIBC3eUteYPtmScNLvOiFASPo/9GQQDNqZclQZf5QGDToAV2rV1B4jJPV8fv/1rlgen6O1PNitKo9FlUfr0WA1IXev6CiJUt4x210BzhTlD84S2A0gHJRbeVVkjWKMx/vo/wqEKTg/vvzSOhFDDlKUxSsguL5rrtOxdGj4sUtjeVRuDjwk1u1DH8P75rI0R/1QaeDixJbRi8Q1315z+MrvJuvzJpMTieldqffNUnexMZcFox8yI8KlVt2U=
-              hostname: kargo-microk8s
+              hostname: microk8s.home.arpa
               runcmd:
                 - "systemctl enable iscsid"
                 - "snap install microk8s --classic --channel=1.21/edge"
