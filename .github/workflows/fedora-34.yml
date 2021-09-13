@@ -28,6 +28,7 @@ jobs:
         sudo virt-customize -a /tmp/fedora.qcow2 --install 'tmux,git,vim,net-tools,qemu-guest-agent' ;\
         sudo virt-customize -a /tmp/fedora.qcow2 --run-command 'systemctl enable qemu-guest-agent' ;\
         sudo virt-customize -a /tmp/fedora.qcow2 --run-command "dnf clean all && rm -rf /var/cache/dnf" ;\
+        sudo virt-sysprep -a /tmp/fedora.qcow2 --enable net-hostname,net-hwaddr,machine-id,dhcp-server-state,dhcp-client-state,yum-uuid,udev-persistent-net,tmp-files,smolt-uuid,rpm-db,package-manager-cache
         echo;
 
     - name: Build Fedora Cradle
