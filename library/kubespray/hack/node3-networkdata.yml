@@ -8,7 +8,7 @@ bridges:
     dhcp4: false
     dhcp6: false
     addresses:
-      - 192.168.1.62/24
+      - 192.168.1.63/24
     gateway4: 192.168.1.1
     interfaces:
       - eth0
@@ -17,4 +17,4 @@ bridges:
         - home.arpa
       addresses:
         - 192.168.1.1
-    macaddress: "fe:a4:55:82:33:5f"
+    macaddress: "02:d3:76:00:00:20"

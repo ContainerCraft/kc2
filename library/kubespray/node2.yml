@@ -61,8 +61,8 @@ spec:
         storageClassName: nvme-ceph-filesystem
       source:
         registry:
-          url: "docker://quay.io/containercraft/fedora:latest"
-          imagePullPolicy: IfNotPresent
+          url: "docker://quay.io/containercraft/fedora:34"
+          imagePullPolicy: Always
       persistentVolumeReclaimPolicy: Delete
       storageClassName: nvme-ceph-filesystem
       volumeMode: Filesystem
@@ -110,10 +110,10 @@ spec:
               disk:
                 bus: virtio
           interfaces:
-          - name: eth0
+          - bridge: {}
+            macAddress: 02:d2:76:00:00:20
             model: virtio
-            bootOrder: 2
-            bridge: {}
+            name: eth0
       hostname: node2
       networks:
       - name: eth0
@@ -132,53 +132,7 @@ spec:
             claimName: node2-green-pvc-vdc-ceph
         - name: cloudinitdisk
           cloudInitNoCloud:
-            networkData: |
-              version: 2
-              ethernets:
-                eth0:
-                  dhcp4: false
-                  dhcp6: false
-              bridges:
-                br0:
-                  dhcp4: false
-                  dhcp6: false
-                  addresses:
-                    - 192.168.1.62/24
-                  gateway4: 192.168.1.1
-                  interfaces:
-                    - eth0
-                  nameservers:
-                    search:
-                      - home.arpa
-                    addresses:
-                      - 192.168.1.1
-                  macaddress: "fe:a4:55:82:33:5f"
-            userData: |
-              #cloud-config
-              hostname: node2
-              fqdn: node2.home.arpa
-              ssh_pwauth: true
-              disable_root: true
-              chpasswd:
-                list: |
-                  fedora:fedora
-                expire: False
-              users:
-                - default
-                - name: fedora
-                  sudo: ['ALL=(ALL) NOPASSWD:ALL']
-                  groups: wheel
-                  shell: /bin/bash
-                  lock_passwd: false
-                  ssh-authorized-keys:
-                    - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAAB/zPcAdyHRElufWDNQ1mZUWp4V9jDmaWX35ApsXgxfMHBuz3n8VLGVJuXodAAxeRbbE7Rws8BQcCH4DAMKKLHYZRdJtk3ZUw7rm0i/aq0wkeld7Yp6H/fv1ud3mudp7/+3fQ3gV8RmAO8+FS4jNBMciqtY6mWThKciwnkBWmH5atl6GsZ1ZQ+Y8+W4hXnaF6UEU1+xZ8ja+hu81a9fhejcV+m3RwT511kW5IXDe6wkq9tsIEC529VGI7XuySYvusbchivWYxmE+TBMmId3voGCfkl8hIemUG3/LvQWeK95B/6vBKDCFlmABn60zxrjPkdknWPbu4zg+VJWnslX+rDqSe2cBpHqQ8yDxegPcmXNKv2Qp0h8HhEljWoLc4U5x4hlceDraWBehj8i4N6p+Yt678+jUpOCwGC8z9l+zUrG6NPvbHZ2aIBC3eUteYPtmScNLvOiFASPo/9GQQDNqZclQZf5QGDToAV2rV1B4jJPV8fv/1rlgen6O1PNitKo9FlUfr0WA1IXev6CiJUt4x210BzhTlD84S2A0gHJRbeVVkjWKMx/vo/wqEKTg/vvzSOhFDDlKUxSsguL5rrtOxdGj4sUtjeVRuDjwk1u1DH8P75rI0R/1QaeDixJbRi8Q1315z+MrvJuvzJpMTieldqffNUnexMZcFox8yI8KlVt2U= kmorgan@mprcs.braincraft.io
-              runcmd:
-                - "nmcli con mod $(nmcli con show | awk '/br0/{print $3}') bridge.mac-address fe:a4:55:82:33:5f"
-                - nmcli networking off
-                - sleep 1
-                - nmcli networking on
-                - sleep 6
-                - dnf update -y
-                - dnf upgrade -y
-                - reboot
-              final_message: ">> UserData Processing Complete"
+            secretRef:
+              name: kargo-green-cloudinit-userdata
+            networkDataSecretRef:
+              name: node2-green-cloudinit-networkdata

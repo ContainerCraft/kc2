@@ -1,0 +1,19 @@
+#!/bin/sh
+cat <<EOF > ./hack/userdata.yml
+#cloud-config
+disable_root: true
+ssh_pwauth: true
+chpasswd:
+  list: |
+    fedora:fedora
+  expire: False
+users:
+  - default
+  - name: fedora
+    sudo: ['ALL=(ALL) NOPASSWD:ALL']
+    groups: wheel
+    shell: /bin/bash
+    lock_passwd: false
+    ssh-authorized-keys:
+      - $(cat ~/.ssh/id_rsa.pub)
+EOF

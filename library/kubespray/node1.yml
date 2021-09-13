@@ -61,8 +61,8 @@ spec:
         storageClassName: nvme-ceph-filesystem
       source:
         registry:
-          url: "docker://quay.io/containercraft/fedora:latest"
-          imagePullPolicy: IfNotPresent
+          url: "docker://quay.io/containercraft/fedora:34"
+          imagePullPolicy: Always
       persistentVolumeReclaimPolicy: Delete
       storageClassName: nvme-ceph-filesystem
       volumeMode: Filesystem
@@ -92,7 +92,7 @@ spec:
         devices:
           autoattachPodInterface: false
           autoattachSerialConsole: true
-          autoattachGraphicsDevice: true
+          autoattachGraphicsDevice: false
           networkInterfaceMultiqueue: true
           rng: {}
           disks:
@@ -110,10 +110,10 @@ spec:
               disk:
                 bus: virtio
           interfaces:
-          - name: eth0
+          - bridge: {}
+            macAddress: 02:d1:76:00:00:20
             model: virtio
-            bootOrder: 2
-            bridge: {}
+            name: eth0
       hostname: node1
       networks:
       - name: eth0
@@ -133,7 +133,6 @@ spec:
         - name: cloudinitdisk
           cloudInitNoCloud:
             secretRef:
-              name: node1-green-cloudinit-userdata
+              name: kargo-green-cloudinit-userdata
             networkDataSecretRef:
               name: node1-green-cloudinit-networkdata
-           #userDataSecretRef:

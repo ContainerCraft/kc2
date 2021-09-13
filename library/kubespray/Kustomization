@@ -10,6 +10,7 @@ commonLabels:
 resources:
 - net-attach-def.yml
 - featuregate.yml
+- cloudinit.yml
 - node1.yml
 - node2.yml
 - node3.yml

@@ -17,4 +17,4 @@ bridges:
         - home.arpa
       addresses:
         - 192.168.1.1
-    macaddress: "fe:a4:55:81:33:5f"
+    macaddress: "02:d1:76:00:00:20"

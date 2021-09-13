@@ -41,9 +41,10 @@ spec:
               disk:
                 bus: virtio
           interfaces:
-          - name: eth0
+          - bridge: {}
+            macAddress: 02:d2:76:00:00:20
             model: virtio
-            bridge: {}
+            name: eth0
       networks:
       - name: eth0
         multus:
@@ -52,7 +53,7 @@ spec:
         - name: test2-root-disk
           containerDisk:
             image: quay.io/containercraft/fedora:34
-            imagePullPolicy: IfNotPresent
+            imagePullPolicy: Always
         - name: cloudinitdisk
           cloudInitNoCloud:
             secretRef:
