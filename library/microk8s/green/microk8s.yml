@@ -1,0 +1,82 @@
+apiVersion: kubevirt.io/v1
+kind: VirtualMachine
+metadata:
+  name: microk8s-green
+  namespace: kargo
+  labels:
+    region: "a"
+    kubevirt.io/os: linux
+    app: microk8s-green
+spec:
+  running: true
+  dataVolumeTemplates:
+  - metadata:
+      name: microk8s-green-volume-vda-root
+      namespace: kargo
+    spec:
+      pvc:
+        accessModes:
+        - ReadWriteMany
+        resources:
+          requests:
+            storage: 64G
+        storageClassName: nvme-ceph-filesystem
+      source:
+        registry:
+          url: docker://quay.io/containercraft/ubuntu:21.04
+          imagePullPolicy: Always
+  template:
+    spec:
+      domain:
+        cpu:
+          cores: 1
+          sockets: 1
+          threads: 4
+          model: host-passthrough
+          dedicatedCpuPlacement: false
+        resources:
+          requests:
+            devices.kubevirt.io/kvm: "1"
+            memory: 8G
+          limits:
+            memory: 8G
+        devices:
+          rng: {}
+          autoattachPodInterface: false
+          autoattachSerialConsole: true
+          autoattachGraphicsDevice: false
+          networkInterfaceMultiqueue: true
+          disks:
+          - name: microk8s-green-disk-vda-root
+            bootOrder: 1
+            disk:
+              bus: virtio
+          - name: cloudinitdisk
+            disk:
+              bus: virtio
+          interfaces:
+          - bridge: {}
+            bootOrder: 2
+            model: virtio
+            name: enp1s0
+        machine:
+          type: pc-q35-rhel8.3.0
+      evictionStrategy: LiveMigrate
+      hostname: microk8s-green
+      networks:
+      - name: enp1s0
+        multus:
+          networkName: kargo-net-attach-def-br0
+      nodeSelector:
+        kargo-zone.containercraft.io/all: ""
+      terminationGracePeriodSeconds: 0
+      volumes:
+      - dataVolume:
+          name: microk8s-green-volume-vda-root
+        name: microk8s-green-disk-vda-root
+      - name: cloudinitdisk
+        cloudInitNoCloud:
+          secretRef:
+            name: microk8s-green-cloudinit-userdata
+          networkDataSecretRef:
+            name: microk8s-green-cloudinit-networkdata
