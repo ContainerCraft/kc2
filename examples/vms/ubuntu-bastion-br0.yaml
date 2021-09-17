@@ -11,11 +11,10 @@ spec:
   template:
     spec:
       nodeSelector:
-        kubernetes.io/hostname: t640n01
         node-role.kubernetes.io/kubevirt: ""
       domain:
         cpu:
-          cores: 4
+          cores: 2
           threads: 2
           sockets: 1
           model: host-passthrough
@@ -30,7 +29,7 @@ spec:
           networkInterfaceMultiqueue: true
           rng: {}
           disks:
-            - name: root-disk
+            - name: bastion-disk-vda-root
               bootOrder: 1
               disk:
                 bus: virtio
@@ -44,14 +43,14 @@ spec:
             bridge: {}
         machine:
           type: pc-q35-rhel8.3.0
-      hostname: kongee
+      hostname: bastion
       networks:
       - name: enp1s0
         multus:
-          networkName: kargo-net-attach-def-br0
+          networkName: kargo-net-attach-def-enp2s0-vlan100
       terminationGracePeriodSeconds: 0
       volumes:
-        - name: root-disk
+        - name: bastion-disk-vda-root
           containerDisk:
             image: quay.io/containercraft/ubuntu:latest
             imagePullPolicy: Always
@@ -61,22 +60,21 @@ spec:
               version: 2
               ethernets:
                 enp1s0:
-                  dhcp4: true
+                  dhcp4: false
                   dhcp6: false
-#                 addresses:
-#                   - 192.168.1.15/24
-#                 gateway4: 192.168.1.1
-#                 nameservers:
-#                   addresses:
-#                   - 192.168.1.1
-#                   search:
-#                   - plutarch.codectl.lab
+                  addresses:
+                    - 192.168.16.12/24
+                  gateway4: 192.168.16.1
+                  nameservers:
+                    addresses:
+                    - 192.168.16.1
+                    search:
+                    - dmz.home.arpa
             userData: |
               #cloud-config
               ssh_pwauth: true
               chpasswd:
                 list: |
-                   root:ubuntu
                    ubuntu:ubuntu
                 expire: False
               users:
