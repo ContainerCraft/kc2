@@ -67,7 +67,7 @@ spec:
       networks:
       - name: enp1s0
         multus:
-          networkName: kargo-net-attach-def-br0
+          networkName: kargo-net-attach-def-enp2s0-vlan100
       nodeSelector:
         kargo-zone.containercraft.io/all: ""
       terminationGracePeriodSeconds: 0

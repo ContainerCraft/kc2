@@ -4,10 +4,10 @@ ethernets:
     dhcp4: false
     dhcp6: false
     addresses:
-      - 192.168.1.15/24
-    gateway4: 192.168.1.1
+      - 192.168.16.15/24
+    gateway4: 192.168.16.1
     nameservers:
       addresses:
-      - 192.168.1.1
+      - 192.168.16.1
       search:
-      - home.arpa
+      - dmz.home.arpa
