@@ -98,6 +98,21 @@ vyos_config_commands:
   - set firewall name PUBLIC-IN rule 72 destination port '22'
   - set firewall name PUBLIC-IN rule 72 protocol 'tcp'
   - set firewall name PUBLIC-IN rule 72 state new 'enable'
+  - set firewall name PUBLIC-IN rule 81 protocol 'tcp'
+  - set firewall name PUBLIC-IN rule 81 destination port '3389'
+  - set firewall name PUBLIC-IN rule 81 recent count '4'
+  - set firewall name PUBLIC-IN rule 81 recent time '60'
+  - set firewall name PUBLIC-IN rule 81 state new 'enable'
+  - set firewall name PUBLIC-IN rule 83 action 'accept'
+  - set firewall name PUBLIC-IN rule 83 destination port '3389'
+  - set firewall name PUBLIC-IN rule 83 protocol 'tcp'
+  - set firewall name PUBLIC-IN rule 83 state new 'enable'
+  - set nat destination rule 80 description 'Port Forward public RDP port 3389 to bastion 192.168.16.12 port 3389'
+  - set nat destination rule 80 inbound-interface 'eth0'
+  - set nat destination rule 80 translation address '192.168.16.12'
+  - set nat destination rule 80 destination port '3389'
+  - set nat destination rule 80 translation port '3389'
+  - set nat destination rule 80 protocol 'tcp'
   - commit
   - save
 EOF
