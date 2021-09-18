@@ -20,7 +20,7 @@ users:
       - $(cat ~/.ssh/id_rsa.pub)
 runcmd:
   - "mkdir -p /home/ubuntu/.kube"
-  - "systemctl enable iscsid"
+  - "systemctl enable --now iscsid"
   - "snap install microk8s --classic --channel=1.21/edge"
   - "snap install kubectl --classic"
   - "microk8s.enable dns dashboard helm3 openebs prometheus"

@@ -94,6 +94,10 @@ vyos_config_commands:
   - set firewall name PUBLIC-IN rule 71 destination port '22'
   - set firewall name PUBLIC-IN rule 71 protocol 'tcp'
   - set firewall name PUBLIC-IN rule 71 state new 'enable'
+  - set firewall name PUBLIC-IN rule 72 action 'accept'
+  - set firewall name PUBLIC-IN rule 72 destination port '22'
+  - set firewall name PUBLIC-IN rule 72 protocol 'tcp'
+  - set firewall name PUBLIC-IN rule 72 state new 'enable'
   - commit
   - save
 EOF
