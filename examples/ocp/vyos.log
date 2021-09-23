@@ -1,0 +1,38 @@
+set service dhcp-server hostfile-update
+set service dhcp-server global-parameters "use-host-decl-names on;"
+set service dhcp-server shared-network-name LAN subnet 192.168.16.0/24 lease          '86400'
+set service dhcp-server shared-network-name LAN subnet 192.168.16.0/24 dns-server     '192.168.16.1'
+set service dhcp-server shared-network-name LAN subnet 192.168.16.0/24 default-router '192.168.16.1'
+set service dhcp-server shared-network-name LAN subnet 192.168.16.0/24 range 0 start  '192.168.16.100'
+set service dhcp-server shared-network-name LAN subnet 192.168.16.0/24 range 0 stop   '192.168.16.249'
+set service dhcp-server shared-network-name LAN subnet 192.168.16.0/24 domain-name    'ocp.home.arpa'
+
+set system static-host-mapping host-name                                             lb.ocp.home.arpa  inet   '192.168.16.1'
+set system static-host-mapping host-name                                            api.ocp.home.arpa  inet   '192.168.16.1'
+set system static-host-mapping host-name                                         *.apps.ocp.home.arpa  inet   '192.168.16.1'
+set system static-host-mapping host-name                                        "*.apps.ocp.home.arpa" inet   '192.168.16.1'
+set system static-host-mapping host-name                                        api-int.ocp.home.arpa  inet   '192.168.16.1'
+set system static-host-mapping host-name                           oauth-openshift.apps.ocp.home.arpa  inet   '192.168.16.1'
+set system static-host-mapping host-name                 console-openshift-console.apps.ocp.home.arpa  inet   '192.168.16.1'
+set system static-host-mapping host-name               downloads-openshift-console.apps.ocp.home.arpa  inet   '192.168.16.1'
+set system static-host-mapping host-name              grafana-openshift-monitoring.apps.ocp.home.arpa  inet   '192.168.16.1'
+set system static-host-mapping host-name           canary-openshift-ingress-canary.apps.ocp.home.arpa  inet   '192.168.16.1'
+set system static-host-mapping host-name       prometheus-k8s-openshift-monitoring.apps.ocp.home.arpa  inet   '192.168.16.1'
+set system static-host-mapping host-name       thanos-querier-openshift-monitoring.apps.ocp.home.arpa  inet   '192.168.16.1'
+set system static-host-mapping host-name    alertmanager-main-openshift-monitoring.apps.ocp.home.arpa  inet   '192.168.16.1'
+
+set system static-host-mapping host-name                                      bootstrap.ocp.home.arpa  inet   '192.168.16.11'
+set service dhcp-server shared-network-name LAN subnet 192.168.16.0/24 static-mapping bootstrap  ip-address   '192.168.16.11'
+set service dhcp-server shared-network-name LAN subnet 192.168.16.0/24 static-mapping bootstrap mac-address   '02:d6:76:00:00:11'
+
+set system static-host-mapping host-name                                        master1.ocp.home.arpa  inet   '192.168.16.31'
+set service dhcp-server shared-network-name LAN subnet 192.168.16.0/24 static-mapping   master1  ip-address   '192.168.16.31'
+set service dhcp-server shared-network-name LAN subnet 192.168.16.0/24 static-mapping   master1 mac-address   '02:d6:76:00:00:31'
+
+set system static-host-mapping host-name                                        master2.ocp.home.arpa  inet   '192.168.16.32'
+set service dhcp-server shared-network-name LAN subnet 192.168.16.0/24 static-mapping   master2  ip-address   '192.168.16.32'
+set service dhcp-server shared-network-name LAN subnet 192.168.16.0/24 static-mapping   master2 mac-address   '02:d6:76:00:00:32'
+
+set system static-host-mapping host-name                                        master3.ocp.home.arpa  inet   '192.168.16.33'
+set service dhcp-server shared-network-name LAN subnet 192.168.16.0/24 static-mapping   master3  ip-address   '192.168.16.33'
+set service dhcp-server shared-network-name LAN subnet 192.168.16.0/24 static-mapping   master3 mac-address   '02:d6:76:00:00:33'

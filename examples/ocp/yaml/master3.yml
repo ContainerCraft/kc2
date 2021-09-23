@@ -1,0 +1,87 @@
+---
+apiVersion: kubevirt.io/v1alpha3
+kind: VirtualMachine
+metadata:
+  name: master3
+  namespace: kargo
+  labels:
+    app: master
+spec:
+  running: true
+  dataVolumeTemplates:
+  - metadata:
+      name: ocp-master3-volume-vda-root
+      namespace: kargo
+    spec:
+      pvc:
+        accessModes:
+        - ReadWriteMany
+        resources:
+          requests:
+            storage: 128G
+        storageClassName: nvme-ceph-filesystem
+      source:
+        registry:
+          url: docker://quay.io/containercraft/coreos:latest
+          imagePullPolicy: Always
+  template:
+    spec:
+      evictionStrategy: LiveMigrate
+      nodeSelector:
+        node-role.kubernetes.io/kubevirt: ""
+        kargo-zone.containercraft.io/c: ""
+      domain:
+        cpu:
+          cores: 6
+          threads: 1
+          sockets: 1
+          dedicatedCpuPlacement: false
+          model: host-passthrough
+        machine:
+          type: pc-q35-rhel8.3.0
+        resources:
+          requests:
+            memory: 16G
+          limits:
+            memory: 16G
+        devices:
+          autoattachPodInterface: false
+          autoattachSerialConsole: true
+          autoattachGraphicsDevice: false
+          networkInterfaceMultiqueue: true
+          rng: {}
+          disks:
+            - name: ocp-master3-disk-vda-root
+              bootOrder: 1
+              disk:
+                bus: virtio
+            - name: cloudinitdisk
+              disk:
+                bus: virtio
+          interfaces:
+          - name: enp1s0
+            model: virtio
+            macAddress: 02:d6:76:00:00:33
+            bootOrder: 2
+            bridge: {}
+        features:
+          smm:
+            enabled: true
+        firmware:
+          bootloader:
+            efi:
+              secureBoot: true
+      hostname: master3
+      networks:
+      - name: enp1s0
+        multus:
+          networkName: unicorn-kargo-vpc.brvpcenp2s0.101
+      terminationGracePeriodSeconds: 0
+      volumes:
+        - name: ocp-master3-disk-vda-root
+          dataVolume:
+            name: ocp-master3-volume-vda-root
+        - name: cloudinitdisk
+          cloudInitConfigDrive:
+            userData: |-
+              {"ignition":{"config":{"merge":[{"source":"http://192.168.16.12:22623/master.ign"}]},"security":{},"version":"3.1.0"}}

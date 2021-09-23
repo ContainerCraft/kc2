@@ -1,0 +1,264 @@
+    1  exit
+    2  clear
+    3  sudo apt install docker.io -y
+    4  sudo usermod -aG docker ubuntu
+    5  sudo reboot
+    6  docker ps
+    7  sudo passwd ubuntu
+    8  sudo apt update -y && sudo apt upgrade -y
+    9  sudo reboot
+   10  ssh core@bootstrap.ocp.home.arpa
+   11  exit
+   12  clear
+   13  mkdir oc
+   14  cd oc/
+   15  curl -LO http://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest/openshift-client-linux.tar.gz
+   16  curl -LO http://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest/openshift-install-linux.tar.gz
+   17  ls
+   18  tar xvf *
+   19  ls
+   20  tar xvf openshift-client-linux.tar.gz 
+   21  tar xvf openshift-install-linux.tar.gz 
+   22  sudo ln -f openshift-install oc kubectl /usr/local/bin/
+   23  ls
+   24  rm README.md openshift-client-linux.tar.gz openshift-install-linux.tar.gz 
+   25  ls
+   26  clear
+   27  mkdir config deploy
+   28  cat ~/.ssh/id_rsa.pub 
+   29  clear
+   30  vim config/install-config.sh
+   31  vim pullsecret.json
+   32  cat pullsecret.json | jq .
+   33  sudo apt install jq -y
+   34  cat pullsecret.json | jq .
+   35  clear
+   36  vim config/install-config.sh 
+   37  source config/install-config.sh 
+   38  clear
+   39  openshift-install create ignition-configs --dir=deploy
+   40  ls
+   41  ls deploy/
+   42  vim config/install-config.sh 
+   43  cd ..
+   44  ls
+   45  mv oc ocp
+   46  cd ocp
+   47  source config/install-config.sh 
+   48  openshift-install create ignition-configs --dir=deploy
+   49  vim config/install-config.sh 
+   50  source config/install-config.sh 
+   51  openshift-install create ignition-configs --dir=deploy
+   52  vim config/install-config.sh 
+   53  source config/install-config.sh 
+   54  openshift-install create ignition-configs --dir=deploy
+   55  clear
+   56  curl -LO https://raw.githubusercontent.com/CloudCtl/cloudctl/master/templates/nginx/nginx.conf.j2
+   57  mv nginx.conf.j2 nginx.conf
+   58  vim nginx.conf 
+   59  docker run --detach --name nginx --publish 192.168.16.12:22623:8080 --volume /home/ubuntu/ocp/deploy/:/var/www/html:z quay.io/cloudctl/nginx
+   60  docker rm --force nginx
+   61  docker run --detach --name nginx --publish 192.168.16.12:22623:8080 --volume /home/ubuntu/ocp/deploy/:/var/www/html:z --volume $(pwd)/nginx.conf:/etc/nginx/nginx.conf:z quay.io/cloudctl/nginx
+   62  docker ps --all
+   63  clear
+   64  exit
+   65  ssh core@master1.ocp.home.arpa
+   66  clear
+   67  exit
+   68  clear
+   69  cd ocp
+   70  cat deploy/auth/kubeconfig > ~/.kube/config
+   71  ls ~/.kube
+   72  chmod 600 ~/.kube/config 
+   73  watch oc get co 
+   74  watch oc get co -A
+   75  exit
+   76  clear
+   77  oc get events -Aw
+   78  clear
+   79  watch -c 'kubectl get po -A | grep -vE "Running|Complete"'
+   80  dig openshift-console-openshift.apps.ocp.home.arpa
+   81  clear
+   82  watch curl -Lks https://openshift-console-openshift.apps.ocp.home.arpa
+   83  curl -Lks https://openshift-console-openshift.apps.ocp.home.arpa
+   84  curl -Lks https://openshift-console-openshift.apps.ocp.home.arpa | tail
+   85  watch -c 'curl -Lks https://openshift-console-openshift.apps.ocp.home.arpa | tail'
+   86  watch -c 'kubectl get po -A | grep -vE "Running|Complete"'
+   87  clear
+   88  oc get route -A
+   89  oc get route -nopenshift-console downloads -oyaml
+   90  curl -Lks http://downloads-openshift-console.apps.ocp.home.arpa
+   91  echo $?
+   92  oc get route -A
+   93  oc get route -nopenshift-console console -oyaml
+   94  oc get co console -oyaml
+   95  oc get co console -oyaml | nc termbin.com 9999
+   96  oc get routes
+   97  oc get routes -A
+   98  oc get routes -nopenshift-console
+   99  oc get route -nopenshift-console downloads -oyaml
+  100  oc get route -nopenshift-console downloads -oyaml | nc termbin.com 9999
+  101  oc get route -nopenshift-console downloads -oyaml 
+  102  dig downloads-openshift-console.apps.ocp.home.arpa
+  103  oc get po -A
+  104  oc get route -nopenshift-console downloads -oyaml 
+  105  oc get routes -nopenshift-console
+  106  oc get route -nopenshift-console
+  107  oc get route -nopenshift-console console -owide
+  108  oc get route -nopenshift-console console -oyaml
+  109  dig router-default.apps.ocp.home.arpa
+  110  oc get route -nopenshift-console console -oyaml
+  111  oc get co
+  112  oc get co -oyaml console
+  113  oc get co -oyaml console | less
+  114  oc get co -oyaml console | tee /tmp/route.log
+  115  vim /tmp/route.log 
+  116  cat /tmp/route.log | nc termbin.com 9999
+  117  oc get co authentication -o yaml
+  118  oc get co authentication -o yaml | less
+  119  oc get co authentication
+  120  oc get co console -o yaml | less
+  121  oc get cm dns-default -n openshift-dns -o yaml
+  122  oc get cm dns-default -n openshift-dns
+  123  oc get cm dns-default -n openshift-dns -owide
+  124  oc get dns.operator default -o yaml
+  125  oc get dns.operator default 
+  126  dig oauth-openshift.apps.openshift.example.com
+  127  exit
+  128  clear
+  129  dig oauth-openshift.apps.ocp.home.arpa
+  130  dig console-openshift-console.apps.ocp.home.arpa
+  131  clear
+  132  oc get co -owide
+  133  exit
+  134  docker logs nginx -f
+  135  clear
+  136  oc get po -A | grep -vE "Complete|Running"
+  137  watch -c '!!'
+  138  watch -c 'oc get po -A | grep -vE "Complete|Running"'
+  139  sudo apt install ./Downloads/Lens-5.2.3-latest.20210921.1.amd64.deb -y --install-recommends -y
+  140  watch -c 'oc get po -A | grep -vE "Complete|Running"'
+  141  [200~ oc patch configs.imageregistry.operator.openshift.io cluster --type merge --patch '{"spec":{"storage":{"emptyDir":{}}}}'~
+  142  [200~ oc get -n openshift-ingress-operator ingresscontrollers/default -o jsonpath='{$.spec.replicas}'~
+  143  clear
+  144  mkdir ocadmin
+  145  cd ocadmin
+  146  clear
+  147  ls
+  148  clear
+  149  htpasswd -c -B -b users.htpasswd ocadmin admin
+  150  sudo apt install apache2-utils
+  151  clear
+  152  vim mkcred.sh
+  153  source mkcred.sh 
+  154  oc get routes
+  155  oc get routes -A
+  156  dig downloads-openshift-console.apps.ocp.home.arpa
+  157  curl -Lks downloads-openshift-console.apps.ocp.home.arpa
+  158  curl -Lk downloads-openshift-console.apps.ocp.home.arpa
+  159  cd ..
+  160  clear
+  161  cd ocp/
+  162  ls
+  163  cat config/
+  164  cat config/install-config.sh 
+  165  source config/install-config.sh | nc termbin.com 9999
+  166  cat deploy/install-config.yaml | tee /tmp/ic.yml
+  167  vim /tmp/ic.yml 
+  168  cat /tmp/ic.yml | nc termbin.com 9999
+  169  oc create ns kargo
+  170  oc apply -f https://raw.githubusercontent.com/ContainerCraft/Kargo/master/test/host-ubuntu.yaml
+  171  oc delete -f https://raw.githubusercontent.com/ContainerCraft/Kargo/master/test/host-ubuntu.yaml
+  172  curl --output test.yml -L https://raw.githubusercontent.com/ContainerCraft/Kargo/master/test/host-ubuntu.yaml
+  173  vim test.yml 
+  174  k apply -f test.yml 
+  175  oc apply -f test.yml 
+  176  oc get vmi -A
+  177  sudo curl --output /usr/local/bin/virtctl -L https://github.com/kubevirt/kubevirt/releases/download/v0.45.0/virtctl-v0.45.0-linux-amd64
+  178  sudo chmod +x /usr/local/bin/virtctl 
+  179  oc get vmi -nkargo test-ubuntu -owide
+  180  oc get vmi -nkargo test-ubuntu 
+  181  oc get vmi -nkargo test-ubuntu -oyaml | less
+  182  clear
+  183  oc get vmi -nkargo test-ubuntu -owide
+  184  oc get vm -nkargo test-ubuntu -owide
+  185  oc get vm -nkargo test-ubuntu -oyaml | less
+  186  oc get vmi -nkargo test-ubuntu -oyaml | less
+  187  oc delete -f test.yml 
+  188  vim test.yml 
+  189  oc apply -f test.yml 
+  190  oc get vmi -nkargo test
+  191  watch oc get vmi -nkargo test
+  192  oc delete -f test.yml 
+  193  vim test.yml 
+  194  oc apply -f test.yml 
+  195  watch oc get vmi -nkargo test
+  196  virtctl -nkargo console test
+  197  ls
+  198  cd ocp/
+  199  history
+  200  history >> build.log
+mkdir deploy
+cat <<EOF | tee ~/ocp/deploy/install-config.yaml
+apiVersion: v1
+baseDomain: home.arpa
+metadata:
+  name: ocp 
+compute: 
+- hyperthreading: Enabled 
+  name: worker
+  replicas: 0 
+controlPlane: 
+  hyperthreading: Enabled 
+  name: master
+  replicas: 3 
+networking:
+  clusterNetwork:
+  - cidr: 10.128.0.0/14 
+    hostPrefix: 23 
+  networkType: OpenShiftSDN
+  serviceNetwork: 
+  - 172.30.0.0/16
+platform:
+  none: {} 
+fips: false 
+pullSecret: '$(cat ./pullsecret.json)' 
+sshKey: '$(cat ~/.ssh/id_rsa.pub)'
+EOF
+user root;
+worker_processes auto;
+error_log /dev/stdout info;
+include /usr/share/nginx/modules/*.conf;
+include /etc/nginx/conf.d/*.conf;
+pid /run/nginx.pid;
+events {
+  worker_connections 1024;
+}
+http {
+  server {
+    listen 8080;
+    listen [::]:8080;
+    location / {
+      root /var/www/html/;
+    }
+  }
+  autoindex on;        
+}
+htpasswd -c -B -b users.htpasswd ocadmin admin
+oc create secret generic htpass-secret --from-file=htpasswd=users.htpasswd -n openshift-config
+cat <<EOF | oc apply -f -
+apiVersion: config.openshift.io/v1
+kind: OAuth
+metadata:
+  name: cluster
+spec:
+  identityProviders:
+  - name: my_htpasswd_provider 
+    mappingMethod: claim 
+    type: HTPasswd
+    htpasswd:
+      fileData:
+        name: htpass-secret
+EOF
+oc adm policy add-cluster-role-to-user cluster-admin ocadmin
+oc delete secrets kubeadmin -n kube-system
