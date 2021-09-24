@@ -1,0 +1,96 @@
+ssh core@bootstrap.ocp.home.arpa
+
+mkdir -p ~/ocp/{config,deploy} ~/.docker && cd ~/ocp
+
+Login to your [OpenShift Developer Account Openshift Cloud Console](https://console.redhat.com/openshift/install/metal/user-provisioned)
+Copy your "Pull Secret" and save to ~/.docker/openshift-pullsecret.json
+vim ~/.docker/openshift-pullsecret.json
+cat ~/.docker/openshift-pullsecret.json | jq .
+
+# OKD Releases https://github.com/openshift/okd/releases
+curl -L https://github.com/openshift/okd/releases/download/4.7.0-0.okd-2021-09-19-013247/openshift-client-linux-4.7.0-0.okd-2021-09-19-013247.tar.gz  | sudo tar -zxvf - --directory /usr/local/bin oc kubectl
+curl -L https://github.com/openshift/okd/releases/download/4.7.0-0.okd-2021-09-19-013247/openshift-install-linux-4.7.0-0.okd-2021-09-19-013247.tar.gz | sudo tar -zxvf - --directory /usr/local/bin openshift-install
+
+curl -L http://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest/openshift-client-linux.tar.gz  | sudo tar -zxvf - --directory /usr/local/bin oc kubectl
+curl -L http://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest/openshift-install-linux.tar.gz | sudo tar -zxvf - --directory /usr/local/bin openshift-install
+
+sudo curl --output /usr/local/bin/virtctl -L https://github.com/kubevirt/kubevirt/releases/download/v0.45.0/virtctl-v0.45.0-linux-amd64 | sudo chmod 755 /usr/local/bin/virtctl
+
+sudo chmod +x /usr/local/bin/{oc,kubectl,openshift-install}
+
+ssh-keygen -f ~/.ssh/id_rsa -N ''
+cat ~/.ssh/id_rsa.pub 
+
+cat <<EOF | tee ~/ocp/config/install-config.yaml
+apiVersion: v1
+baseDomain: home.arpa
+metadata:
+  name: ocp 
+compute: 
+- hyperthreading: Enabled 
+  name: worker
+  replicas: 0 
+controlPlane: 
+  hyperthreading: Enabled 
+  name: master
+  replicas: 3 
+networking:
+  clusterNetwork:
+  - cidr: 10.128.0.0/14 
+    hostPrefix: 23 
+  networkType: OpenShiftSDN
+  serviceNetwork: 
+  - 172.30.0.0/16
+platform:
+  none: {} 
+fips: false 
+pullSecret: '$(cat ~/.docker/openshift-pullsecret.json)' 
+sshKey: '$(cat ~/.ssh/id_rsa.pub)'
+EOF
+
+cp ~/ocp/deploy/install-config.yaml ~/ocp/config/install-config.yaml
+openshift-install create ignition-configs --dir=deploy
+cat deploy/auth/kubeconfig > ~/.kube/config
+
+cat <<EOF | tee ~/ocp/nginx.conf
+user root;
+worker_processes auto;
+error_log /dev/stdout info;
+include /usr/share/nginx/modules/*.conf;
+include /etc/nginx/conf.d/*.conf;
+pid /run/nginx.pid;
+events {
+  worker_connections 1024;
+}
+http {
+  server {
+    listen 8080;
+    listen [::]:8080;
+    location / {
+      root /var/www/html/;
+    }
+  }
+  autoindex on;        
+}
+EOF
+
+docker rm --force nginx; docker run --detach --name nginx --publish 192.168.16.12:22623:8080 --volume /home/ubuntu/ocp/deploy/:/var/www/html:z --volume $(pwd)/nginx.conf:/etc/nginx/nginx.conf:z quay.io/cloudctl/nginx ; docker ps --all
+
+htpasswd -c -B -b users.htpasswd ocadmin admin
+oc create secret generic htpass-secret --from-file=htpasswd=users.htpasswd -n openshift-config
+cat <<EOF | oc apply -f -
+apiVersion: config.openshift.io/v1
+kind: OAuth
+metadata:
+  name: cluster
+spec:
+  identityProviders:
+  - name: my_htpasswd_provider 
+    mappingMethod: claim 
+    type: HTPasswd
+    htpasswd:
+      fileData:
+ name: htpass-secret
+EOF
+oc adm policy add-cluster-role-to-user cluster-admin ocadmin
+oc delete secrets kubeadmin -n kube-system

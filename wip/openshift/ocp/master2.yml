@@ -2,19 +2,38 @@
 apiVersion: kubevirt.io/v1alpha3
 kind: VirtualMachine
 metadata:
-  name: bootstrap
+  name: master2
   namespace: kargo
   labels:
-    app: bootstrap
+    app: master
 spec:
   running: true
+  dataVolumeTemplates:
+  - metadata:
+      name: ocp-master2-volume-vda-root
+      namespace: kargo
+    spec:
+      pvc:
+        accessModes:
+        - ReadWriteMany
+        resources:
+          requests:
+            storage: 128G
+        storageClassName: nvme-ceph-filesystem
+      source:
+        registry:
+         #url: docker://quay.io/containercraft/fcos:latest
+          url: docker://quay.io/containercraft/coreos:latest
+          imagePullPolicy: Always
   template:
     spec:
+      evictionStrategy: LiveMigrate
       nodeSelector:
         node-role.kubernetes.io/kubevirt: ""
+        kargo-zone.containercraft.io/b: ""
       domain:
         cpu:
-          cores: 4
+          cores: 6
           threads: 1
           sockets: 1
           dedicatedCpuPlacement: false
@@ -29,11 +48,11 @@ spec:
         devices:
           autoattachPodInterface: false
           autoattachSerialConsole: true
-          autoattachGraphicsDevice: false
+          autoattachGraphicsDevice: true
           networkInterfaceMultiqueue: true
           rng: {}
           disks:
-            - name: root-disk
+            - name: ocp-master2-disk-vda-root
               bootOrder: 1
               disk:
                 bus: virtio
@@ -43,28 +62,27 @@ spec:
           interfaces:
           - name: enp1s0
             model: virtio
-            macAddress: 02:d6:76:00:00:11
+            macAddress: 02:d6:76:00:00:32
             bootOrder: 2
             bridge: {}
-        features:
-          smm:
-            enabled: true
-        firmware:
-          bootloader:
-            efi:
-              secureBoot: true
-      hostname: bootstrap
+       # features:
+       #   smm:
+       #     enabled: true
+       # firmware:
+       #   bootloader:
+       #     efi:
+       #       secureBoot: true
+      hostname: master2
       networks:
       - name: enp1s0
         multus:
           networkName: unicorn-kargo-vpc.brvpcenp2s0.101
       terminationGracePeriodSeconds: 0
       volumes:
-        - name: root-disk
-          containerDisk:
-            image: quay.io/containercraft/coreos:latest
-            imagePullPolicy: IfNotPresent
+        - name: ocp-master2-disk-vda-root
+          dataVolume:
+            name: ocp-master2-volume-vda-root
         - name: cloudinitdisk
           cloudInitConfigDrive:
             userData: |-
-              {"ignition":{"config":{"merge":[{"source":"http://192.168.16.12:22623/bootstrap.ign"}]},"security":{},"version":"3.1.0"}}
+              {"ignition":{"config":{"merge":[{"source":"http://192.168.16.12:22623/master.ign"}]},"security":{},"version":"3.1.0"}}

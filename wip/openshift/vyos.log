@@ -1,3 +1,4 @@
+set service dhcp-server host-decl-name
 set service dhcp-server hostfile-update
 set service dhcp-server global-parameters "use-host-decl-names on;"
 set service dhcp-server shared-network-name LAN subnet 192.168.16.0/24 lease          '86400'

@@ -1,0 +1,70 @@
+---
+apiVersion: kubevirt.io/v1alpha3
+kind: VirtualMachine
+metadata:
+  name: bootstrap
+  namespace: kargo
+  labels:
+    app: bootstrap
+spec:
+  running: true
+  template:
+    spec:
+      nodeSelector:
+        node-role.kubernetes.io/kubevirt: ""
+      domain:
+        cpu:
+          cores: 4
+          threads: 1
+          sockets: 1
+          dedicatedCpuPlacement: false
+          model: host-passthrough
+        machine:
+          type: pc-q35-rhel8.3.0
+        resources:
+          requests:
+            memory: 16G
+          limits:
+            memory: 16G
+        devices:
+          autoattachPodInterface: false
+          autoattachSerialConsole: true
+          autoattachGraphicsDevice: false
+          networkInterfaceMultiqueue: true
+          rng: {}
+          disks:
+            - name: root-disk
+              bootOrder: 1
+              disk:
+                bus: virtio
+            - name: cloudinitdisk
+              disk:
+                bus: virtio
+          interfaces:
+          - name: enp1s0
+            model: virtio
+            macAddress: 02:d6:76:00:00:11
+            bootOrder: 2
+            bridge: {}
+        features:
+          smm:
+            enabled: true
+        firmware:
+          bootloader:
+            efi:
+              secureBoot: true
+      hostname: bootstrap
+      networks:
+      - name: enp1s0
+        multus:
+          networkName: unicorn-kargo-vpc.brvpcenp2s0.101
+      terminationGracePeriodSeconds: 0
+      volumes:
+        - name: root-disk
+          containerDisk:
+            image: quay.io/containercraft/coreos:latest
+            imagePullPolicy: Always
+        - name: cloudinitdisk
+          cloudInitConfigDrive:
+            userData: |-
+              {"ignition":{"config":{"merge":[{"source":"http://192.168.16.12:22623/bootstrap.ign"}]},"security":{},"version":"3.1.0"}}

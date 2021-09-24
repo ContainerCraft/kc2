@@ -2,7 +2,7 @@
 apiVersion: kubevirt.io/v1alpha3
 kind: VirtualMachine
 metadata:
-  name: master3
+  name: master1
   namespace: kargo
   labels:
     app: master
@@ -10,7 +10,7 @@ spec:
   running: true
   dataVolumeTemplates:
   - metadata:
-      name: ocp-master3-volume-vda-root
+      name: ocp-master1-volume-vda-root
       namespace: kargo
     spec:
       pvc:
@@ -22,6 +22,7 @@ spec:
         storageClassName: nvme-ceph-filesystem
       source:
         registry:
+         #url: docker://quay.io/containercraft/fcos:latest
           url: docker://quay.io/containercraft/coreos:latest
           imagePullPolicy: Always
   template:
@@ -29,7 +30,7 @@ spec:
       evictionStrategy: LiveMigrate
       nodeSelector:
         node-role.kubernetes.io/kubevirt: ""
-        kargo-zone.containercraft.io/c: ""
+        kargo-zone.containercraft.io/a: ""
       domain:
         cpu:
           cores: 6
@@ -47,11 +48,11 @@ spec:
         devices:
           autoattachPodInterface: false
           autoattachSerialConsole: true
-          autoattachGraphicsDevice: false
+          autoattachGraphicsDevice: true 
           networkInterfaceMultiqueue: true
           rng: {}
           disks:
-            - name: ocp-master3-disk-vda-root
+            - name: ocp-master1-disk-vda-root
               bootOrder: 1
               disk:
                 bus: virtio
@@ -61,26 +62,26 @@ spec:
           interfaces:
           - name: enp1s0
             model: virtio
-            macAddress: 02:d6:76:00:00:33
+            macAddress: 02:d6:76:00:00:31
             bootOrder: 2
             bridge: {}
-        features:
-          smm:
-            enabled: true
-        firmware:
-          bootloader:
-            efi:
-              secureBoot: true
-      hostname: master3
+       # features:
+       #   smm:
+       #     enabled: true
+       # firmware:
+       #   bootloader:
+       #     efi:
+       #       secureBoot: true
+      hostname: master1
       networks:
       - name: enp1s0
         multus:
           networkName: unicorn-kargo-vpc.brvpcenp2s0.101
       terminationGracePeriodSeconds: 0
       volumes:
-        - name: ocp-master3-disk-vda-root
+        - name: ocp-master1-disk-vda-root
           dataVolume:
-            name: ocp-master3-volume-vda-root
+            name: ocp-master1-volume-vda-root
         - name: cloudinitdisk
           cloudInitConfigDrive:
             userData: |-

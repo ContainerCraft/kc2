@@ -22,6 +22,7 @@ spec:
         storageClassName: nvme-ceph-filesystem
       source:
         registry:
+         #url: docker://quay.io/containercraft/fcos:latest
           url: docker://quay.io/containercraft/coreos:latest
           imagePullPolicy: Always
   template:
@@ -47,7 +48,7 @@ spec:
         devices:
           autoattachPodInterface: false
           autoattachSerialConsole: true
-          autoattachGraphicsDevice: false
+          autoattachGraphicsDevice: true
           networkInterfaceMultiqueue: true
           rng: {}
           disks:
@@ -64,13 +65,13 @@ spec:
             macAddress: 02:d6:76:00:00:32
             bootOrder: 2
             bridge: {}
-        features:
-          smm:
-            enabled: true
-        firmware:
-          bootloader:
-            efi:
-              secureBoot: true
+       # features:
+       #   smm:
+       #     enabled: true
+       # firmware:
+       #   bootloader:
+       #     efi:
+       #       secureBoot: true
       hostname: master2
       networks:
       - name: enp1s0
