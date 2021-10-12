@@ -1,0 +1,125 @@
+---
+apiVersion: kubevirt.io/v1alpha3
+kind: VirtualMachine
+metadata:
+  name: microk8s2
+  namespace: kargo
+  labels:
+    app: ubuntu
+spec:
+  running: true
+  dataVolumeTemplates:
+  - metadata:
+      name: microk8s2-ubuntu-volume-vda-root
+      namespace: kargo
+    spec:
+      pvc:
+        accessModes:
+        - ReadWriteMany
+        resources:
+          requests:
+            storage: 128G
+        storageClassName: nvme-ceph-filesystem
+      source:
+        registry:
+          url: docker://quay.io/containercraft/ubuntu:latest
+          imagePullPolicy: Always
+  template:
+    spec:
+      evictionStrategy: LiveMigrate
+      nodeSelector:
+        node-role.kubernetes.io/kubevirt: ""
+        kargo-zone.containercraft.io/b: ""
+      domain:
+        cpu:
+          cores: 6
+          threads: 1
+          sockets: 1
+          dedicatedCpuPlacement: false
+          model: host-passthrough
+        machine:
+          type: pc-q35-rhel8.3.0
+        resources:
+          requests:
+            memory: 16G
+          limits:
+            memory: 16G
+        devices:
+          autoattachPodInterface: false
+          autoattachSerialConsole: true
+          autoattachGraphicsDevice: true 
+          networkInterfaceMultiqueue: true
+          rng: {}
+          disks:
+            - name: microk8s2-ubuntu-disk-vda-root
+              bootOrder: 1
+              disk:
+                bus: virtio
+            - name: cloudinitdisk
+              disk:
+                bus: virtio
+          interfaces:
+          - name: enp1s0
+            model: virtio
+            macAddress: 02:d6:76:00:00:62
+            bootOrder: 2
+            bridge: {}
+        features:
+          smm:
+            enabled: true
+        firmware:
+          bootloader:
+            efi:
+              secureBoot: false
+      hostname: ubuntu2
+      networks:
+      - name: enp1s0
+        multus:
+          networkName: unicorn-kargo-vpc.brvpcenp2s0.101
+      terminationGracePeriodSeconds: 0
+      volumes:
+      - name: microk8s2-ubuntu-disk-vda-root
+        dataVolume:
+          name: microk8s2-ubuntu-volume-vda-root
+      - name: cloudinitdisk
+        cloudInitNoCloud:
+          networkData: |
+            version: 2
+            ethernets:
+              enp1s0:
+                dhcp4: false
+                dhcp6: false
+                addresses:
+                  - 192.168.16.62/24
+                gateway4: 192.168.16.1
+                nameservers:
+                  addresses:
+                  - 192.168.16.1
+                  search:
+                  - microk8s.home.arpa
+          userData: |
+            #cloud-config
+            hostname: ubuntu2.microk8s.home.arpa
+            disable_root: true
+            ssh_pwauth: true
+            chpasswd:
+              expire: False
+              list: |
+                 ubuntu:ubuntu
+            users:
+              - default
+              - name: ubuntu
+                sudo: ['ALL=(ALL) NOPASSWD:ALL']
+                groups: sudo,microk8s
+                shell: /bin/bash
+                lock_passwd: false
+                ssh-authorized-keys:
+                  - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAAB/zPcAdyHRElufWDNQ1mZUWp4V9jDmaWX35ApsXgxfMHBuz3n8VLGVJuXodAAxeRbbE7Rws8BQcCH4DAMKKLHYZRdJtk3ZUw7rm0i/aq0wkeld7Yp6H/fv1ud3mudp7/+3fQ3gV8RmAO8+FS4jNBMciqtY6mWThKciwnkBWmH5atl6GsZ1ZQ+Y8+W4hXnaF6UEU1+xZ8ja+hu81a9fhejcV+m3RwT511kW5IXDe6wkq9tsIEC529VGI7XuySYvusbchivWYxmE+TBMmId3voGCfkl8hIemUG3/LvQWeK95B/6vBKDCFlmABn60zxrjPkdknWPbu4zg+VJWnslX+rDqSe2cBpHqQ8yDxegPcmXNKv2Qp0h8HhEljWoLc4U5x4hlceDraWBehj8i4N6p+Yt678+jUpOCwGC8z9l+zUrG6NPvbHZ2aIBC3eUteYPtmScNLvOiFASPo/9GQQDNqZclQZf5QGDToAV2rV1B4jJPV8fv/1rlgen6O1PNitKo9FlUfr0WA1IXev6CiJUt4x210BzhTlD84S2A0gHJRbeVVkjWKMx/vo/wqEKTg/vvzSOhFDDlKUxSsguL5rrtOxdGj4sUtjeVRuDjwk1u1DH8P75rI0R/1QaeDixJbRi8Q1315z+MrvJuvzJpMTieldqffNUnexMZcFox8yI8KlVt2U= usrbinkat@mprcs
+            runcmd:
+              - "snap refresh"
+              - "systemctl enable --now iscsid"
+              - "snap install microk8s --classic --channel=latest/stable"
+#             - "microk8s start"
+#             - "apt-get update"
+#             - "DEBIAN_FRONTEND=noninteractive apt-get --option=Dpkg::Options::=--force-confold --option=DPKG::options::=--force-unsafe-io --assume-yes --quiet dist-upgrade"
+#             - "reboot"

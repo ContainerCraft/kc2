@@ -4,10 +4,10 @@ metadata:
   name: docker-compose
   namespace: kargo
   labels:
-    node: "spindle"
+    node: "node4"
     app: docker-compose
     kubevirt.io/os: linux
-    kubevirt.io/nodeName: spindle
+    kubevirt.io/nodeName: node4
 spec:
   running: true
   template:
@@ -20,14 +20,14 @@ spec:
       terminationGracePeriodSeconds: 0
       domain:
         cpu:
-          cores: 4
-          threads: 1
+          cores: 1
+          threads: 6
           sockets: 1
           model: host-passthrough
           dedicatedCpuPlacement: false
         resources:
           requests:
-            memory: 4G
+            memory: 8G
         machine:
           type: pc-q35-rhel8.3.0
         clock:
@@ -72,18 +72,18 @@ spec:
               expire: False
             users:
               - default
-              - name: docker
+              - name: usrbinkat
                 sudo: ['ALL=(ALL) NOPASSWD:ALL']
-                groups: sudo
+                groups: sudo,docker
                 shell: /bin/bash
                 ssh-authorized-keys:
                   - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAAB/zPcAdyHRElufWDNQ1mZUWp4V9jDmaWX35ApsXgxfMHBuz3n8VLGVJuXodAAxeRbbE7Rws8BQcCH4DAMKKLHYZRdJtk3ZUw7rm0i/aq0wkeld7Yp6H/fv1ud3mudp7/+3fQ3gV8RmAO8+FS4jNBMciqtY6mWThKciwnkBWmH5atl6GsZ1ZQ+Y8+W4hXnaF6UEU1+xZ8ja+hu81a9fhejcV+m3RwT511kW5IXDe6wkq9tsIEC529VGI7XuySYvusbchivWYxmE+TBMmId3voGCfkl8hIemUG3/LvQWeK95B/6vBKDCFlmABn60zxrjPkdknWPbu4zg+VJWnslX+rDqSe2cBpHqQ8yDxegPcmXNKv2Qp0h8HhEljWoLc4U5x4hlceDraWBehj8i4N6p+Yt678+jUpOCwGC8z9l+zUrG6NPvbHZ2aIBC3eUteYPtmScNLvOiFASPo/9GQQDNqZclQZf5QGDToAV2rV1B4jJPV8fv/1rlgen6O1PNitKo9FlUfr0WA1IXev6CiJUt4x210BzhTlD84S2A0gHJRbeVVkjWKMx/vo/wqEKTg/vvzSOhFDDlKUxSsguL5rrtOxdGj4sUtjeVRuDjwk1u1DH8P75rI0R/1QaeDixJbRi8Q1315z+MrvJuvzJpMTieldqffNUnexMZcFox8yI8KlVt2U=
             hostname: docker-compose
             runcmd:
-              - "yum update"
-              - "yum upgrade -y"
               - "yum install -y qemu-guest-agent git"
               - "systemctl enable --now qemu-guest-agent"
+              - "yum update -y"
+              - "yum upgrade -y"
               - "amazon-linux-extras install docker -y"
               - "service docker start"
               - "chkconfig docker on"

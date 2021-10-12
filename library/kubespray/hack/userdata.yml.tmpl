@@ -15,5 +15,8 @@ users:
     shell: /bin/bash
     lock_passwd: false
     ssh-authorized-keys:
-      - $(cat ~/.ssh/id_rsa.pub)
+      - $(cat /tmp/bastion.pub)
+runcmd:
+  - "echo 'ZmFzdGVzdG1pcnJvcj0xCg==' | base64 -d | tee -a /etc/dnf/dnf.conf"
+  - "dnf update -y"
 EOF

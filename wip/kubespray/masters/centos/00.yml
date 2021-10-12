@@ -2,7 +2,7 @@
 apiVersion: kubevirt.io/v1alpha3
 kind: VirtualMachine
 metadata:
-  name: kargo00-green
+  name: centos
   namespace: kargo
   labels:
     app: kargodev
@@ -13,9 +13,9 @@ spec:
   dataVolumeTemplates:
   - metadata:
       namespace: kargo
-      name: kargo-kargo00-green-root-vda
+      name: kargo-centos-root-vda
       annotations:
-        kubevirt.io/provisionOnNode: t640n01
+        kubevirt.io/provisionOnNode: node4
         hostPathProvisionerIdentity: kubevirt.io/hostpath-provisioner
     spec:
       accessModes:
@@ -55,7 +55,7 @@ spec:
   template:
     spec:
       nodeSelector:
-        kubernetes.io/hostname: t640n01
+        kubernetes.io/hostname: node4
         node-role.kubernetes.io/kubevirt: ""
       domain:
         clock:
@@ -92,7 +92,7 @@ spec:
             model: virtio
             bootOrder: 2
             bridge: {}
-      hostname: kargo00
+      hostname: centos
       networks:
       - name: eth0
         multus:
@@ -101,7 +101,7 @@ spec:
       volumes:
         - name: disk-vda-root
           dataVolume:
-            name: kargo-kargo00-green-root-vda
+            name: kargo-centos-root-vda
         - name: cloudinitdisk
           cloudInitNoCloud:
             networkData: |
@@ -115,19 +115,19 @@ spec:
                   dhcp4: false
                   dhcp6: false
                   addresses:
-                    - 192.168.1.60/24
+                    - 192.168.1.80/24
                   gateway4: 192.168.1.1
                   interfaces:
                     - eth0
                   nameservers:
                     search:
-                      - plutarch.codectl.lab
+                      - home.arpa
                     addresses:
                       - 192.168.1.1
             userData: |
               #cloud-config
-              hostname: kargo00
-              fqdn: kargo00.plutarch.codectl.lab
+              hostname: centos
+              fqdn: centos
               ssh_pwauth: true
               disable_root: true
               chpasswd:

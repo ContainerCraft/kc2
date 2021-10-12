@@ -1,52 +1,28 @@
 ---
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: node2-green-pvc-vdb-ceph
-  namespace: kargo
-spec:
-  storageClassName: nvme-ceph-filesystem
-  accessModes:
-    - ReadWriteMany
-  resources:
-    requests:
-      storage: 64G
-    limits:
-      storage: 64G
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: node2-green-pvc-vdc-ceph
-  namespace: kargo
-spec:
-  storageClassName: nvme-ceph-filesystem
-  accessModes:
-    - ReadWriteMany
-  resources:
-    requests:
-      storage: 64G
-    limits:
-      storage: 64G
----
 apiVersion: kubevirt.io/v1alpha3
 kind: VirtualMachine
 metadata:
-  name: node2-green
+  name: node2
   namespace: kargo
   labels:
-    app: kargodev
-    cluster: green
+    app: kubespray
+    cluster: kubespray
     kubevirt.io/os: linux
 spec:
   running: true
   dataVolumeTemplates:
   - metadata:
-      name: node2-green-volume-vda-root
+      name: node2-pvc-vdb
       namespace: kargo
+      annotations:
+        kubevirt.io/provisionOnNode: node4
+      labels:
+        app: kubespray
     spec:
+      source:
+        blank: {}
       accessModes:
-      - ReadWriteMany
+      - ReadWriteOnce
       capacity:
         storage: 64G
       config:
@@ -54,31 +30,83 @@ spec:
         - HonorWaitForFirstConsumer
       pvc:
         accessModes:
-        - ReadWriteMany
+        - ReadWriteOnce
         resources:
           requests:
             storage: 64G
-        storageClassName: nvme-ceph-filesystem
+        storageClassName: hostpath-provisioner
+      persistentVolumeReclaimPolicy: Delete
+      storageClassName: hostpath-provisioner
+      volumeMode: Block
+  - metadata:
+      name: node2-pvc-vdc
+      namespace: kargo
+      annotations:
+        kubevirt.io/provisionOnNode: node4
+      labels:
+        app: kubespray
+    spec:
+      source:
+        blank: {}
+      accessModes:
+      - ReadWriteOnce
+      capacity:
+        storage: 64G
+      config:
+        featureGates:
+        - HonorWaitForFirstConsumer
+      pvc:
+        accessModes:
+        - ReadWriteOnce
+        resources:
+          requests:
+            storage: 64G
+        storageClassName: hostpath-provisioner
+      persistentVolumeReclaimPolicy: Delete
+      storageClassName: hostpath-provisioner
+      volumeMode: Block
+  - metadata:
+      name: node2-pvc-vda
+      namespace: kargo
+      annotations:
+        kubevirt.io/provisionOnNode: node4
+      labels:
+        app: kubespray
+    spec:
       source:
         registry:
           url: "docker://quay.io/containercraft/fedora:34"
           imagePullPolicy: Always
+      accessModes:
+      - ReadWriteOnce
+      capacity:
+        storage: 64G
+      config:
+        featureGates:
+        - HonorWaitForFirstConsumer
+      pvc:
+        accessModes:
+        - ReadWriteOnce
+        resources:
+          requests:
+            storage: 64G
+        storageClassName: hostpath-provisioner
       persistentVolumeReclaimPolicy: Delete
-      storageClassName: nvme-ceph-filesystem
-      volumeMode: Filesystem
+      storageClassName: hostpath-provisioner
+      volumeMode: Block
   template:
     spec:
       evictionStrategy: LiveMigrate
       nodeSelector:
-        kargo-zone.containercraft.io/b: ""
+        kargo-zone.containercraft.io/d: ""
       domain:
         clock:
           timer: {}
           utc: {}
         cpu:
-          cores: 6
-          threads: 1
-          sockets: 1
+          cores: 4
+          threads: 2
+          sockets: 2
           model: host-passthrough
           dedicatedCpuPlacement: false
         resources:
@@ -96,14 +124,14 @@ spec:
           networkInterfaceMultiqueue: true
           rng: {}
           disks:
-            - name: node2-green-disk-vda-root
+            - name: node2-disk-vda
               bootOrder: 1
               disk:
                 bus: virtio
-            - name: node2-green-disk-vdb-ceph
+            - name: node2-disk-vdb
               disk:
                 bus: virtio
-            - name: node2-green-disk-vdc-ceph
+            - name: node2-disk-vdc
               disk:
                 bus: virtio
             - name: cloudinitdisk
@@ -118,21 +146,21 @@ spec:
       networks:
       - name: eth0
         multus:
-          networkName: kargo-net-attach-def-br0
+          networkName: unicorn-kargo-vpc.brvpcbr0.101
       terminationGracePeriodSeconds: 0
       volumes:
-        - name: node2-green-disk-vda-root
+        - name: node2-disk-vda
           dataVolume:
-            name: node2-green-volume-vda-root
-        - name: node2-green-disk-vdb-ceph
-          persistentVolumeClaim:
-            claimName: node2-green-pvc-vdb-ceph
-        - name: node2-green-disk-vdc-ceph
-          persistentVolumeClaim:
-            claimName: node2-green-pvc-vdc-ceph
+            name: node2-pvc-vda
+        - name: node2-disk-vdb
+          dataVolume:
+            name: node2-pvc-vdb
+        - name: node2-disk-vdc
+          dataVolume:
+            name: node2-pvc-vdc
         - name: cloudinitdisk
           cloudInitNoCloud:
             secretRef:
-              name: kargo-green-cloudinit-userdata
+              name: kargo-cloudinit-userdata
             networkDataSecretRef:
-              name: node2-green-cloudinit-networkdata
+              name: node2-cloudinit-networkdata

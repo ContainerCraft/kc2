@@ -1,0 +1,25 @@
+set service dhcp-server host-decl-name
+set service dhcp-server hostfile-update
+set service dhcp-server global-parameters "use-host-decl-names on;"
+set service dhcp-server shared-network-name LAN subnet 192.168.16.0/24 lease          '86400'
+set service dhcp-server shared-network-name LAN subnet 192.168.16.0/24 dns-server     '192.168.16.1'
+set service dhcp-server shared-network-name LAN subnet 192.168.16.0/24 default-router '192.168.16.1'
+set service dhcp-server shared-network-name LAN subnet 192.168.16.0/24 range 0 start  '192.168.16.100'
+set service dhcp-server shared-network-name LAN subnet 192.168.16.0/24 range 0 stop   '192.168.16.249'
+set service dhcp-server shared-network-name LAN subnet 192.168.16.0/24 domain-name    'microk8s.home.arpa'
+
+set system static-host-mapping host-name                                             lb.microk8s.home.arpa  inet   '192.168.16.1'
+set system static-host-mapping host-name                                            api.microk8s.home.arpa  inet   '192.168.16.1'
+set system static-host-mapping host-name                                         *.apps.microk8s.home.arpa  inet   '192.168.16.1'
+
+set system static-host-mapping host-name                                        ubuntu1.microk8s.home.arpa  inet   '192.168.16.61'
+set service dhcp-server shared-network-name LAN subnet 192.168.16.0/24 static-mapping        ubuntu1  ip-address   '192.168.16.61'
+set service dhcp-server shared-network-name LAN subnet 192.168.16.0/24 static-mapping        ubuntu1 mac-address   '02:d6:76:00:00:61'
+
+set system static-host-mapping host-name                                        ubuntu2.microk8s.home.arpa  inet   '192.168.16.62'
+set service dhcp-server shared-network-name LAN subnet 192.168.16.0/24 static-mapping        ubuntu2  ip-address   '192.168.16.62'
+set service dhcp-server shared-network-name LAN subnet 192.168.16.0/24 static-mapping        ubuntu2 mac-address   '02:d6:76:00:00:62'
+
+set system static-host-mapping host-name                                        ubuntu3.microk8s.home.arpa  inet   '192.168.16.63'
+set service dhcp-server shared-network-name LAN subnet 192.168.16.0/24 static-mapping        ubuntu3  ip-address   '192.168.16.63'
+set service dhcp-server shared-network-name LAN subnet 192.168.16.0/24 static-mapping        ubuntu3 mac-address   '02:d6:76:00:00:63'
