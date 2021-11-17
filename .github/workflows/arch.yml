@@ -23,7 +23,7 @@ jobs:
       run: |
         set -ex ;\
         curl --output /tmp/arch.qcow2 -L https://mirror.pkgbuild.com/images/latest/$(curl -s https://mirror.pkgbuild.com/images/latest/ | grep cloudimg | awk -F\" '{print $2}' | grep -v SHA)
-        qemu-img resize arch.qcow2 +6G
+        qemu-img resize /tmp/arch.qcow2 +6G
         sudo virt-customize -a /tmp/arch.qcow2 --verbose --run-command 'pacman-key --init'
         sudo virt-customize -a /tmp/arch.qcow2 --verbose --run-command 'pacman-key --populate'
         sudo virt-customize -a /tmp/arch.qcow2 --verbose --run-command 'pacman --noconfirm -Syu'
