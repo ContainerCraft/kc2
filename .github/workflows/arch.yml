@@ -33,10 +33,10 @@ jobs:
         sudo virt-customize -a arch.qcow2 --verbose --run-command 'grub-mkconfig -o /boot/grub/grub.cfg'
         echo;
 
-    - name: Build Fedora Cradle
+    - name: Build Arch Cradle
       run: |
         PATH=${PATH}:$(pwd) \
-        cradle --image-name quay.io/containercraft/arch --image-tag latest --image-file /tmp/fedora.qcow2 ;\
+        cradle --image-name quay.io/containercraft/arch --image-tag latest --image-file /tmp/arch.qcow2 ;\
         echo;
 
     - name: Login Quay.io
@@ -47,10 +47,10 @@ jobs:
         username: ${{ secrets.ROBOT_USER_QUAY }}
         password: ${{ secrets.ROBOT_TOKEN_QUAY }}
 
-    - name: Push Fedora Cradle
+    - name: Push Arch Cradle
       run: |
         set -ex ;\
-        podman push quay.io/containercraft/fedora:latest ;\
+        podman push quay.io/containercraft/arch:latest ;\
         podman image prune --all --force ;\
         echo;
 

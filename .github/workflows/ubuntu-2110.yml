@@ -2,7 +2,7 @@ name: Ubuntu 21.10 Impish Indri
 on:
   repository_dispatch:
     types:
-    - 'ubuntu-2104'
+    - 'ubuntu-2110'
 
 jobs:
   build:

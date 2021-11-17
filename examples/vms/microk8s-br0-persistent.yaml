@@ -1,0 +1,151 @@
+---
+apiVersion: kubevirt.io/v1
+kind: VirtualMachine
+metadata:
+  name: microk8s
+  namespace: kargo
+  labels:
+    app: microk8s
+    kubevirt.io/os: linux
+spec:
+  running: true
+  dataVolumeTemplates:
+  - metadata:
+      name: microk8s-vda-root
+      namespace: kargo
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      capacity:
+        storage: 128G
+      config:
+        featureGates:
+        - HonorWaitForFirstConsumer
+      pvc:
+        accessModes:
+        - ReadWriteOnce
+        resources:
+          requests:
+            storage: 128G
+        storageClassName: hostpath-provisioner
+      source:
+        registry:
+          url: "docker://quay.io/containercraft/ubuntu:21.10"
+          imagePullPolicy: Always
+      persistentVolumeReclaimPolicy: Delete
+      storageClassName: hostpath-provisioner
+      volumeMode: Filesystem
+  template:
+    spec:
+#     nodeSelector:
+#       kargo-zone.containercraft.io/all: ""
+      domain:
+        cpu:
+          dedicatedCpuPlacement: false
+          model: host-passthrough
+          threads: 2
+          sockets: 1
+          cores: 6
+        resources:
+          requests:
+            memory: 32G
+            devices.kubevirt.io/kvm: "1"
+          limits:
+            memory: 32G
+        machine:
+          type: pc-q35-rhel8.4.0
+        devices:
+          autoattachPodInterface: false
+          autoattachSerialConsole: true
+          autoattachGraphicsDevice: true
+          networkInterfaceMultiqueue: true
+          rng: {}
+          disks:
+            - name: disk-vda-root
+              bootOrder: 1
+              disk:
+                bus: virtio
+            - name: cloudinitdisk
+              disk:
+                bus: virtio
+          interfaces:
+          - name: enp1s0
+            model: virtio
+            bootOrder: 2
+            bridge: {}
+      hostname: "microk8s"
+#     evictionStrategy: LiveMigrate
+      terminationGracePeriodSeconds: 0
+      networks:
+      - name: enp1s0
+        multus:
+          networkName: kargo-net-attach-def-br0
+      volumes:
+        - name: disk-vda-root
+          dataVolume:
+            name: microk8s-vda-root
+        - name: cloudinitdisk
+          cloudInitNoCloud:
+            networkData: |
+              version: 2
+              ethernets:
+                enp1s0:
+                  addresses:
+                    - 192.168.1.15/24
+                  dhcp4: false
+                  dhcp6: false
+                  dhcp-identifier: mac
+                  gateway4: 192.168.1.1
+                  nameservers:
+                    addresses:
+                    - 192.168.1.1
+                    search:
+                    - home.arpa
+            userData: |
+              #cloud-config
+              ssh_pwauth: true
+              chpasswd:
+                expire: False
+                list: |
+                   ubuntu:ubuntu
+              users:
+                - name: ubuntu
+                  sudo: ['ALL=(ALL) NOPASSWD:ALL']
+                  groups: sudo,xrdp,lxd,docker,ssl-cert,microk8s
+                  shell: /bin/bash
+              hostname: microk8s.home.arpa
+              growpart:
+                mode: auto
+                devices: ['/']
+                ignore_growroot_disabled: true
+              package_upgrade: true
+              packages:
+                - "jq"
+                - "vim"
+                - "python3"
+                - "docker.io"
+                - "python3-pip"
+                - "apache2-utils"
+                - "libvirt-clients"
+                # "ubuntu-desktop-minimal"
+                # "gnome-tweaks"
+                # "firefox"
+                # "xrdp"
+              runcmd:
+                - "systemctl enable iscsid"
+                - "snap install microk8s --classic"
+                - "sudo usermod -a -G microk8s ubuntu"
+                - "snap install kubectl --classic"
+                - "snap install helm --classic"
+                - "microk8s.enable dns helm3"
+                - "microk8s.enable openebs"
+                - "sleep 6"
+                - "echo bWljcm9rOHMga3ViZWN0bCBwYXRjaCBzdG9yYWdlY2xhc3Mgb3BlbmVicy1ob3N0cGF0aCAtcCAneyJtZXRhZGF0YSI6IHsiYW5ub3RhdGlvbnMiOnsic3RvcmFnZWNsYXNzLmt1YmVybmV0ZXMuaW8vaXMtZGVmYXVsdC1jbGFzcyI6InRydWUifX19Jwo= | base64 -d | bash -x"
+                - "microk8s.enable prometheus"
+                - "mkdir -p /home/ubuntu/.kube"
+                - "microk8s kubectl config view --raw | sed 's/127.0.0.1/192.168.1.15/g' | tee /home/ubuntu/.kube/config"
+                - "chown -R ubuntu:ubuntu /home/ubuntu"
+                - "sudo usermod -a -G microk8s ubuntu"
+                - "sudo chown -f -R ubuntu ~/.kube"
+                - "microk8s.enable metallb:192.168.1.31-192.168.1.39"
+                - "microk8s status --wait-ready"
