@@ -49,7 +49,6 @@ jobs:
       run: |
         set -ex ;\
         podman push quay.io/containercraft/fedora:34 ;\
-        podman push quay.io/containercraft/fedora:34 docker://quay.io/containercraft/fedora:latest ;\
         podman image prune --all --force ;\
         echo;
         
