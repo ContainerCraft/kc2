@@ -1,0 +1,59 @@
+name: Arch
+on:
+  repository_dispatch:
+    types:
+    - 'arch'
+
+jobs:
+  build:
+    runs-on: ubuntu-20.04
+    steps:
+
+    - name: Install Dependencies
+      run: |
+        set -ex ;\
+        sudo apt-get update -y ;\
+        sudo apt-get install -y libguestfs-tools ;\
+        echo;
+
+    - name: Code Checkout
+      uses: actions/checkout@v2.4.0
+
+    - name: Prepare Arch Image
+      run: |
+        set -ex ;\
+        curl --output arch.qcow2 -L https://mirror.pkgbuild.com/images/latest/$(curl -s https://mirror.pkgbuild.com/images/latest/ | grep cloudimg | awk -F\" '{print $2}' | grep -v SHA)
+        qemu-img resize arch.qcow2 +6G
+        sudo virt-customize -a arch.qcow2 --verbose --run-command 'pacman-key --init'
+        sudo virt-customize -a arch.qcow2 --verbose --run-command 'pacman-key --populate'
+        sudo virt-customize -a arch.qcow2 --verbose --run-command 'pacman --noconfirm -Syu'
+        sudo virt-customize -a arch.qcow2 --verbose --run-command 'pacman --noconfirm -S qemu-guest-agent'
+        sudo virt-customize -a arch.qcow2 --verbose --run-command 'pacman --noconfirm -S libguestfs'
+        sudo virt-customize -a arch.qcow2 --verbose --run-command "sed -i 's/^GRUB_CMDLINE_LINUX_DEFAULT=\"/&console=ttyS0 /' /etc/default/grub"
+        sudo virt-customize -a arch.qcow2 --verbose --run-command 'grub-mkconfig -o /boot/grub/grub.cfg'
+        echo;
+
+    - name: Build Fedora Cradle
+      run: |
+        PATH=${PATH}:$(pwd) \
+        cradle --image-name quay.io/containercraft/arch --image-tag latest --image-file /tmp/fedora.qcow2 ;\
+        echo;
+
+    - name: Login Quay.io
+      uses: docker/login-action@v1.10.0
+      with:
+        logout: false
+        registry: quay.io
+        username: ${{ secrets.ROBOT_USER_QUAY }}
+        password: ${{ secrets.ROBOT_TOKEN_QUAY }}
+
+    - name: Push Fedora Cradle
+      run: |
+        set -ex ;\
+        podman push quay.io/containercraft/fedora:latest ;\
+        podman image prune --all --force ;\
+        echo;
+
+    - name: Cleanup
+      run: |
+        rm -rf /tmp/cradle /tmp/*qcow*
