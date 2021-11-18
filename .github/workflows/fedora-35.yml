@@ -22,7 +22,7 @@ jobs:
     - name: Prepare Fedora 35 Image
       run: |
         set -ex ;\
-        curl --output /tmp/fedora.qcow2 -L "https://mirror.arizona.edu/fedora/linux/releases/35/Cloud/x86_64/images/Fedora-Cloud-Base-35-1.2.x86_64.qcow2" ;\
+        curl --output /tmp/fedora.qcow2 -L https://download.fedoraproject.org/pub/fedora/linux/releases/35/Cloud/x86_64/images/Fedora-Cloud-Base-35-1.2.x86_64.qcow2
         qemu-img resize /tmp/fedora.qcow2 +16G ;\
         sudo virt-sysprep -a /tmp/fedora.qcow2 --password fedora:password:fedora ;\
         sudo virt-customize -a /tmp/fedora.qcow2 --install 'tmux,git,vim,net-tools,qemu-guest-agent' ;\

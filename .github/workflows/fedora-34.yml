@@ -22,7 +22,7 @@ jobs:
     - name: Prepare Fedora 34 Image
       run: |
         set -ex ;\
-        curl --output /tmp/fedora.qcow2 -L "https://mirror.arizona.edu/fedora/linux/releases/34/Cloud/x86_64/images/Fedora-Cloud-Base-34-1.2.x86_64.qcow2" ;\
+        curl --output /tmp/fedora.qcow2 -L https://download.fedoraproject.org/pub/fedora/linux/releases/34/Cloud/x86_64/images/Fedora-Cloud-Base-34-1.2.x86_64.qcow2
         qemu-img resize /tmp/fedora.qcow2 +16G ;\
         sudo virt-sysprep -a /tmp/fedora.qcow2 --password fedora:password:fedora ;\
         sudo virt-customize -a /tmp/fedora.qcow2 --install 'tmux,git,vim,net-tools,qemu-guest-agent' ;\
@@ -51,7 +51,7 @@ jobs:
         podman push quay.io/containercraft/fedora:34 ;\
         podman image prune --all --force ;\
         echo;
-        
+
     - name: Cleanup
       run: |
         rm -rf /tmp/cradle /tmp/*qcow*
