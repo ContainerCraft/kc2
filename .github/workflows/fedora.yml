@@ -1,6 +1,5 @@
 name: Fedora
 on:
-  push:
   repository_dispatch:
     types:
     - 'fedora'

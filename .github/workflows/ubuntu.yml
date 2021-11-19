@@ -1,0 +1,62 @@
+name: Ubuntu
+on:
+  repository_dispatch:
+    types:
+    - 'ubuntu'
+
+jobs:
+  build:
+    runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        version:
+          - name: bionic
+            number: 18.04
+            url: https://cloud-images.ubuntu.com/bionic/current/bionic-server-cloudimg-amd64.img
+          - name: focal
+            number: 20.04
+            url: https://cloud-images.ubuntu.com/focal/current/focal-server-cloudimg-amd64.img
+          - name: impish
+            number: 21.10
+            url: https://cloud-images.ubuntu.com/impish/current/impish-server-cloudimg-amd64-disk-kvm.img
+    steps:
+
+    - name: Install Dependencies
+      run: |
+        set -ex
+        sudo apt-get update -y
+        sudo apt-get install -y libguestfs-tools
+        echo
+
+    - name: Code Checkout
+      uses: actions/checkout@v2.4.0
+
+    - name: Prepare Ubuntu ${{ matrix.version.number }} Image
+      run: |
+        set -ex
+        curl --output /tmp/ubuntu.qcow2 -L ${{ matrix.version.url }}
+        qemu-img resize /tmp/ubuntu.qcow2 +48G
+        sudo virt-sysprep -a /tmp/ubuntu.qcow2 --password ubuntu:password:ubuntu
+        sudo virt-customize -a /tmp/ubuntu.qcow2 --install 'ansible,python,tmux,git,vim,net-tools,qemu-guest-agent,cloud-init,cloud-initramfs-growroot'
+        sudo virt-customize -a /tmp/ubuntu.qcow2 --run-command 'systemctl enable qemu-guest-agent'
+        sudo virt-customize -a /tmp/ubuntu.qcow2 --update
+
+    - name: Build Ubuntu ${{ matrix.version.number }} Cradle
+      run: |
+        cradle --image-name quay.io/containercraft/ubuntu --image-tag ${{ matrix.version.number }} --image-file /tmp/ubuntu.qcow2
+
+    - name: Login Quay.io
+      uses: docker/login-action@v1.10.0
+      with:
+        logout: false
+        registry: quay.io
+        username: ${{ secrets.ROBOT_USER_QUAY }}
+        password: ${{ secrets.ROBOT_TOKEN_QUAY }}
+
+    - name: Push Ubuntu ${{ matrix.version }} Cradle
+      run: |
+        buildah push quay.io/containercraft/ubuntu:${{ matrix.version.number }}
+        buildah push quay.io/containercraft/ubuntu:${{ matrix.version.number }} quay.io/containercraft/ubuntu:${{ matrix.version.name }}
+
+    - name: Cleanup
+      run: rm -rf /tmp/cradle /tmp/*qcow* && buildah rmi --all --force
