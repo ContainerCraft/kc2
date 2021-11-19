@@ -47,7 +47,7 @@ group.add_argument(
 group.add_argument(
     "--image-url",
     help="qcow image url",
-    metavar="https://FQDN/URI/image.qcow2.gz",
+    metavar="https://FQDN/URI/image.qcow2",
     default="",
     required=False,
 )
