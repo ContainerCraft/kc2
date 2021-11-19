@@ -99,11 +99,9 @@ def build_cradle(from_image: str, name: str, tag: str, tmpdir: str):
         ).stdout
 
     print(f">> Building Container Disk Image: {name}:{tag}")
-    tmp_image = buildah("from", from_image)
+    tmp_image = buildah("from", from_image).replace('\n', '')
     buildah("copy", tmp_image, "./rootfs", "/")
-    time.sleep(5)
     buildah("commit", tmp_image, name)
-    time.sleep(5)
     buildah("tag", name, f"{name}:{tag}")
 
 
