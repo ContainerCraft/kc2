@@ -1,0 +1,57 @@
+name: Debian
+on:
+  repository_dispatch:
+    types:
+    - 'debian'
+
+jobs:
+  build:
+    runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        version:
+          - name: stretch
+            number: 9
+          - name: buster
+            number: 10
+    env:
+      DOWNLOAD_URL: https://cdimage.debian.org/images/cloud/OpenStack/current-${{ matrix.version.number }}/debian-${{ matrix.version.number }}-openstack-amd64.qcow2
+    steps:
+
+    - name: Install Dependencies
+      run: |
+        set -ex
+        sudo apt-get update -y
+        sudo apt-get install -y libguestfs-tools
+
+    - name: Code Checkout
+      uses: actions/checkout@v2.4.0
+
+    - name: Prepare Debian ${{ matrix.version.number }} Image
+      run: |
+        set -ex
+        curl --output /tmp/debian.qcow2 -L "${DOWNLOAD_URL}"
+        qemu-img resize /tmp/debian.qcow2 +22G
+        sudo virt-sysprep -a /tmp/debian.qcow2 --password debian:password:debian
+        sudo virt-customize -a /tmp/debian.qcow2 --install 'curl,tmux,git,vim,net-tools,qemu-guest-agent,cloud-init,cloud-initramfs-growroot'
+        sudo virt-customize -a /tmp/debian.qcow2 --run-command 'systemctl enable qemu-guest-agent'
+        sudo virt-customize -a /tmp/debian.qcow2 --update
+
+    - name: Build Debian Cradle
+      run: |
+        ./cradle --image-name quay.io/containercraft/debian --image-tag ${{ matrix.version.number }} --image-file /tmp/debian.qcow2
+
+    - name: Login Quay.io
+      uses: docker/login-action@v1.10.0
+      with:
+        logout: false
+        registry: quay.io
+        username: ${{ secrets.ROBOT_USER_QUAY }}
+        password: ${{ secrets.ROBOT_TOKEN_QUAY }}
+
+    - name: Push Debian Cradle
+      run: |
+        set -ex
+        podman push quay.io/containercraft/debian:${{ matrix.version.number }}
+        podman push quay.io/containercraft/debian:${{ matrix.version.number }} docker://quay.io/containercraft/debian:${{ matrix.version.name }}
+        podman image prune --all --force
