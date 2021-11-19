@@ -48,9 +48,9 @@ jobs:
     - name: Push Fedora Cradle
       run: |
         set -ex ;\
-        podman push quay.io/containercraft/fedora:35 ;\
-        podman push quay.io/containercraft/fedora:35 docker://quay.io/containercraft/fedora:latest ;\
-        podman image prune --all --force ;\
+        buildah push quay.io/containercraft/fedora:35 ;\
+        buildah push quay.io/containercraft/fedora:35 docker://quay.io/containercraft/fedora:latest ;\
+        buildah image prune --all --force ;\
         echo;
 
     - name: Cleanup
