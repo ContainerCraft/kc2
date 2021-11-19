@@ -5,6 +5,7 @@ import os
 import gzip
 import shutil
 import tempfile
+import time
 import argparse
 import subprocess
 import urllib.request
@@ -93,13 +94,16 @@ def build_cradle(from_image: str, name: str, tag: str, tmpdir: str):
             env=dict(os.environ, STORAGE_DRIVER="overlay"),
             capture_output=True,
             text=True,
+            check=True,
             cwd=tmpdir,
         ).stdout
 
     print(f">> Building Container Disk Image: {name}:{tag}")
     tmp_image = buildah("from", from_image)
     buildah("copy", tmp_image, "./rootfs", "/")
+    time.sleep(5)
     buildah("commit", tmp_image, name)
+    time.sleep(5)
     buildah("tag", name, f"{name}:{tag}")
 
 
