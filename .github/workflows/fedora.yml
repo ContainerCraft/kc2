@@ -1,0 +1,55 @@
+name: Fedora
+on:
+  push:
+  repository_dispatch:
+    types:
+    - 'fedora'
+
+jobs:
+  build:
+    runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        version: [34, 35]
+    env:
+      DOWNLOAD_URL: https://download.fedoraproject.org/pub/fedora/linux/releases/${{ matrix.version }}/Cloud/x86_64/images/Fedora-Cloud-Base-${{ matrix.version }}-1.2.x86_64.qcow2
+
+    steps:
+
+    - name: Install Dependencies
+      run: |
+        set -ex
+        sudo apt-get update -y
+        sudo apt-get install -y libguestfs-tools
+
+    - name: Code Checkout
+      uses: actions/checkout@v2.4.0
+
+    - name: Prepare Fedora ${{ matrix.version }} Image
+      run: |
+        set -ex
+        curl --output /tmp/fedora.qcow2 -L "${DOWNLOAD_URL}"
+        qemu-img resize /tmp/fedora.qcow2 +16G
+        sudo virt-sysprep -a /tmp/fedora.qcow2 --password fedora:password:fedora
+        sudo virt-customize -a /tmp/fedora.qcow2 --install "tmux,git,vim,net-tools,qemu-guest-agent"
+        sudo virt-customize -a /tmp/fedora.qcow2 --run-command "systemctl enable qemu-guest-agent"
+        sudo virt-customize -a /tmp/fedora.qcow2 --run-command "dnf clean all && rm -rf /var/cache/dnf"
+        sudo virt-sysprep -a /tmp/fedora.qcow2 --enable net-hostname,net-hwaddr,machine-id,dhcp-server-state,dhcp-client-state,yum-uuid,udev-persistent-net,tmp-files,smolt-uuid,rpm-db,package-manager-cache
+
+    - name: Build Fedora Cradle
+      run: |
+        cradle --image-name quay.io/containercraft/fedora --image-tag ${{ matrix.version }} --image-file /tmp/fedora.qcow2
+
+    - name: Login Quay.io
+      uses: docker/login-action@v1.10.0
+      with:
+        logout: false
+        registry: quay.io
+        username: ${{ secrets.ROBOT_USER_QUAY }}
+        password: ${{ secrets.ROBOT_TOKEN_QUAY }}
+
+    - name: Push Fedora ${{ matrix.version }} Cradle
+      run: buildah push quay.io/containercraft/fedora:${{ matrix.version }}
+
+    - name: Cleanup
+      run: rm -rf /tmp/cradle /tmp/*qcow* && buildah rmi --all --force
