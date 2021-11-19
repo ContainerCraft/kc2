@@ -2,12 +2,12 @@ name: Workflow Dispatcher
 on:
   schedule:
     - cron: '0 1 * * *'
-  push:
-    paths-ignore:
-    - 'docs/**'
-    - '**.md'
-    branches:
-      - main
+#  push:
+#    paths-ignore:
+#    - 'docs/**'
+#    - '**.md'
+#    branches:
+#      - main
 
 jobs:
   build:

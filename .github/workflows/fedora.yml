@@ -49,7 +49,9 @@ jobs:
         password: ${{ secrets.ROBOT_TOKEN_QUAY }}
 
     - name: Push Fedora ${{ matrix.version }} Cradle
-      run: buildah push quay.io/containercraft/fedora:${{ matrix.version }}
+      run: |
+        buildah images
+        buildah push quay.io/containercraft/fedora:${{ matrix.version }}
 
     - name: Cleanup
       run: rm -rf /tmp/cradle /tmp/*qcow* && buildah rmi --all --force
