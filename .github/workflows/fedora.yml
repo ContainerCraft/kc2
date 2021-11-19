@@ -38,6 +38,7 @@ jobs:
 
     - name: Build Fedora Cradle
       run: |
+        PATH=${PATH}:$(pwd)
         cradle --image-name quay.io/containercraft/fedora --image-tag ${{ matrix.version }} --image-file /tmp/fedora.qcow2
 
     - name: Login Quay.io
