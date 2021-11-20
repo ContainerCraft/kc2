@@ -24,7 +24,6 @@ jobs:
         set -ex ;\
         curl --output /tmp/centos.qcow2 -L "https://cloud.centos.org/centos/7/images/CentOS-7-x86_64-GenericCloud.qcow2" ;\
         qemu-img resize /tmp/centos.qcow2 +16G ;\
-        sudo virt-sysprep -a /tmp/centos.qcow2 --password centos:password:centos ;\
         sudo virt-customize -a /tmp/centos.qcow2 --install 'tmux,git,vim,net-tools,qemu-guest-agent' ;\
         sudo virt-customize -a /tmp/centos.qcow2 --run-command 'systemctl enable qemu-guest-agent' ;\
         sudo virt-customize -a /tmp/centos.qcow2 --run-command "yum clean all && rm -rf /var/cache/dnf" ;\

@@ -32,7 +32,6 @@ jobs:
         set -ex
         curl --output /tmp/debian.qcow2 -L "${DOWNLOAD_URL}"
         qemu-img resize /tmp/debian.qcow2 +22G
-        sudo virt-sysprep -a /tmp/debian.qcow2 --password debian:password:debian
         sudo virt-customize -a /tmp/debian.qcow2 --install 'curl,tmux,git,vim,net-tools,qemu-guest-agent,cloud-init,cloud-initramfs-growroot'
         sudo virt-customize -a /tmp/debian.qcow2 --run-command 'systemctl enable qemu-guest-agent'
         sudo virt-customize -a /tmp/debian.qcow2 --update

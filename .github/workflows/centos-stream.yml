@@ -35,7 +35,6 @@ jobs:
         sudo virt-customize -a /tmp/centos.qcow2 --run-command 'systemctl enable qemu-guest-agent'
         sudo virt-customize -a /tmp/centos.qcow2 --run-command "dnf update -y"
         sudo virt-customize -a /tmp/centos.qcow2 --run-command "dnf clean all && rm -rf /var/cache/dnf"
-        sudo virt-sysprep -a /tmp/centos.qcow2 --selinux-relabel --password centos:password:centos
         sudo virt-sparsify /tmp/centos.qcow2 --compress /tmp/centos.sparse.qcow2
 
     - name: Build Centos ${{ matrix.version }} Stream Cradle

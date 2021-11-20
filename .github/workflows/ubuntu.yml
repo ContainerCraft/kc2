@@ -37,7 +37,6 @@ jobs:
         set -ex
         curl --output /tmp/ubuntu.qcow2 -L ${{ matrix.version.url }}
         qemu-img resize /tmp/ubuntu.qcow2 +48G
-        sudo virt-sysprep -a /tmp/ubuntu.qcow2 --password ubuntu:password:ubuntu
         sudo virt-customize -a /tmp/ubuntu.qcow2 --install 'ansible,python,tmux,git,vim,net-tools,qemu-guest-agent,cloud-init,cloud-initramfs-growroot'
         sudo virt-customize -a /tmp/ubuntu.qcow2 --run-command 'systemctl enable qemu-guest-agent'
         sudo virt-customize -a /tmp/ubuntu.qcow2 --update
