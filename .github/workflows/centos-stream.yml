@@ -29,8 +29,7 @@ jobs:
         export STREAM=$(curl -L ${BASE_URL} | grep Generic | awk -F'[=".>< ]' '/x86_64/{print $42}' | awk -F'[-]' '{print $5}' | sort -nr | head -n1)
         curl --output /tmp/centos.qcow2 -L ${BASE_URL}/CentOS-Stream-GenericCloud-${{ matrix.version }}-${STREAM}.0.x86_64.qcow2
         qemu-img resize /tmp/centos.qcow2 +16G
-        sudo virt-customize -a /tmp/centos.qcow2 --install 'elrepo-release,epel-release'
-        sudo virt-customize -a /tmp/centos.qcow2 --install 'git,vim,htop,tmux,net-tools,qemu-guest-agent'
+        sudo virt-customize -a /tmp/centos.qcow2 --install 'git,vim,tmux,net-tools,qemu-guest-agent'
         sudo virt-customize -a /tmp/centos.qcow2 --run-command "sed -i 's/SELINUX=enforcing/SELINUX=permissive/g' /etc/selinux/config"
         sudo virt-customize -a /tmp/centos.qcow2 --run-command 'systemctl enable qemu-guest-agent'
         sudo virt-customize -a /tmp/centos.qcow2 --run-command "dnf update -y"
