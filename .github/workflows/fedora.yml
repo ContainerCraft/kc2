@@ -10,6 +10,7 @@ jobs:
     strategy:
       matrix:
         version: [34, 35]
+      fail-fast: false
     env:
       DOWNLOAD_URL: https://download.fedoraproject.org/pub/fedora/linux/releases/${{ matrix.version }}/Cloud/x86_64/images/Fedora-Cloud-Base-${{ matrix.version }}-1.2.x86_64.qcow2
 

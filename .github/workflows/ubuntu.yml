@@ -19,6 +19,7 @@ jobs:
           - name: impish
             number: 21.10
             url: https://cloud-images.ubuntu.com/impish/current/impish-server-cloudimg-amd64-disk-kvm.img
+      fail-fast: false
     steps:
 
     - name: Install Dependencies
