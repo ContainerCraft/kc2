@@ -1,0 +1,60 @@
+name: CentOS Stream
+on:
+  repository_dispatch:
+    types:
+    - 'centos-stream'
+
+jobs:
+  build:
+    runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        version: [8, 9]
+    env:
+      BASE_URL: https://cloud.centos.org/centos/${{ matrix.version }}-stream/x86_64/images/
+    steps:
+
+    - name: Install Dependencies
+      run: |
+        set -ex
+        sudo apt-get update -y
+        sudo apt-get install -y libguestfs-tools
+
+    - name: Code Checkout
+      uses: actions/checkout@v2.4.0
+
+    - name: Prepare Centos ${{ matrix.version }} Image
+      run: |
+        set -ex
+        export STREAM=$(curl -L ${BASE_URL} | grep Generic | awk -F'[=".>< ]' '/x86_64/{print $42}' | awk -F'[-]' '{print $5}' | sort -nr | head -n1)
+        curl --output /tmp/centos.qcow2 -L ${BASE_URL}/CentOS-Stream-GenericCloud-${{ matrix.version }}-${STREAM}.0.x86_64.qcow2
+        qemu-img resize /tmp/centos.qcow2 +16G
+        sudo virt-customize -a /tmp/centos.qcow2 --install 'elrepo-release,epel-release'
+        sudo virt-customize -a /tmp/centos.qcow2 --install 'git,vim,htop,tmux,net-tools,qemu-guest-agent'
+        sudo virt-customize -a /tmp/centos.qcow2 --run-command "sed -i 's/SELINUX=enforcing/SELINUX=permissive/g' /etc/selinux/config"
+        sudo virt-customize -a /tmp/centos.qcow2 --run-command 'systemctl enable qemu-guest-agent'
+        sudo virt-customize -a /tmp/centos.qcow2 --run-command "dnf update -y"
+        sudo virt-customize -a /tmp/centos.qcow2 --run-command "dnf clean all && rm -rf /var/cache/dnf"
+        sudo virt-sysprep -a /tmp/centos.qcow2 --selinux-relabel --password centos:password:centos
+        sudo virt-sparsify /tmp/centos.qcow2 --compress /tmp/centos.sparse.qcow2
+
+    - name: Build Centos ${{ matrix.version }} Stream Cradle
+      run: |
+        ./cradle --image-name quay.io/containercraft/centos --image-tag ${{ matrix.version }} --image-file /tmp/centos.sparse.qcow2
+
+    - name: Login Quay.io
+      uses: docker/login-action@v1.10.0
+      with:
+        logout: false
+        registry: quay.io
+        username: ${{ secrets.ROBOT_USER_QUAY }}
+        password: ${{ secrets.ROBOT_TOKEN_QUAY }}
+
+    - name: Push Centos ${{ matrix.version }} Stream Cradle
+      run: |
+        podman push quay.io/containercraft/centos:${{ matrix.version }}-stream
+        podman image prune --all --force
+
+    - name: Cleanup
+      run: |
+        sudo rm -rf /tmp/cradle /tmp/*qcow*
