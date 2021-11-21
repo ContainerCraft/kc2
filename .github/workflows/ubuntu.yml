@@ -98,5 +98,5 @@ jobs:
         set -ex
         buildah images quay.io/containercraft/${FLAVOR}:${VERSION}
         buildah push quay.io/containercraft/${FLAVOR}:${VERSION}
-        buildah push quay.io/containercraft/${FLAVOR}:${VERSION} quay.io/containercraft/${FLAVOR}:${NAME}
+        buildah push quay.io/containercraft/${FLAVOR}:${VERSION} quay.io/containercraft/${FLAVOR}:${{ matrix.version.name }}
         buildah rmi --all --force
