@@ -27,15 +27,22 @@ jobs:
     - name: Prepare Arch Image
       run: |
         set -ex
-        curl --output /tmp/arch.qcow2 -L https://mirror.pkgbuild.com/images/latest/$(curl -s https://mirror.pkgbuild.com/images/latest/ | grep cloudimg | awk -F\" '{print $2}' | grep -v SHA)
+        IMAGE=$(curl -s https://mirror.pkgbuild.com/images/latest/ | grep cloudimg | awk -F\" '{print $2}' | grep -v SHA)
+        curl --output /tmp/arch.qcow2 -L https://mirror.pkgbuild.com/images/latest/${IMAGE}
         qemu-img resize /tmp/arch.qcow2 +6G
-        sudo virt-customize -a /tmp/arch.qcow2 --verbose --run-command 'pacman-key --init'
-        sudo virt-customize -a /tmp/arch.qcow2 --verbose --run-command 'pacman-key --populate'
-        sudo virt-customize -a /tmp/arch.qcow2 --verbose --run-command 'pacman --noconfirm -Syu'
-        sudo virt-customize -a /tmp/arch.qcow2 --verbose --run-command 'pacman --noconfirm -S qemu-guest-agent'
-        sudo virt-customize -a /tmp/arch.qcow2 --verbose --run-command 'pacman --noconfirm -S libguestfs'
-        sudo virt-customize -a /tmp/arch.qcow2 --verbose --run-command "sed -i 's/^GRUB_CMDLINE_LINUX_DEFAULT=\"/&console=ttyS0 /' /etc/default/grub"
-        sudo virt-customize -a /tmp/arch.qcow2 --verbose --run-command 'grub-mkconfig -o /boot/grub/grub.cfg'
+
+        virt-sysprep -va /tmp/arch.qcow2 \
+          --network \
+          --run-command "sed -i 's/^GRUB_CMDLINE_LINUX_DEFAULT=\"/&console=ttyS0 /' /etc/default/grub" \
+          --run-command 'grub-mkconfig -o /boot/grub/grub.cfg' \
+          --run-command 'pacman-key --init' \
+          --run-command 'pacman-key --populate' \
+          --run-command 'pacman --noconfirm -Syu' \
+          --run-command 'pacman --noconfirm -S qemu-guest-agent' \
+          --run-command 'pacman --noconfirm -S libguestfs' \
+          --run-command 'pacman -Scc --noconfirm'
+
+        # virt-sparsify /tmp/arch.qcow2 --compress /tmp/arch.sparse.qcow2 --check-tmpdir ignore
 
     - name: Build Arch Cradle
       run: |
