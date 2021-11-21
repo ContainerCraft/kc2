@@ -1,69 +1,69 @@
-#name: Workflow Dispatcher
-#on:
-#  schedule:
-#    - cron: '0 1 * * *'
-#  push:
-#    paths-ignore:
-#      - 'docs/**'
-#      - '**.md'
-#    branches:
-#      - main
-#
-#jobs:
-#  build:
-#    runs-on: ubuntu-20.04
-#    steps:
-#
-#    - name: Build Debian
-#      if: success()
-#      uses: peter-evans/repository-dispatch@v1.1.3
-#      with:
-#        event-type: debian
-#        token: ${{ secrets.GH_ACTIONS_TOKEN }}
-#        repository: ${{ github.repository }}
-#        client-payload: '{"ref": "${{ github.ref }}", "sha": "${{ github.sha }}"}'
-#
-##   - name: Build Ubuntu
-##     if: success()
-##     uses: peter-evans/repository-dispatch@v1.1.3
-##     with:
-##       event-type: ubuntu
-##       token: ${{ secrets.GH_ACTIONS_TOKEN }}
-##       repository: ${{ github.repository }}
-##       client-payload: '{"ref": "${{ github.ref }}", "sha": "${{ github.sha }}"}'
-##
-##   - name: Build CentOS 7
-##     if: success()
-##     uses: peter-evans/repository-dispatch@v1.1.3
-##     with:
-##       event-type: centos-7
-##       token: ${{ secrets.GH_ACTIONS_TOKEN }}
-##       repository: ${{ github.repository }}
-##       client-payload: '{"ref": "${{ github.ref }}", "sha": "${{ github.sha }}"}'
-#
-#    - name: Build CentOS Stream
-#      if: success()
-#      uses: peter-evans/repository-dispatch@v1.1.3
-#      with:
-#        event-type: centos-stream
-#        token: ${{ secrets.GH_ACTIONS_TOKEN }}
-#        repository: ${{ github.repository }}
-#        client-payload: '{"ref": "${{ github.ref }}", "sha": "${{ github.sha }}"}'
-#
-##   - name: Build Fedora
-##     if: success()
-##     uses: peter-evans/repository-dispatch@v1.1.3
-##     with:
-##       event-type: fedora
-##       token: ${{ secrets.GH_ACTIONS_TOKEN }}
-##       repository: ${{ github.repository }}
-##       client-payload: '{"ref": "${{ github.ref }}", "sha": "${{ github.sha }}"}'
-##
-##   - name: Build Arch
-##     if: success()
-##     uses: peter-evans/repository-dispatch@v1.1.3
-##     with:
-##       event-type: arch
-##       token: ${{ secrets.GH_ACTIONS_TOKEN }}
-##       repository: ${{ github.repository }}
-##       client-payload: '{"ref": "${{ github.ref }}", "sha": "${{ github.sha }}"}'
+name: Workflow Dispatcher
+on:
+  schedule:
+    - cron: '0 1 * * *'
+# push:
+#   paths-ignore:
+#     - 'docs/**'
+#     - '**.md'
+#   branches:
+#     - main
+
+jobs:
+  build:
+    runs-on: ubuntu-20.04
+    steps:
+
+    - name: Build Debian
+      if: success()
+      uses: peter-evans/repository-dispatch@v1.1.3
+      with:
+        event-type: debian
+        token: ${{ secrets.GH_ACTIONS_TOKEN }}
+        repository: ${{ github.repository }}
+        client-payload: '{"ref": "${{ github.ref }}", "sha": "${{ github.sha }}"}'
+
+   - name: Build Ubuntu
+     if: success()
+     uses: peter-evans/repository-dispatch@v1.1.3
+     with:
+       event-type: ubuntu
+       token: ${{ secrets.GH_ACTIONS_TOKEN }}
+       repository: ${{ github.repository }}
+       client-payload: '{"ref": "${{ github.ref }}", "sha": "${{ github.sha }}"}'
+
+   - name: Build CentOS 7
+     if: success()
+     uses: peter-evans/repository-dispatch@v1.1.3
+     with:
+       event-type: centos-7
+       token: ${{ secrets.GH_ACTIONS_TOKEN }}
+       repository: ${{ github.repository }}
+       client-payload: '{"ref": "${{ github.ref }}", "sha": "${{ github.sha }}"}'
+
+    - name: Build CentOS Stream
+      if: success()
+      uses: peter-evans/repository-dispatch@v1.1.3
+      with:
+        event-type: centos-stream
+        token: ${{ secrets.GH_ACTIONS_TOKEN }}
+        repository: ${{ github.repository }}
+        client-payload: '{"ref": "${{ github.ref }}", "sha": "${{ github.sha }}"}'
+
+   - name: Build Fedora
+     if: success()
+     uses: peter-evans/repository-dispatch@v1.1.3
+     with:
+       event-type: fedora
+       token: ${{ secrets.GH_ACTIONS_TOKEN }}
+       repository: ${{ github.repository }}
+       client-payload: '{"ref": "${{ github.ref }}", "sha": "${{ github.sha }}"}'
+
+   - name: Build Arch
+     if: success()
+     uses: peter-evans/repository-dispatch@v1.1.3
+     with:
+       event-type: arch
+       token: ${{ secrets.GH_ACTIONS_TOKEN }}
+       repository: ${{ github.repository }}
+       client-payload: '{"ref": "${{ github.ref }}", "sha": "${{ github.sha }}"}'

@@ -42,7 +42,7 @@ jobs:
       run: |
         set -ex
         df -h /
-        qemu-img resize /tmp/fedora.qcow2 +14G
+        qemu-img resize /tmp/centos.qcow2 +14G
         sudo virt-customize -va /tmp/centos.qcow2 --commands-from-file preview/centos-stream/x64/${VERSION}/virt.customize
         # Install flag is workaround for centos stream 9 beta breakage
         sudo virt-customize -va /tmp/centos.qcow2 --install 'git,vim,tmux,net-tools' --commands-from-file preview/centos-stream/x64/${VERSION}/virt.customize
