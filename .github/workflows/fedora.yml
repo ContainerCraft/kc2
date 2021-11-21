@@ -11,7 +11,9 @@ on:
       - '.github/workflows/fedora.yml'
 
 jobs:
-  build:
+  build_test_publish:
+    # Only run if PR is Closed & Merged
+    #if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -58,31 +60,12 @@ jobs:
           --selinux-relabel                                             ;
         sudo virt-sparsify -v /tmp/${FLAVOR}.qcow2 --compress /tmp/${FLAVOR}.sparse.qcow2
 
-    - name: Build kc2 Fedora ${{ matrix.version }} ${{ matrix.arch }} Cradle
+    - name: Build kc2 Fedora Cradle
       run: |
         set -ex
         sudo qemu-img info /tmp/${FLAVOR}.sparse.qcow2
         ./cradle --image-name quay.io/containercraft/${FLAVOR} --image-tag ${VERSION} --image-file /tmp/${FLAVOR}.sparse.qcow2
         sudo rm -rf /tmp/cradle /tmp/*qcow*
-
-#  test:
-#    runs-on: ubuntu-latest
-#    needs: build
-
-  publish:
-    runs-on: ubuntu-latest
-    # needs: test
-    needs: build
-    strategy:
-      matrix:
-        version: [34, 35]
-        arch: [x86_64]
-      fail-fast: false
-    env:
-      ARCH: ${{ matrix.arch }}
-      FLAVOR: fedora
-      VERSION: ${{ matrix.version }}
-    steps:
 
     - name: Login Quay.io
       uses: docker/login-action@v1.10.0
