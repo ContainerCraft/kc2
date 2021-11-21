@@ -40,7 +40,7 @@ jobs:
       DOWNLOAD_URL: ${{ matrix.version.url }}
       VERSION: ${{ matrix.version.number }}
       NAME: ${{ matrix.version.url.name }}
-      ARCH: ${{ matrix.version }}
+      ARCH: ${{ matrix.version.arch }}
 
     steps:
 
