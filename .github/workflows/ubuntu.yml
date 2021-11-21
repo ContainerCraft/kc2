@@ -35,12 +35,12 @@ jobs:
             url: https://cloud-images.ubuntu.com/impish/current/impish-server-cloudimg-amd64-disk-kvm.img
             arch: amd64
       fail-fast: false
-      env:
-        FLAVOR: ubuntu
-        DOWNLOAD_URL: ${{ matrix.version.url }}
-        VERSION: ${{ matrix.version.number }}
-        NAME: ${{ matrix.version.url.name }}
-        ARCH: ${{ matrix.version }}
+    env:
+      FLAVOR: ubuntu
+      DOWNLOAD_URL: ${{ matrix.version.url }}
+      VERSION: ${{ matrix.version.number }}
+      NAME: ${{ matrix.version.url.name }}
+      ARCH: ${{ matrix.version }}
 
     steps:
 
