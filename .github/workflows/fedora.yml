@@ -1,4 +1,4 @@
-name: x86_64 Fedora
+name: Fedora
 on:
   push:
     paths:
@@ -9,9 +9,6 @@ on:
     paths:
 #     - 'preview/fedora/x64'
       - '.github/workflows/fedora.yml'
-  repository_dispatch:
-    types:
-    - 'fedora'
 
 jobs:
   build_test_publish:
@@ -21,12 +18,13 @@ jobs:
     strategy:
       matrix:
         version: [34, 35]
+        arch: [x86_64]
       fail-fast: false
     env:
-      ARCH: x86_64
+      ARCH: ${{ matrix.arch }}
       FLAVOR: fedora
       VERSION: ${{ matrix.version }}
-      DOWNLOAD_URL: https://download.fedoraproject.org/pub/fedora/linux/releases/${{ matrix.version }}/Cloud/x86_64/images/Fedora-Cloud-Base-${{ matrix.version }}-1.2.x86_64.qcow2
+      DOWNLOAD_URL: https://download.fedoraproject.org/pub/fedora/linux/releases/${{ matrix.version }}/Cloud/${{ matrix.arch }}/images/Fedora-Cloud-Base-${{ matrix.version }}-1.2.${{ matrix.arch }}.qcow2
 
     steps:
     - name: Install Dependencies
@@ -38,7 +36,7 @@ jobs:
     - name: Code Checkout
       uses: actions/checkout@v2.4.0
 
-    - name: Download & Prepare Fedora ${{ matrix.version }} Cloud Image
+    - name: Download & Prepare Fedora ${{ matrix.version }} ${{ matrix.arch }} Cloud Image
       run: |
         set -ex
         curl --output /tmp/${FLAVOR}.qcow2 -L "${DOWNLOAD_URL}"
@@ -47,7 +45,7 @@ jobs:
         sudo mv -f /tmp/${FLAVOR}.sparse.qcow2 /tmp/${FLAVOR}.qcow2
         sudo qemu-img info /tmp/${FLAVOR}.qcow2
 
-    - name: Build kc2 Fedora ${{ matrix.version }} Image
+    - name: Build kc2 Fedora ${{ matrix.version }} ${{ matrix.arch }} Image
       run: |
         set -ex
         df -h /
@@ -77,7 +75,7 @@ jobs:
         username: ${{ secrets.ROBOT_USER_QUAY }}
         password: ${{ secrets.ROBOT_TOKEN_QUAY }}
 
-    - name: Push kc2 Fedora ${{ matrix.version }} Cradle
+    - name: Push kc2 Fedora ${{ matrix.version }} ${{ matrix.arch }} Cradle
       run: |
         set -ex
         buildah images quay.io/containercraft/${FLAVOR}:${VERSION}
