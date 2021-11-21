@@ -80,18 +80,19 @@ jobs:
         ./cradle --image-name quay.io/containercraft/${FLAVOR} --image-tag ${VERSION} --image-file ${FLAVOR}.sparse.qcow2
         rm -rf /tmp/cradle /tmp/${FLAVOR}.qcow2 /tmp/${FLAVOR}.sparse.qcow2 ${FLAVOR}.qcow2 ${FLAVOR}.sparse.qcow2
 
-    - name: Login Quay.io
-      uses: docker/login-action@v1.10.0
-      with:
-        logout: false
-        registry: quay.io
-        username: ${{ secrets.ROBOT_USER_QUAY }}
-        password: ${{ secrets.ROBOT_TOKEN_QUAY }}
+#   - name: Login Quay.io
+#     uses: docker/login-action@v1.10.0
+#     with:
+#       logout: false
+#       registry: quay.io
+#       username: ${{ secrets.ROBOT_USER_QUAY }}
+#       password: ${{ secrets.ROBOT_TOKEN_QUAY }}
 
     - name: Push Ubuntu ${{ matrix.version.number }} Cradle
       # if: github.event.pull_request.merged == true
       run: |
         set -ex
+        export REGISTRY_AUTH_FILE="${HOME}/.docker/config.json"
         buildah images quay.io/containercraft/${FLAVOR}:${VERSION}
         buildah push   quay.io/containercraft/${FLAVOR}:${VERSION}
         buildah push   quay.io/containercraft/${FLAVOR}:${VERSION} quay.io/containercraft/${FLAVOR}:${NAME}
