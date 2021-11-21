@@ -1,4 +1,4 @@
-name: CentOS Stream x86_64
+name: CentOS Stream
 on:
   push:
     paths:
@@ -7,9 +7,6 @@ on:
     pull_request:
       - 'preview/centos-stream/x64'
       - '.github/workflows/centos-stream.yml'
-  repository_dispatch:
-    types:
-    - 'centos-stream'
 
 jobs:
   build_test_publish:
@@ -17,10 +14,12 @@ jobs:
     strategy:
       matrix:
         version: [8, 9]
+        arch: [x86_64]
       fail-fast: false
     env:
       VERSION: ${{ matrix.version }}
-      BASE_URL: https://cloud.centos.org/centos/${{ matrix.version }}-stream/x86_64/images/
+      ARCH: ${{ matrix.arch }}
+      BASE_URL: https://cloud.centos.org/centos/${{ matrix.version }}-stream/${{ matrix.arch }}/images/
     steps:
 
     - name: Install Dependencies
@@ -36,7 +35,7 @@ jobs:
       run: |
         set -ex
         export STREAM=$(curl -L ${BASE_URL} | grep Generic | awk -F'[=".>< ]' '/x86_64/{print $42}' | awk -F'[-]' '{print $5}' | sort -nr | head -n1)
-        curl --output /tmp/centos.qcow2 -L ${BASE_URL}/CentOS-Stream-GenericCloud-${VERSION}-${STREAM}.0.x86_64.qcow2
+        curl --output /tmp/centos.qcow2 -L ${BASE_URL}/CentOS-Stream-GenericCloud-${VERSION}-${STREAM}.0.${ARCH}.qcow2
 
     - name: Build kc2 Centos ${VERSION} Image
       run: |
@@ -66,6 +65,6 @@ jobs:
     - name: Push Centos ${VERSION} Stream Cradle
       run: |
         set -ex
-        buildah images quay.io/containercraft/centos-stream:${{ matrix.version }}
+        buildah images quay.io/containercraft/centos-stream:${VERSION}
         podman push quay.io/containercraft/centos-stream:${VERSION}
         podman image prune --all --force
