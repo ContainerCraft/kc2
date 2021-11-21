@@ -39,7 +39,7 @@ jobs:
     steps:
 
     - name: Install Dependencies
-      if: ${{ !startsWith(runner.name, 't640-') }}
+      if: ${{ !startsWith(runner.name, 't640') }}
       run: |
         set -ex
         sudo apt-get update -y
@@ -81,7 +81,7 @@ jobs:
 
     - name: Login Quay.io
       uses: docker/login-action@v1.10.0
-      if: ${{ !startsWith(runner.name, 't640-') }}
+      if: ${{ !startsWith(runner.name, 't640') }}
       with:
         logout: false
         registry: quay.io
