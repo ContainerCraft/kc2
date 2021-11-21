@@ -1,8 +1,15 @@
 name: CentOS Stream x86_64
 on:
-  repository_dispatch:
-    types:
-    - 'centos-stream'
+  push:
+    paths:
+      - 'preview/centos-stream/x64'
+      - '.github/workflows/centos-stream.yml'
+    pull_request:
+      - 'preview/centos-stream/x64'
+      - '.github/workflows/centos-stream.yml'
+# repository_dispatch:
+#   types:
+#   - 'centos-stream'
 
 jobs:
   build:
@@ -12,6 +19,7 @@ jobs:
         version: [8, 9]
       fail-fast: false
     env:
+      VERSION: ${{ matrix.version }}
       BASE_URL: https://cloud.centos.org/centos/${{ matrix.version }}-stream/x86_64/images/
     steps:
 
@@ -24,25 +32,28 @@ jobs:
     - name: Code Checkout
       uses: actions/checkout@v2.4.0
 
-    - name: Prepare Centos ${{ matrix.version }} Image
+    - name: Download Centos ${VERSION} Cloud Image
       run: |
         set -ex
         export STREAM=$(curl -L ${BASE_URL} | grep Generic | awk -F'[=".>< ]' '/x86_64/{print $42}' | awk -F'[-]' '{print $5}' | sort -nr | head -n1)
-        curl --output /tmp/centos.qcow2 -L ${BASE_URL}/CentOS-Stream-GenericCloud-${{ matrix.version }}-${STREAM}.0.x86_64.qcow2
-        qemu-img resize /tmp/centos.qcow2 +16G
-        sudo virt-customize -v -a /tmp/centos.qcow2 --install       'git-core,vim,tmux,net-tools,qemu-guest-agent,epel-next-release' && \
-          sudo virt-customize -v -a /tmp/centos.qcow2 --run-command 'systemctl enable qemu-guest-agent' || \
-          sudo virt-customize -v -a /tmp/centos.qcow2 --install     'git-core,vim,tmux,net-tools'
-        sudo virt-customize -v -a /tmp/centos.qcow2 --run-command "sed -i 's/SELINUX=enforcing/SELINUX=permissive/g' /etc/selinux/config"
-        sudo virt-customize -v -a /tmp/centos.qcow2 --run-command "dnf update -y"
-        sudo virt-customize -v -a /tmp/centos.qcow2 --run-command "dnf clean all && rm -rf /var/cache/dnf"
-        sudo virt-sysprep -a /tmp/centos.qcow2 --enable net-hostname,net-hwaddr,machine-id,dhcp-server-state,dhcp-client-state,yum-uuid,udev-persistent-net,tmp-files,smolt-uuid,rpm-db,package-manager-cache
-        sudo virt-sparsify /tmp/centos.qcow2 --compress /tmp/centos.sparse.qcow2
-        sudo virt-sysprep   -a /tmp/centos.sparse.qcow2 --selinux-relabel
+        curl --output /tmp/centos.qcow2 -L ${BASE_URL}/CentOS-Stream-GenericCloud-${VERSION}-${STREAM}.0.x86_64.qcow2
 
-    - name: Build Centos ${{ matrix.version }} Stream Cradle
+    - name: Build kc2 Centos ${VERSION} Image
       run: |
-        ./cradle --image-name quay.io/containercraft/centos-stream --image-tag ${{ matrix.version }} --image-file /tmp/centos.sparse.qcow2
+        set -ex
+        sudo virt-customize -va /tmp/centos.qcow2 --commands-from-file preview/centos-stream/x64/${VERSION}/virt.customize
+        # Install flag is workaround for centos stream 9 beta breakage
+        sudo virt-customize -va /tmp/centos.qcow2 --install 'git,vim,tmux,net-tools' --commands-from-file preview/centos-stream/x64/${VERSION}/virt.customize
+        sudo virt-sysprep   -va /tmp/centos.qcow2 --enable net-hostname,net-hwaddr,machine-id,dhcp-server-state,dhcp-client-state,yum-uuid,udev-persistent-net,tmp-files,smolt-uuid,rpm-db,package-manager-cache
+        sudo virt-sparsify /tmp/centos.qcow2 --compress /tmp/centos.sparse.qcow2
+        sudo virt-sysprep -va /tmp/centos.qcow2 --selinux-relabel
+
+    - name: Build kc2 Centos ${VERSION} Stream Cradle
+      run: |
+        set -ex
+        sudo qemu-img info /tmp/centos.sparse.qcow2
+        ./cradle --image-name quay.io/containercraft/centos-stream --image-tag ${VERSION} --image-file /tmp/centos.sparse.qcow2
+        sudo rm -rf /tmp/cradle /tmp/*qcow*
 
     - name: Login Quay.io
       uses: docker/login-action@v1.10.0
@@ -52,11 +63,8 @@ jobs:
         username: ${{ secrets.ROBOT_USER_QUAY }}
         password: ${{ secrets.ROBOT_TOKEN_QUAY }}
 
-    - name: Push Centos ${{ matrix.version }} Stream Cradle
+    - name: Push Centos ${VERSION} Stream Cradle
       run: |
-        podman push quay.io/containercraft/centos-stream:${{ matrix.version }}
-
-    - name: Cleanup
-      run: |
+        set -ex
+        podman push quay.io/containercraft/centos-stream:${VERSION}
         podman image prune --all --force
-        sudo rm -rf /tmp/cradle /tmp/*qcow*
