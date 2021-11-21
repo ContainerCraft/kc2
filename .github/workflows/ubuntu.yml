@@ -4,11 +4,13 @@ on:
     paths:
       - 'preview/ubuntu/x86_64/*'
       - '.github/workflows/ubuntu.yml'
-#  pull_request:
-#    types: [closed]
-#    paths:
-#      - 'preview/ubuntu/x86_64/*'
-#      - '.github/workflows/ubuntu.yml'
+   pull_request:
+     types: [closed]
+     paths:
+       - 'preview/ubuntu/x86_64/*'
+       - '.github/workflows/ubuntu.yml'
+  schedule:
+    - cron: '0 2 * * *'
 
 
 jobs:
@@ -22,14 +24,14 @@ jobs:
             number: '21.10'
             url: https://cloud-images.ubuntu.com/impish/current/impish-server-cloudimg-amd64-disk-kvm.img
             arch: amd64
-#         - name: focal
-#           number: '20.04'
-#           url: https://cloud-images.ubuntu.com/focal/current/focal-server-cloudimg-amd64.img
-#           arch: amd64
-#         - name: bionic
-#           number: '18.04'
-#           url: https://cloud-images.ubuntu.com/bionic/current/bionic-server-cloudimg-amd64.img
-#           arch: amd64
+          - name: focal
+            number: '20.04'
+            url: https://cloud-images.ubuntu.com/focal/current/focal-server-cloudimg-amd64.img
+            arch: amd64
+          - name: bionic
+            number: '18.04'
+            url: https://cloud-images.ubuntu.com/bionic/current/bionic-server-cloudimg-amd64.img
+            arch: amd64
       fail-fast: false
     env:
       FLAVOR: ubuntu
