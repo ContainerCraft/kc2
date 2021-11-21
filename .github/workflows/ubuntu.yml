@@ -2,22 +2,17 @@ name: x86_64 Ubuntu
 on:
   push:
     paths:
-#     - 'preview/ubuntu/x64'
+      - 'preview/ubuntu/x86_64/*'
       - '.github/workflows/ubuntu.yml'
   pull_request:
     types: [closed]
     paths:
-#     - 'preview/ubuntu/x64'
+      - 'preview/ubuntu/x86_64/*'
       - '.github/workflows/ubuntu.yml'
-  repository_dispatch:
-    types:
-    - 'ubuntu'
 
 
 jobs:
   build_test_publish:
-    # Only run if PR is Closed & Merged
-    #if: github.event.pull_request.merged == true
     runs-on: ubuntu-20.04
     strategy:
       matrix:
@@ -84,9 +79,9 @@ jobs:
         ./cradle --image-name quay.io/containercraft/${FLAVOR} --image-tag ${VERSION} --image-file /tmp/${FLAVOR}.sparse.qcow2
         sudo rm -rf /tmp/cradle /tmp/*qcow*
 
-
     - name: Login Quay.io
       uses: docker/login-action@v1.10.0
+      # if: github.event.pull_request.merged == true
       with:
         logout: false
         registry: quay.io
@@ -94,6 +89,7 @@ jobs:
         password: ${{ secrets.ROBOT_TOKEN_QUAY }}
 
     - name: Push Ubuntu ${{ matrix.version.number }} Cradle
+      # if: github.event.pull_request.merged == true
       run: |
         set -ex
         buildah images quay.io/containercraft/${FLAVOR}:${VERSION}
