@@ -1,4 +1,4 @@
-name: Fedora x86_64
+name: x86_64 Fedora
 on:
   push:
     paths:
@@ -23,6 +23,7 @@ jobs:
         version: [34, 35]
       fail-fast: false
     env:
+      ARCH: x86_64
       FLAVOR: fedora
       VERSION: ${{ matrix.version }}
       DOWNLOAD_URL: https://download.fedoraproject.org/pub/fedora/linux/releases/${{ matrix.version }}/Cloud/x86_64/images/Fedora-Cloud-Base-${{ matrix.version }}-1.2.x86_64.qcow2
@@ -51,7 +52,7 @@ jobs:
         set -ex
         df -h /
         sudo virt-sysprep -va /tmp/${FLAVOR}.qcow2 \
-          --enable user-account,logfiles,customize,bash-history,net-hostname,net-hwaddr,machine-id,dhcp-server-state,dhcp-client-state,yum-uuid,udev-persistent-net,tmp-files,smolt-uuid,rpm-db,package-manager-cache
+          --enable user-account,logfiles,customize,bash-history,net-hostname,net-hwaddr,machine-id,dhcp-server-state,dhcp-client-state,yum-uuid,udev-persistent-net,tmp-files,smolt-uuid,rpm-db,package-manager-cache \
           --update \
           --network \
           --install tmux,git,vim,net-tools,qemu-guest-agent             \
