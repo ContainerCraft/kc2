@@ -13,7 +13,8 @@ on:
 
 jobs:
   build_test_publish:
-    runs-on: ubuntu-20.04
+    #if: github.event.pull_request.merged == true
+    runs-on: 
     strategy:
       matrix:
         version:
@@ -39,12 +40,12 @@ jobs:
 
     steps:
 
-    - name: Install Dependencies
-      run: |
-        set -ex
-        sudo apt-get update -y
-        sudo apt-get install -y libguestfs-tools
-        echo
+#   - name: Install Dependencies
+#     run: |
+#       set -ex
+#       sudo apt-get update -y
+#       sudo apt-get install -y libguestfs-tools
+#       echo
 
     - name: Code Checkout
       uses: actions/checkout@v2.4.0
@@ -52,17 +53,16 @@ jobs:
     - name: Download & Prepare Ubuntu ${{ matrix.version.number }} Cloud Image
       run: |
         set -ex
-        curl --output /tmp/${FLAVOR}.qcow2 -L "${DOWNLOAD_URL}"
-        qemu-img resize /tmp/${FLAVOR}.qcow2 +19G
-        sudo virt-sparsify /tmp/${FLAVOR}.qcow2 --compress /tmp/${FLAVOR}.sparse.qcow2
-        sudo mv -f /tmp/${FLAVOR}.sparse.qcow2 /tmp/${FLAVOR}.qcow2
-        sudo qemu-img info /tmp/${FLAVOR}.qcow2
+        curl --output source.${FLAVOR}.qcow2 -L "${DOWNLOAD_URL}"
+        qemu-img resize source.${FLAVOR}.qcow2 +20G
+        virt-sparsify --compress --tmp tmp source.${FLAVOR}.qcow2 ${FLAVOR}.qcow2
+        qemu-img info ${FLAVOR}.qcow2
 
     - name: Build kc2 Ubuntu ${{ matrix.version.number }} Image
       run: |
         set -ex
         df -h /
-        sudo virt-sysprep -va /tmp/${FLAVOR}.qcow2 \
+        virt-sysprep -va ${FLAVOR}.qcow2 \
           --network \
           --enable user-account,logfiles,customize,bash-history,net-hostname,net-hwaddr,machine-id,dhcp-server-state,dhcp-client-state,yum-uuid,udev-persistent-net,tmp-files,smolt-uuid,rpm-db,package-manager-cache \
           --update                                                      \
@@ -70,18 +70,18 @@ jobs:
           --install screenfetch,python3,tmux,git,vim,net-tools,cloud-init,cloud-initramfs-growroot,qemu-guest-agent \
           --run-command 'systemctl enable qemu-guest-agent'             \
           --run-command 'apt-get purge -y'                              ;
-        sudo virt-sparsify -v /tmp/${FLAVOR}.qcow2 --compress /tmp/${FLAVOR}.sparse.qcow2
+        virt-sparsify --compress --tmp tmp ${FLAVOR}.qcow2 ${FLAVOR}.sparse.qcow2
+        rm ${FLAVOR}.qcow2
 
     - name: Build kc2 Ubuntu ${{ matrix.version.number }} Cradle
       run: |
         set -ex
-        sudo qemu-img info /tmp/${FLAVOR}.sparse.qcow2
-        ./cradle --image-name quay.io/containercraft/${FLAVOR} --image-tag ${VERSION} --image-file /tmp/${FLAVOR}.sparse.qcow2
-        sudo rm -rf /tmp/cradle /tmp/*qcow*
+        qemu-img info ${FLAVOR}.sparse.qcow2
+        ./cradle --image-name quay.io/containercraft/${FLAVOR} --image-tag ${VERSION} --image-file ${FLAVOR}.sparse.qcow2
+        rm -rf /tmp/cradle /tmp/${FLAVOR}.qcow2 /tmp/${FLAVOR}.sparse.qcow2 ${FLAVOR}.qcow2 ${FLAVOR}.sparse.qcow2
 
     - name: Login Quay.io
       uses: docker/login-action@v1.10.0
-      # if: github.event.pull_request.merged == true
       with:
         logout: false
         registry: quay.io
@@ -93,6 +93,6 @@ jobs:
       run: |
         set -ex
         buildah images quay.io/containercraft/${FLAVOR}:${VERSION}
-        buildah push quay.io/containercraft/${FLAVOR}:${VERSION}
-        buildah push quay.io/containercraft/${FLAVOR}:${VERSION} quay.io/containercraft/${FLAVOR}:${NAME}
-        buildah rmi --all --force
+        buildah push   quay.io/containercraft/${FLAVOR}:${VERSION}
+        buildah push   quay.io/containercraft/${FLAVOR}:${VERSION} quay.io/containercraft/${FLAVOR}:${NAME}
+        buildah rmi    quay.io/containercraft/${FLAVOR}:${VERSION}

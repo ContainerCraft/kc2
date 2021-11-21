@@ -59,6 +59,13 @@ group.add_argument(
     default="",
     required=False,
 )
+group.add_argument(
+    "--tmpdir",
+    help="temporary staging path",
+    metavar="./path/to/scratch/space",
+    default="./tmp",
+    required=False,
+)
 
 
 # Download Image from URL
