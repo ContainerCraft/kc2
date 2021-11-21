@@ -6,11 +6,11 @@ on:
     paths:
       - 'preview/ubuntu/x86_64/*'
       - '.github/workflows/ubuntu.yml'
-   pull_request:
-     types: [closed]
-     paths:
-       - 'preview/ubuntu/x86_64/*'
-       - '.github/workflows/ubuntu.yml'
+  pull_request:
+    types: [closed]
+    paths:
+      - 'preview/ubuntu/x86_64/*'
+      - '.github/workflows/ubuntu.yml'
 
 
 jobs:
