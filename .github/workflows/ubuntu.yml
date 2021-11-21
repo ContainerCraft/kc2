@@ -14,7 +14,7 @@ on:
 jobs:
   build_test_publish:
     #if: github.event.pull_request.merged == true
-    runs-on: t640
+    runs-on: self-hosted 
     strategy:
       matrix:
         version:
