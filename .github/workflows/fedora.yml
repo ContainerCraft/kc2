@@ -1,21 +1,32 @@
-name: Fedora
+name: Fedora x86_64
 on:
+  push:
+    paths:
+#     - 'preview/fedora/x64'
+      - '.github/workflows/fedora.yml'
+  pull_request:
+    types: [closed]
+    paths:
+#     - 'preview/fedora/x64'
+      - '.github/workflows/fedora.yml'
   repository_dispatch:
     types:
     - 'fedora'
 
 jobs:
-  build-and-publish:
-    runs-on: ubuntu-20.04
+  build_test_publish:
+    # Only run if PR is Closed & Merged
+    #if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
     strategy:
       matrix:
         version: [34, 35]
       fail-fast: false
     env:
+      VERSION: ${{ matrix.version }}
       DOWNLOAD_URL: https://download.fedoraproject.org/pub/fedora/linux/releases/${{ matrix.version }}/Cloud/x86_64/images/Fedora-Cloud-Base-${{ matrix.version }}-1.2.x86_64.qcow2
 
     steps:
-
     - name: Install Dependencies
       run: |
         set -ex
@@ -25,20 +36,34 @@ jobs:
     - name: Code Checkout
       uses: actions/checkout@v2.4.0
 
-    - name: Prepare Fedora ${{ matrix.version }} Image
+    - name: Download & Prepare Fedora ${{ matrix.version }} Cloud Image
       run: |
         set -ex
         curl --output /tmp/fedora.qcow2 -L "${DOWNLOAD_URL}"
-        qemu-img resize /tmp/fedora.qcow2 +16G
-        sudo virt-sysprep -a /tmp/fedora.qcow2 --password fedora:password:fedora
-        sudo virt-customize -a /tmp/fedora.qcow2 --install "tmux,git,vim,net-tools,qemu-guest-agent"
-        sudo virt-customize -a /tmp/fedora.qcow2 --run-command "systemctl enable qemu-guest-agent"
-        sudo virt-customize -a /tmp/fedora.qcow2 --run-command "dnf clean all && rm -rf /var/cache/dnf"
-        sudo virt-sysprep -a /tmp/fedora.qcow2 --enable net-hostname,net-hwaddr,machine-id,dhcp-server-state,dhcp-client-state,yum-uuid,udev-persistent-net,tmp-files,smolt-uuid,rpm-db,package-manager-cache
+        qemu-img resize /tmp/fedora.qcow2 +19G
+        sudo virt-sparsify /tmp/fedora.qcow2 --compress /tmp/fedora.sparse.qcow2
+        sudo mv -f /tmp/fedora.sparse.qcow2 /tmp/fedora.qcow2
+        sudo qemu-img info /tmp/fedora.qcow2
 
-    - name: Build Fedora Cradle
+    - name: Build kc2 Fedora ${{ matrix.version }} Image
       run: |
-        ./cradle --image-name quay.io/containercraft/fedora --image-tag ${{ matrix.version }} --image-file /tmp/fedora.qcow2
+        set -ex
+        df -h /
+        sudo virt-sysprep -va /tmp/fedora.qcow2 --update --network \
+          --install tmux,git,vim,net-tools,screenfetch,qemu-guest-agent \
+          --run-command 'systemctl enable qemu-guest-agent'             \
+          --run-command 'dnf clean all'                                 \
+          --run-command 'rm -rf /var/cache/dnf' --selinux-relabel       ;
+        sudo virt-sysprep -va /tmp/fedora.qcow2 --enable net-hostname,net-hwaddr,machine-id,dhcp-server-state,dhcp-client-state,yum-uuid,udev-persistent-net,tmp-files,smolt-uuid,rpm-db,package-manager-cache
+        sudo virt-sparsify -v /tmp/fedora.qcow2 --compress /tmp/fedora.sparse.qcow2
+
+
+    - name: Build kc2 Fedora Cradle
+      run: |
+        set -ex
+        sudo qemu-img info /tmp/fedora.qcow2
+        ./cradle --image-name quay.io/containercraft/fedora --image-tag ${VERSION} --image-file /tmp/fedora.qcow2
+        rm -rf /tmp/cradle /tmp/*qcow*
 
     - name: Login Quay.io
       uses: docker/login-action@v1.10.0
@@ -48,10 +73,17 @@ jobs:
         username: ${{ secrets.ROBOT_USER_QUAY }}
         password: ${{ secrets.ROBOT_TOKEN_QUAY }}
 
-    - name: Push Fedora ${{ matrix.version }} Cradle
+    - name: Push kc2 Fedora ${{ matrix.version }} Cradle
       run: |
-        buildah images
-        buildah push quay.io/containercraft/fedora:${{ matrix.version }}
+        set -ex
+        buildah images quay.io/containercraft/fedora:${VERSION}
+        buildah push quay.io/containercraft/fedora:${VERSION}
+        buildah rmi --all --force
 
-    - name: Cleanup
-      run: rm -rf /tmp/cradle /tmp/*qcow* && buildah rmi --all --force
+# close_job:
+#   if: github.event.pull_request.merged == false
+#   runs-on: ubuntu-latest
+#   steps:
+#   - run: |
+#       echo "Closing PR ${{ github.event.number }} without merge tasks"
+#
