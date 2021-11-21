@@ -39,7 +39,7 @@ jobs:
       FLAVOR: ubuntu
       DOWNLOAD_URL: ${{ matrix.version.url }}
       VERSION: ${{ matrix.version.number }}
-      NAME: ${{ matrix.version.url.name }}
+      NAME: ${{ matrix.version.name }}
       ARCH: ${{ matrix.version.arch }}
 
     steps:
@@ -93,10 +93,10 @@ jobs:
         username: ${{ secrets.ROBOT_USER_QUAY }}
         password: ${{ secrets.ROBOT_TOKEN_QUAY }}
 
-    - name: Push Ubuntu ${{ matrix.version }} Cradle
+    - name: Push Ubuntu ${{ matrix.version.number }} Cradle
       run: |
         set -ex
         buildah images quay.io/containercraft/${FLAVOR}:${VERSION}
         buildah push quay.io/containercraft/${FLAVOR}:${VERSION}
-        buildah push quay.io/containercraft/${FLAVOR}:${VERSION} quay.io/containercraft/${FLAVOR}:${{ matrix.version.name }}
+        buildah push quay.io/containercraft/${FLAVOR}:${VERSION} quay.io/containercraft/${FLAVOR}:${NAME}
         buildah rmi --all --force
