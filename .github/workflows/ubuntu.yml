@@ -18,25 +18,25 @@ jobs:
     strategy:
       matrix:
         version:
-          - name: bionic
-            number: 18.04
-            url: https://cloud-images.ubuntu.com/bionic/current/bionic-server-cloudimg-amd64.img
-            arch: amd64
-          - name: focal
-            number: 20.04
-            url: https://cloud-images.ubuntu.com/focal/current/focal-server-cloudimg-amd64.img
-            arch: amd64
           - name: impish
-            number: 21.10
+            number: '21.10'
             url: https://cloud-images.ubuntu.com/impish/current/impish-server-cloudimg-amd64-disk-kvm.img
             arch: amd64
+#         - name: focal
+#           number: '20.04'
+#           url: https://cloud-images.ubuntu.com/focal/current/focal-server-cloudimg-amd64.img
+#           arch: amd64
+#         - name: bionic
+#           number: '18.04'
+#           url: https://cloud-images.ubuntu.com/bionic/current/bionic-server-cloudimg-amd64.img
+#           arch: amd64
       fail-fast: false
     env:
       FLAVOR: ubuntu
-      DOWNLOAD_URL: ${{ matrix.version.url }}
-      VERSION: ${{ matrix.version.number }}
-      NAME: ${{ matrix.version.name }}
-      ARCH: ${{ matrix.version.arch }}
+      DOWNLOAD_URL: "${{ matrix.version.url }}"
+      VERSION: "${{ matrix.version.number }}"
+      NAME: "${{ matrix.version.name }}"
+      ARCH: "${{ matrix.version.arch }}"
 
     steps:
 
