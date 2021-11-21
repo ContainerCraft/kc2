@@ -135,4 +135,4 @@ spec:
                 - "sudo chown -f -R ubuntu ~/.kube"
                 - "microk8s.enable metallb:192.168.1.31-192.168.1.39"
                 - "microk8s status --wait-ready"
-#               - kubectl patch storageclass openebs-hostpath -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
+                - [echo a3ViZWN0bCBwYXRjaCBzdG9yYWdlY2xhc3Mgb3BlbmVicy1ob3N0cGF0aCAtcCAneyJtZXRhZGF0YSI6IHsiYW5ub3RhdGlvbnMiOnsic3RvcmFnZWNsYXNzLmt1YmVybmV0ZXMuaW8vaXMtZGVmYXVsdC1jbGFzcyI6InRydWUifX19Jwo= | base64 -d | bash]
