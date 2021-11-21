@@ -1,4 +1,4 @@
-name: x86_64 Ubuntu
+name: Ubuntu
 on:
   schedule:
     - cron: '0 1 * * *'
@@ -16,7 +16,10 @@ on:
 jobs:
   build_test_publish:
     #if: github.event.pull_request.merged == true
-    runs-on: self-hosted 
+    runs-on: 
+      - linux
+      - x86_64
+      - self-hosted
     strategy:
       matrix:
         version:
