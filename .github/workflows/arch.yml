@@ -31,7 +31,7 @@ jobs:
         curl --output /tmp/arch.qcow2 -L https://mirror.pkgbuild.com/images/latest/${IMAGE}
         qemu-img resize /tmp/arch.qcow2 +6G
 
-        virt-sysprep -va /tmp/arch.qcow2 \
+        sudo virt-sysprep -va /tmp/arch.qcow2 \
           --network \
           --run-command "sed -i 's/^GRUB_CMDLINE_LINUX_DEFAULT=\"/&console=ttyS0 /' /etc/default/grub" \
           --run-command 'grub-mkconfig -o /boot/grub/grub.cfg' \
@@ -42,7 +42,7 @@ jobs:
           --run-command 'pacman --noconfirm -S libguestfs' \
           --run-command 'pacman -Scc --noconfirm'
 
-        # virt-sparsify /tmp/arch.qcow2 --compress /tmp/arch.sparse.qcow2 --check-tmpdir ignore
+        # sudo virt-sparsify /tmp/arch.qcow2 --compress /tmp/arch.sparse.qcow2 --check-tmpdir ignore
 
     - name: Build Arch Cradle
       run: |
