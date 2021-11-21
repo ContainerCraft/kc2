@@ -1,6 +1,8 @@
 name: x86_64 Ubuntu
 on:
   push:
+    schedule:
+      - cron: '0 2 * * *'
     paths:
       - 'preview/ubuntu/x86_64/*'
       - '.github/workflows/ubuntu.yml'
@@ -9,8 +11,6 @@ on:
      paths:
        - 'preview/ubuntu/x86_64/*'
        - '.github/workflows/ubuntu.yml'
-  schedule:
-    - cron: '0 2 * * *'
 
 
 jobs:
