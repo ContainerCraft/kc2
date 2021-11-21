@@ -6,17 +6,10 @@ on:
     paths:
       - 'preview/ubuntu/x86_64/*'
       - '.github/workflows/ubuntu.yml'
-  pull_request:
-    types: [closed]
-    paths:
-      - 'preview/ubuntu/x86_64/*'
-      - '.github/workflows/ubuntu.yml'
-
 
 jobs:
   build_test_publish:
-    #if: github.event.pull_request.merged == true
-    runs-on: 
+    runs-on:
       - linux
       - x86_64
       - self-hosted
@@ -45,12 +38,13 @@ jobs:
 
     steps:
 
-#   - name: Install Dependencies
-#     run: |
-#       set -ex
-#       sudo apt-get update -y
-#       sudo apt-get install -y libguestfs-tools
-#       echo
+    - name: Install Dependencies
+      if: ${{ !startsWith(runner.name, 't640-') }}
+      run: |
+        set -ex
+        sudo apt-get update -y
+        sudo apt-get install -y libguestfs-tools
+        echo
 
     - name: Code Checkout
       uses: actions/checkout@v2.4.0
@@ -85,13 +79,14 @@ jobs:
         ./cradle --image-name quay.io/containercraft/${FLAVOR} --image-tag ${VERSION} --image-file ${FLAVOR}.sparse.qcow2
         rm -rf /tmp/cradle /tmp/${FLAVOR}.qcow2 /tmp/${FLAVOR}.sparse.qcow2 ${FLAVOR}.qcow2 ${FLAVOR}.sparse.qcow2
 
-#   - name: Login Quay.io
-#     uses: docker/login-action@v1.10.0
-#     with:
-#       logout: false
-#       registry: quay.io
-#       username: ${{ secrets.ROBOT_USER_QUAY }}
-#       password: ${{ secrets.ROBOT_TOKEN_QUAY }}
+    - name: Login Quay.io
+      uses: docker/login-action@v1.10.0
+      if: ${{ !startsWith(runner.name, "t640-") }}
+      with:
+        logout: false
+        registry: quay.io
+        username: ${{ secrets.ROBOT_USER_QUAY }}
+        password: ${{ secrets.ROBOT_TOKEN_QUAY }}
 
     - name: Push Ubuntu ${{ matrix.version.number }} Cradle
       # if: github.event.pull_request.merged == true
