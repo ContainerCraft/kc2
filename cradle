@@ -31,7 +31,8 @@ parser.add_argument(
 parser.add_argument(
     "--cradle-image",
     help="Name of cradle image",
-    default="registry.access.redhat.com/ubi8/ubi",
+    default="scratch",
+    #default="registry.access.redhat.com/ubi8/ubi",
     required=False,
 )
 

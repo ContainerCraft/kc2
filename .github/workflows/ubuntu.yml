@@ -1,21 +1,23 @@
 name: x86_64 Ubuntu
 on:
-#  push:
-#    paths:
-##     - 'preview/ubuntu/x64'
-#      - '.github/workflows/ubuntu.yml'
-#  pull_request:
-#    types: [closed]
-#    paths:
-##     - 'preview/ubuntu/x64'
-#      - '.github/workflows/ubuntu.yml'
+  push:
+    paths:
+#     - 'preview/ubuntu/x64'
+      - '.github/workflows/ubuntu.yml'
+  pull_request:
+    types: [closed]
+    paths:
+#     - 'preview/ubuntu/x64'
+      - '.github/workflows/ubuntu.yml'
   repository_dispatch:
     types:
     - 'ubuntu'
 
 
 jobs:
-  build:
+  build_test_publish:
+    # Only run if PR is Closed & Merged
+    #if: github.event.pull_request.merged == true
     runs-on: ubuntu-20.04
     strategy:
       matrix:
@@ -23,13 +25,23 @@ jobs:
           - name: bionic
             number: 18.04
             url: https://cloud-images.ubuntu.com/bionic/current/bionic-server-cloudimg-amd64.img
+            arch: amd64
           - name: focal
             number: 20.04
             url: https://cloud-images.ubuntu.com/focal/current/focal-server-cloudimg-amd64.img
+            arch: amd64
           - name: impish
             number: 21.10
             url: https://cloud-images.ubuntu.com/impish/current/impish-server-cloudimg-amd64-disk-kvm.img
+            arch: amd64
       fail-fast: false
+      env:
+        FLAVOR: ubuntu
+        DOWNLOAD_URL: ${{ matrix.version.url }}
+        VERSION: ${{ matrix.version.number }}
+        NAME: ${{ matrix.version.url.name }}
+        ARCH: ${{ matrix.version }}
+
     steps:
 
     - name: Install Dependencies
@@ -42,18 +54,36 @@ jobs:
     - name: Code Checkout
       uses: actions/checkout@v2.4.0
 
-    - name: Prepare Ubuntu ${{ matrix.version.number }} Image
+    - name: Download & Prepare Ubuntu ${{ matrix.version.number }} Cloud Image
       run: |
         set -ex
-        curl --output /tmp/ubuntu.qcow2 -L ${{ matrix.version.url }}
-        qemu-img resize /tmp/ubuntu.qcow2 +48G
-        sudo virt-customize -a /tmp/ubuntu.qcow2 --install 'ansible,python,tmux,git,vim,net-tools,qemu-guest-agent,cloud-init,cloud-initramfs-growroot'
-        sudo virt-customize -a /tmp/ubuntu.qcow2 --run-command 'systemctl enable qemu-guest-agent'
-        sudo virt-customize -a /tmp/ubuntu.qcow2 --update
+        curl --output /tmp/${FLAVOR}.qcow2 -L "${DOWNLOAD_URL}"
+        qemu-img resize /tmp/${FLAVOR}.qcow2 +19G
+        sudo virt-sparsify /tmp/${FLAVOR}.qcow2 --compress /tmp/${FLAVOR}.sparse.qcow2
+        sudo mv -f /tmp/${FLAVOR}.sparse.qcow2 /tmp/${FLAVOR}.qcow2
+        sudo qemu-img info /tmp/${FLAVOR}.qcow2
 
-    - name: Build Ubuntu ${{ matrix.version.number }} Cradle
+    - name: Build kc2 Ubuntu ${{ matrix.version.number }} Image
       run: |
-        ./cradle --image-name quay.io/containercraft/ubuntu --image-tag ${{ matrix.version.number }} --image-file /tmp/ubuntu.qcow2
+        set -ex
+        df -h /
+        sudo virt-sysprep -va /tmp/${FLAVOR}.qcow2 \
+          --network \
+          --enable user-account,logfiles,customize,bash-history,net-hostname,net-hwaddr,machine-id,dhcp-server-state,dhcp-client-state,yum-uuid,udev-persistent-net,tmp-files,smolt-uuid,rpm-db,package-manager-cache \
+          --update                                                      \
+          --run-command 'apt-get autoremove -y'                         \
+          --install screenfetch,python3,tmux,git,vim,net-tools,cloud-init,cloud-initramfs-growroot,qemu-guest-agent \
+          --run-command 'systemctl enable qemu-guest-agent'             \
+          --run-command 'apt-get purge -y'                              ;
+        sudo virt-sparsify -v /tmp/${FLAVOR}.qcow2 --compress /tmp/${FLAVOR}.sparse.qcow2
+
+    - name: Build kc2 Ubuntu ${{ matrix.version.number }} Cradle
+      run: |
+        set -ex
+        sudo qemu-img info /tmp/${FLAVOR}.sparse.qcow2
+        ./cradle --image-name quay.io/containercraft/${FLAVOR} --image-tag ${VERSION} --image-file /tmp/${FLAVOR}.sparse.qcow2
+        sudo rm -rf /tmp/cradle /tmp/*qcow*
+
 
     - name: Login Quay.io
       uses: docker/login-action@v1.10.0
@@ -65,8 +95,8 @@ jobs:
 
     - name: Push Ubuntu ${{ matrix.version }} Cradle
       run: |
-        buildah push quay.io/containercraft/ubuntu:${{ matrix.version.number }}
-        buildah push quay.io/containercraft/ubuntu:${{ matrix.version.number }} quay.io/containercraft/ubuntu:${{ matrix.version.name }}
-
-    - name: Cleanup
-      run: rm -rf /tmp/cradle /tmp/*qcow* && buildah rmi --all --force
+        set -ex
+        buildah images quay.io/containercraft/${FLAVOR}:${VERSION}
+        buildah push quay.io/containercraft/${FLAVOR}:${VERSION}
+        buildah push quay.io/containercraft/${FLAVOR}:${VERSION} quay.io/containercraft/${FLAVOR}:${NAME}
+        buildah rmi --all --force
