@@ -1,5 +1,5 @@
-# TAG=$(git rev-parse --short HEAD) docker buildx bake
 # https://docs.docker.com/engine/reference/commandline/buildx_bake
+# FLAG=$(git rev-parse --short HEAD) docker buildx bake --file ./bake.hcl x86_64-ubuntu-18.04
 
 variable "FLAG" {
   default = "dev"
