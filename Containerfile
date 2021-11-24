@@ -1,10 +1,12 @@
 FROM ghcr.io/bkahlert/libguestfs:latest as sysprep
-COPY virt.sysprep /disk/virt.sysprep
-WORKDIR /disk
 
 # Download Image
 ARG FLAVOR=${FLAVOR}
 ARG DOWNLOAD_URL=${DOWNLOAD_URL}
+
+COPY preview/${FLAVOR}/virt.sysprep /disk/virt.sysprep
+WORKDIR /disk
+
 RUN set -ex \
     && curl --output source.${FLAVOR}.qcow2 -L "${DOWNLOAD_URL}"                  \
     && qemu-img resize source.${FLAVOR}.qcow2 +32G                                \
@@ -25,5 +27,4 @@ RUN set -ex \
 # Copy disk image into cradle
 FROM scratch
 ARG FLAVOR=${FLAVOR}
-ARG DOWNLOAD_URL=${DOWNLOAD_URL}
 COPY --from=sysprep /disk/${FLAVOR}.sparse.qcow2 /disk/${FLAVOR}.qcow2
