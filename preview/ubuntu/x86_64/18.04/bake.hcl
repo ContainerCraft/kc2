@@ -14,11 +14,7 @@ target "x86_64-ubuntu-18.04" {
   ]
   platforms = ["linux/amd64"]
   args = {
-    ARCH = "amd64",
     FLAVOR = "ubuntu",
-    VERSION = "18.04",
-    RELEASE = "bionic",
     DOWNLOAD_URL = "https://cloud-images.ubuntu.com/bionic/current/bionic-server-cloudimg-amd64.img",
-    PKG_APT = "screenfetch,python3,tmux,git,vim,net-tools,cloud-init,cloud-initramfs-growroot,qemu-guest-agent",
   }
 }
