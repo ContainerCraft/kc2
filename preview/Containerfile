@@ -1,23 +1,27 @@
 FROM ghcr.io/bkahlert/libguestfs:latest as sysprep
 
-# Download Image
+ARG TARGETARCH
 ARG FLAVOR=${FLAVOR}
-ARG DOWNLOAD_URL=${DOWNLOAD_URL}
+ARG VERSION=${VERSION}
 
-COPY preview/${FLAVOR}/virt.sysprep /disk/virt.sysprep
 WORKDIR /disk
 
+COPY preview/index.json /disk/index.json
+# Download Image
 RUN set -ex \
-    && curl --output source.${FLAVOR}.qcow2 -L "${DOWNLOAD_URL}"                  \
+    # TODO: replace this nasty grep with jq \
+    && curl --output source.${FLAVOR}.qcow2 -L $(grep -Po '"'${FLAVOR}-${VERSION}-${TARGETARCH}'": *\K"[^"]*"' index.json | tr -d '"') \
     && qemu-img resize source.${FLAVOR}.qcow2 +32G                                \
     && virt-sparsify --compress source.${FLAVOR}.qcow2 ${FLAVOR}.qcow2            \
     && rm source.${FLAVOR}.qcow2                                                  \
     && echo;
 
+COPY preview/${FLAVOR}/virt.sysprep /disk/virt.sysprep
 # Sysprep Image
 RUN set -ex \
     && virt-sysprep -va ${FLAVOR}.qcow2                                           \
-         --network --commands-from-file virt.sysprep                              \
+         --network                                                                \
+         --commands-from-file virt.sysprep                                        \
          --enable user-account,logfiles,customize,bash-history,net-hostname,net-hwaddr,machine-id,dhcp-server-state,dhcp-client-state,yum-uuid,udev-persistent-net,tmp-files,smolt-uuid,rpm-db,package-manager-cache \
     && virt-sparsify --compress ${FLAVOR}.qcow2 ${FLAVOR}.sparse.qcow2            \
     && rm ${FLAVOR}.qcow2                                                         \
