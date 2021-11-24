@@ -97,3 +97,5 @@ jobs:
         buildah push   quay.io/containercraft/${FLAVOR}:${VERSION}
         buildah push   quay.io/containercraft/${FLAVOR}:${VERSION} quay.io/containercraft/${FLAVOR}:${NAME}
         buildah rmi    quay.io/containercraft/${FLAVOR}:${VERSION}
+export FLAVOR=ubuntu VERSION='21.10' NAME=impish ARCH=amd64 
+export FLAVOR=ubuntu VERSION='21.10' NAME=impish ARCH=amd64 
