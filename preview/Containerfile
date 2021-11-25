@@ -12,7 +12,7 @@ RUN set -ex \
     # TODO: replace this nasty grep with jq \
     && curl --output source.${FLAVOR}.qcow2 -L $(grep -Po '"'${FLAVOR}-${VERSION}-${TARGETARCH}'": *\K"[^"]*"' index.json | tr -d '"') \
     && qemu-img resize source.${FLAVOR}.qcow2 +20G                                \
-    && virt-sparsify --compress source.${FLAVOR}.qcow2 ${FLAVOR}.qcow2            \
+    && virt-sparsify -v --compress source.${FLAVOR}.qcow2 ${FLAVOR}.qcow2         \
     && rm source.${FLAVOR}.qcow2                                                  \
     && echo;
 
