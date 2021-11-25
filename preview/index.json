@@ -1,7 +1,10 @@
 {
   "ubuntu-18.04-amd64": "https://cloud-images.ubuntu.com/bionic/current/bionic-server-cloudimg-amd64.img",
+  "ubuntu-18.04-arm64": "https://cloud-images.ubuntu.com/bionic/current/bionic-server-cloudimg-arm64.img",
   "ubuntu-20.04-amd64": "https://cloud-images.ubuntu.com/focal/current/focal-server-cloudimg-amd64.img",
+  "ubuntu-20.04-arm64": "https://cloud-images.ubuntu.com/focal/current/focal-server-cloudimg-arm64.img",
   "ubuntu-21.10-amd64": "https://cloud-images.ubuntu.com/impish/current/impish-server-cloudimg-amd64-disk-kvm.img",
+  "ubuntu-21.10-arm64": "https://cloud-images.ubuntu.com/impish/current/impish-server-cloudimg-arm64.img",
   "fedora-34-amd64": "https://download.fedoraproject.org/pub/fedora/linux/releases/34/Cloud/x86_64/images/Fedora-Cloud-Base-34-1.2.x86_64.qcow2",
   "fedora-35-amd64": "https://download.fedoraproject.org/pub/fedora/linux/releases/35/Cloud/x86_64/images/Fedora-Cloud-Base-35-1.2.x86_64.qcow2",
   "arch-latest-amd64": "https://mirror.pkgbuild.com/images/latest/Arch-Linux-x86_64-cloudimg-20211115.39179.qcow2",

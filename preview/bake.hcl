@@ -6,7 +6,7 @@ variable "FLAG" {
 }
 
 group "default" {
-  targets = ["arch"]
+  targets = ["ubuntu-20.04"]
 }
 
 group "ubuntu" {
@@ -23,7 +23,7 @@ group "centos-stream" {
 
 target "ubuntu-defaults" {
   dockerfile = "preview/Containerfile"
-  platforms = ["linux/amd64"]
+  platforms = ["linux/amd64", "linux/arm64"]
   args = {
     FLAVOR = "ubuntu",
   }
