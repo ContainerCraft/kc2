@@ -11,7 +11,7 @@ COPY preview/index.json /disk/index.json
 RUN set -ex \
     # TODO: replace this nasty grep with jq \
     && curl --output source.${FLAVOR}.qcow2 -L $(grep -Po '"'${FLAVOR}-${VERSION}-${TARGETARCH}'": *\K"[^"]*"' index.json | tr -d '"') \
-    && qemu-img resize source.${FLAVOR}.qcow2 +32G                                \
+    && qemu-img resize source.${FLAVOR}.qcow2 +35G                                \
     && virt-sparsify --compress source.${FLAVOR}.qcow2 ${FLAVOR}.qcow2            \
     && rm source.${FLAVOR}.qcow2                                                  \
     && echo;
