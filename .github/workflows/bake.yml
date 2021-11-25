@@ -20,4 +20,4 @@ jobs:
       - name: Build and push
         uses: docker/bake-action@v1
         with:
-          files: ["preview/bake.hcl"]
+          files: preview/bake.hcl
