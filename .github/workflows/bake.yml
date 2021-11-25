@@ -4,10 +4,7 @@ on:
 
 jobs:
   build:
-    runs-on:
-      - linux
-      - x86_64
-      - self-hosted
+    runs-on: ubuntu-20.04
     steps:
 
       - name: Code Checkout
