@@ -1,2 +1,8 @@
 run-command sed -i 's/^GRUB_CMDLINE_LINUX_DEFAULT=\"/&console=ttyS0 /' /etc/default/grub
 run-command grub-mkconfig -o /boot/grub/grub.cfg
+run-command pacman-key --init
+run-command pacman-key --populate
+run-command pacman --noconfirm -Syu
+run-command pacman --noconfirm -S qemu-guest-agent
+run-command pacman --noconfirm -S libguestfs
+run-command pacman -Scc

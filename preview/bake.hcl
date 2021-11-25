@@ -1,12 +1,12 @@
 # https://docs.docker.com/engine/reference/commandline/buildx_bake
-# FLAG=$(git rev-parse --short HEAD) docker buildx bake --file ubuntu/bake.hcl
+# FLAG=$(git rev-parse --short HEAD) docker buildx bake --file preview/bake.hcl
 
 variable "FLAG" {
   default = "dev"
 }
 
 group "default" {
-  targets = ["ubuntu"]
+  targets = ["arch"]
 }
 
 group "ubuntu" {

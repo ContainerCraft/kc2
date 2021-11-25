@@ -1,0 +1,23 @@
+name: Bake an Image
+on:
+  push:
+
+jobs:
+  build:
+    runs-on: ubuntu-20.04
+    steps:
+
+      - name: Code Checkout
+        uses: actions/checkout@v2.4.0
+
+      - name: Set up Docker Buildx
+        id: buildx
+        uses: docker/setup-buildx-action@v1
+
+      - name: Available platforms
+        run: echo ${{ steps.buildx.outputs.platforms }}
+
+      - name: Build and push
+        uses: docker/bake-action@v1
+        with:
+          files: ["preview/bake.hcl"]
