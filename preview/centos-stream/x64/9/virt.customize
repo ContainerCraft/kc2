@@ -1,8 +1,0 @@
-#update
-edit /etc/selinux/config:\
-    s/^SELINUX=*/SELINUX=permissive/
-# Package install broken on beta
-#install git vim tmux net-tools
-#run-command dnf clean all
-#delete /var/cache/dnf
-#selinux-relabel
