@@ -1,0 +1,134 @@
+---
+apiVersion: kubevirt.io/v1alpha3
+kind: VirtualMachine
+metadata:
+  name: freebsd
+  namespace: kargo
+  labels:
+    app: kargo
+spec:
+  running: true
+  dataVolumeTemplates:
+  - metadata:
+      name: freebsd-persistent-hostpath-volume-vda-root
+      namespace: kargo
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      capacity:
+        storage: 128G
+      config:
+        featureGates:
+        - HonorWaitForFirstConsumer
+      pvc:
+        accessModes:
+        - ReadWriteOnce
+        resources:
+          requests:
+            storage: 128G
+          limits:
+            storage: 128G
+        storageClassName: hostpath-provisioner
+      source:
+        registry:
+          url: docker://docker.io/containercraft/freebsd:13
+          imagePullPolicy: IfNotPresent
+      persistentVolumeReclaimPolicy: Delete
+      storageClassName: hostpath-provisioner
+      volumeMode: Block
+  template:
+    spec:
+      nodeSelector:
+        node-role.kubernetes.io/kubevirt: ""
+      domain:
+        clock:
+          utc: {}
+          timer: {}
+        cpu:
+          cores: 1
+          sockets: 1
+          threads: 8
+          model: host-passthrough
+          dedicatedCpuPlacement: false
+        devices:
+          rng: {}
+          autoattachPodInterface: false
+          autoattachSerialConsole: true
+          autoattachGraphicsDevice: true
+          networkInterfaceMultiqueue: false
+          disks:
+            - name: freebsd-persistent-hostpath-disk-vda-root
+              bootOrder: 1
+              disk:
+                bus: virtio
+            - name: cloudinitdisk
+              disk:
+                bus: virtio
+          interfaces:
+          - name: enp1s0
+            model: e1000
+            bridge: {}
+#       features:
+#         acpi:
+#           enabled: true
+#         smm:
+#           enabled: true
+#       firmware:
+#         bootloader:
+#           efi:
+#             secureBoot: true
+        machine:
+          type: q35
+        resources:
+          limits:
+            memory: 8G
+          requests:
+            memory: 8G
+            devices.kubevirt.io/kvm: "1"
+      hostname: freebsd
+      networks:
+      - name: enp1s0
+        multus:
+          networkName: kargo-net-attach-def-br0
+      terminationGracePeriodSeconds: 0
+      accessCredentials:
+      - sshPublicKey:
+          source:
+            secret:
+              secretName: kargo-sshpubkey-kc2user
+          propagationMethod:
+            qemuGuestAgent:
+              users:
+              - "root"
+      volumes:
+        - name: freebsd-persistent-hostpath-disk-vda-root
+          dataVolume:
+            name: freebsd-persistent-hostpath-volume-vda-root
+        - name: cloudinitdisk
+          cloudInitConfigDrive:
+            userData: |
+              #cloud-config
+              hostname: freebsd
+              ssh_pwauth: true
+              disable_root: false
+              chpasswd:
+                list: |
+                  root:root
+                expire: False
+              users:
+                - name: root
+                  shell: /bin/bash
+                  lock_passwd: false
+                  sudo: ['ALL=(ALL) NOPASSWD:ALL']
+                  groups: sudo,wheel
+              runcmd:
+                - "echo hello"
+#             growpart:
+#               mode: auto
+#               devices: ['/']
+#               ignore_growroot_disabled: true
+#             package_upgrade: false
+#             power_state:
+#               mode: reboot
+#               message: Rebooting
+#               condition: True

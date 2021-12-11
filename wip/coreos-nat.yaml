@@ -63,8 +63,8 @@ spec:
       volumes:
         - name: containerdisk
           containerDisk:
-#           image: quay.io/containercraft/coreos:fc-4.8.0
-            image: quay.io/containercraft/coreos:4.7.7
+            image: docker.io/containercraft/fcos:35-dev
+           #image: docker.io/containercraft/rhcos:4.9
             imagePullPolicy: Always
         - name: cloudinitdisk
           cloudInitConfigDrive:
