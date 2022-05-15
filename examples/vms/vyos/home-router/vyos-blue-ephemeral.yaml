@@ -1,54 +1,31 @@
 apiVersion: kubevirt.io/v1alpha3
 kind: VirtualMachine
 metadata:
-  name: vyos-blue-wan0-rev01
-  namespace: kargo
+  name: vyos-blue-wan0
+  namespace: default
   generation: 1
   labels:
     kubevirt.io/os: linux
-    node: "qotom"
-    app: vyos-wan0
+    app.ccio.io/vyos: blue
 spec:
   running: true
-# dataVolumeTemplates:
-# - metadata:
-#     name: vyos-blue-wan0-root-vda
-#     annotations:
-#       kubevirt.io/provisionOnNode: "qotom"
-#   spec:
-#     config:
-#       featureGates:
-#       - HonorWaitForFirstConsumer
-#     nodeSelector:
-#       node-role.kubernetes.io/wan: ""
-#     pvc:
-#       accessModes:
-#       - ReadWriteOnce
-#       resources:
-#         requests:
-#           storage: 8G
-#       storageClassName: hostpath-provisioner
-#     source:
-#       registry:
-#         url: "docker://quay.io/containercraft/vyos:1.4-rolling"
-#         imagePullPolicy: ifNotPresent
   template:
     metadata:
       labels:
-        kubevirt.io/domain: vyos
+        app.ccio.io/vyos: blue
     spec:
-      nodeSelector:
-        node-role.kubernetes.io/wan: ""
+#     nodeSelector:
+#       node-role.kubernetes.io/kubevirt: ""
       terminationGracePeriodSeconds: 0
       domain:
         cpu:
-          cores: 2
+          cores: 1
           threads: 1
-          sockets: 1
-          model: host-model
+          sockets: 4
+          model: host-passthrough
           dedicatedCpuPlacement: false
         machine:
-          type: pc-q35-rhel8.3.0
+          type: q35
         resources:
           requests:
             memory: 2G
@@ -67,32 +44,24 @@ spec:
               bus: sata
               readonly: true
           interfaces:
+          - name: eth0
+            model: virtio
+            bridge: {}
           - name: eth1
             model: virtio
             bridge: {}
-          - name: eth2
-            model: virtio
-            bridge: {}
-          - name: eth3
-            model: virtio
-            bridge: {}
       networks:
+      - name: eth0
+        multus:
+          networkName: nadbr0
       - name: eth1
         multus:
-          networkName: kargo-net-attach-def-wan0
-      - name: eth2
-        multus:
-          networkName: kargo-net-attach-def-br0
-      - name: eth3
-        multus:
-          networkName: kargo-net-attach-def-dmz0
+          networkName: nadbr1
       volumes:
       - name: disk-vda-root
         containerDisk:
-          image: quay.io/containercraft/vyos:1.4-rolling
-          imagePullPolicy: ifNotPresent
-#       dataVolume:
-#         name: vyos-blue-wan0-root-vda
+          image: 10.0.0.2:32000/containercraft/vyos:1.4-rolling
+          imagePullPolicy: IfNotPresent
       - name: cloudinitdisk
         cloudInitNoCloud:
           secretRef:
