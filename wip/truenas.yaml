@@ -1,0 +1,110 @@
+apiVersion: kubevirt.io/v1
+kind: VirtualMachine
+metadata:
+  name: truenas-scale
+  labels:
+    flavor: truenas
+spec:
+  dataVolumeTemplates:
+  - metadata:
+      name: truenas-scale-volume-vda-root
+    spec:
+      pvc:
+        accessModes:
+        - ReadWriteOnce
+        resources:
+          requests:
+            storage: 32G
+      source:
+        blank: {}
+  - metadata:
+      name: truenas-scale-volume-vdb
+    spec:
+      pvc:
+        accessModes:
+        - ReadWriteOnce
+        resources:
+          requests:
+            storage: 64G
+      source:
+        blank: {}
+  - metadata:
+      name: truenas-scale-volume-vdc
+    spec:
+      pvc:
+        accessModes:
+        - ReadWriteOnce
+        resources:
+          requests:
+            storage: 64G
+      source:
+        blank: {}
+  running: true
+  template:
+    spec:
+      domain:
+        clock:
+          timer: {}
+          utc: {}
+        cpu:
+          model: host-passthrough
+          threads: 6
+        devices:
+          rng: {}
+          autoattachGraphicsDevice: true
+          autoattachPodInterface: false
+          autoattachSerialConsole: true
+          disks:
+          - name: iso
+            bootOrder: 2
+            disk:
+              bus: sata
+          - name: truenas-scale-disk-vda-root
+            bootOrder: 1
+            disk:
+              bus: sata
+          - name: truenas-scale-disk-vdb
+            disk:
+              bus: virtio
+          - name: truenas-scale-disk-vdc
+            disk:
+              bus: virtio
+          interfaces:
+          - bridge: {}
+            model: virtio
+            name: enp1s0
+        features:
+          acpi:
+            enabled: true
+          smm:
+            enabled: true
+        firmware:
+          bootloader:
+            efi:
+              secureBoot: false
+        machine:
+          type: q35
+        resources:
+          requests:
+            devices.kubevirt.io/kvm: "1"
+            memory: 8G
+      hostname: truenas
+      networks:
+      - multus:
+          networkName: nadbr0
+        name: enp1s0
+      terminationGracePeriodSeconds: 0
+      volumes:
+      - name: iso
+        containerDisk:
+          image: docker.io/containercraft/truenas-scale:22021-iso
+          imagePullPolicy: IfNotPresent
+      - name: truenas-scale-disk-vda-root
+        dataVolume:
+          name: truenas-scale-volume-vda-root
+      - name: truenas-scale-disk-vdb
+        dataVolume:
+          name: truenas-scale-volume-vdb
+      - name: truenas-scale-disk-vdc
+        dataVolume:
+          name: truenas-scale-volume-vdc
