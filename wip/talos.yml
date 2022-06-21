@@ -32,12 +32,8 @@ spec:
             model: e1000
             name: eth0
           disks:
-          - name: iso
-            bootOrder: 1
-            disk:
-              bus: sata
           - name: talos-disk-vda-root
-            bootOrder: 2
+            bootOrder: 1
             disk:
               bus: virtio
           - name: talos-disk-vdb-data
@@ -48,10 +44,6 @@ spec:
         multus:
           networkName: nadbr0
       volumes:
-      - name: iso
-        containerDisk:
-          image: docker.io/containercraft/talos:v1.1.0-beta.2
-          imagePullPolicy: IfNotPresent
       - name: talos-disk-vda-root
         dataVolume:
           name: talos-volume-vda-root
@@ -69,7 +61,9 @@ spec:
           requests:
             storage: 32G
       source:
-        blank: {}
+        registry:
+          url: docker://docker.io/containercraft/talos:v1.1.0-beta.2-qcow2
+          imagePullPolicy: IfNotPresent
   - metadata:
       name: talos-volume-vdb-data
     spec:
