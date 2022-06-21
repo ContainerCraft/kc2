@@ -29,7 +29,7 @@ spec:
           autoattachPodInterface: false
           interfaces:
           - bridge: {}
-            model: virtio
+            model: e1000
             name: eth0
           disks:
           - name: iso
