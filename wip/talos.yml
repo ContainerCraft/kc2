@@ -1,0 +1,83 @@
+apiVersion: kubevirt.io/v1
+kind: VirtualMachine
+metadata:
+  name: talos
+  labels:
+    app: talos
+spec:
+  running: true
+  template:
+    spec:
+      terminationGracePeriodSeconds: 0
+      domain:
+        clock:
+          timer: {}
+          utc: {}
+        cpu:
+          model: host-passthrough
+          threads: 8
+        machine:
+          type: q35
+        resources:
+          requests:
+            devices.kubevirt.io/kvm: "1"
+            memory: 8G
+        devices:
+          rng: {}
+          autoattachSerialConsole: true
+          autoattachGraphicsDevice: true
+          autoattachPodInterface: false
+          interfaces:
+          - bridge: {}
+            model: virtio
+            name: eth0
+          disks:
+          - name: iso
+            bootOrder: 1
+            disk:
+              bus: sata
+          - name: talos-disk-vda-root
+            bootOrder: 2
+            disk:
+              bus: virtio
+          - name: talos-disk-vdb-data
+            disk:
+              bus: virtio
+      networks:
+      - name: eth0
+        multus:
+          networkName: nadbr0
+      volumes:
+      - name: iso
+        containerDisk:
+          image: docker.io/containercraft/talos:v1.1.0-beta.2
+          imagePullPolicy: IfNotPresent
+      - name: talos-disk-vda-root
+        dataVolume:
+          name: talos-volume-vda-root
+      - name: talos-disk-vdb-data
+        dataVolume:
+          name: talos-volume-vdb-data
+  dataVolumeTemplates:
+  - metadata:
+      name: talos-volume-vda-root
+    spec:
+      pvc:
+        accessModes:
+        - ReadWriteOnce
+        resources:
+          requests:
+            storage: 32G
+      source:
+        blank: {}
+  - metadata:
+      name: talos-volume-vdb-data
+    spec:
+      pvc:
+        accessModes:
+        - ReadWriteOnce
+        resources:
+          requests:
+            storage: 64G
+      source:
+        blank: {}
