@@ -14,8 +14,6 @@ spec:
       labels:
         app.ccio.io/vyos: blue
     spec:
-#     nodeSelector:
-#       node-role.kubernetes.io/kubevirt: ""
       terminationGracePeriodSeconds: 0
       domain:
         cpu:
@@ -53,14 +51,15 @@ spec:
       networks:
       - name: eth0
         multus:
-          networkName: nadbr0
+          networkName: nadwan0
       - name: eth1
         multus:
-          networkName: nadbr1
+          networkName: nadbr0
       volumes:
       - name: disk-vda-root
         containerDisk:
-          image: 10.0.0.2:32000/containercraft/vyos:1.4-rolling
+          image: 192.168.1.2:32000/containercraft/vyos:1.4-rolling
+          #image: quay.io/containercraft/vyos:1.4-rolling
           imagePullPolicy: IfNotPresent
       - name: cloudinitdisk
         cloudInitNoCloud:
