@@ -1,0 +1,78 @@
+apiVersion: kubevirt.io/v1
+kind: VirtualMachine
+metadata:
+  name: c03-talos
+  labels:
+    app: c03-talos
+spec:
+  running: true
+  template:
+    spec:
+      terminationGracePeriodSeconds: 0
+      domain:
+        clock:
+          timer: {}
+          utc: {}
+        cpu:
+          model: host-passthrough
+          threads: 8
+        resources:
+          requests:
+            memory: 32G
+            devices.kubevirt.io/kvm: "1"
+        devices:
+          rng: {}
+          autoattachPodInterface: false
+          autoattachSerialConsole: true
+          autoattachGraphicsDevice: false
+          interfaces:
+          - name: eth0
+            macAddress: de:ad:00:03:be:af
+            model: virtio
+            bridge: {}
+          disks:
+          - name: c03-talos-disk-vda-root
+            bootOrder: 1
+            disk:
+              bus: virtio
+          - name: c03-talos-disk-vdb-data
+            disk:
+              bus: virtio
+      networks:
+      - name: eth0
+        multus:
+          networkName: nadbr0
+      volumes:
+      - name: c03-talos-disk-vda-root
+        dataVolume:
+          name: c03-talos-volume-vda-root
+      - name: c03-talos-disk-vdb-data
+        dataVolume:
+          name: c03-talos-volume-vdb-data
+  dataVolumeTemplates:
+  - metadata:
+      name: c03-talos-volume-vda-root
+    spec:
+      pvc:
+        accessModes:
+        - ReadWriteMany
+        resources:
+          requests:
+            storage: 64G
+        storageClassName: truenas-optane-nfs
+      source:
+        pvc:
+          name: disk-image-talos-nocloud
+          namespace: default
+  - metadata:
+      name: c03-talos-volume-vdb-data
+    spec:
+      pvc:
+        accessModes:
+        - ReadWriteMany
+        resources:
+          requests:
+            storage: 64G
+        storageClassName: truenas-optane-nfs
+      source:
+        blank: {}
