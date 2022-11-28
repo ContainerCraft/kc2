@@ -2,53 +2,12 @@ apiVersion: kubevirt.io/v1
 kind: VirtualMachine
 metadata:
   name: c03-talos
-  labels:
+  namespace: default
+  annotations:
     app: c03-talos
+  labels:
+    app: talos
 spec:
-  running: true
-  template:
-    spec:
-      terminationGracePeriodSeconds: 0
-      domain:
-        clock:
-          timer: {}
-          utc: {}
-        cpu:
-          model: host-passthrough
-          threads: 8
-        resources:
-          requests:
-            memory: 32G
-            devices.kubevirt.io/kvm: "1"
-        devices:
-          rng: {}
-          autoattachPodInterface: false
-          autoattachSerialConsole: true
-          autoattachGraphicsDevice: false
-          interfaces:
-          - name: eth0
-            macAddress: de:ad:00:03:be:af
-            model: virtio
-            bridge: {}
-          disks:
-          - name: c03-talos-disk-vda-root
-            bootOrder: 1
-            disk:
-              bus: virtio
-          - name: c03-talos-disk-vdb-data
-            disk:
-              bus: virtio
-      networks:
-      - name: eth0
-        multus:
-          networkName: nadbr0
-      volumes:
-      - name: c03-talos-disk-vda-root
-        dataVolume:
-          name: c03-talos-volume-vda-root
-      - name: c03-talos-disk-vdb-data
-        dataVolume:
-          name: c03-talos-volume-vdb-data
   dataVolumeTemplates:
   - metadata:
       name: c03-talos-volume-vda-root
@@ -58,12 +17,11 @@ spec:
         - ReadWriteMany
         resources:
           requests:
-            storage: 64G
+            storage: 32G
         storageClassName: truenas-optane-nfs
       source:
-        pvc:
-          name: disk-image-talos-nocloud
-          namespace: default
+        registry:
+          url: "docker://quay.io/containercraft/talos/nocloud@sha256:4b68854f63b15fa2ebd57b53dc293ce17babb6a0f2d77373cdc30e964bb65ca3"
   - metadata:
       name: c03-talos-volume-vdb-data
     spec:
@@ -76,3 +34,58 @@ spec:
         storageClassName: truenas-optane-nfs
       source:
         blank: {}
+  runStrategy: Always
+  template:
+    metadata:
+      labels:
+        app: talos
+    spec:
+      domain:
+        clock:
+          utc: {}
+          timer: {}
+        cpu:
+          model: host-passthrough
+          threads: 8
+        resources:
+          requests:
+            memory: 32G
+            devices.kubevirt.io/kvm: "1"
+        devices:
+          autoattachGraphicsDevice: false
+          autoattachPodInterface: false
+          autoattachSerialConsole: true
+          disks:
+          - name: cloudinitdisk
+            cdrom:
+              bus: sata
+              readonly: true
+          - name: c03-talos-disk-vda-root
+            bootOrder: 1
+            disk:
+              bus: virtio
+          - name: c03-talos-disk-vdb-data
+            disk:
+              bus: virtio
+          interfaces:
+          - bridge: {}
+            macAddress: de:ad:00:03:be:af
+            model: virtio
+            name: eth0
+          rng: {}
+      networks:
+      - multus:
+          networkName: nadbr0
+        name: eth0
+      terminationGracePeriodSeconds: 0
+      volumes:
+      - name: cloudinitdisk
+        cloudInitNoCloud:
+          secretRef:
+            name: talos-controlplane-userdata
+      - name: c03-talos-disk-vda-root
+        dataVolume:
+          name: c03-talos-volume-vda-root
+      - name: c03-talos-disk-vdb-data
+        dataVolume:
+          name: c03-talos-volume-vdb-data

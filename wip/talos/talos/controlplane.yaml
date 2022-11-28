@@ -117,13 +117,13 @@ machine:
         #         #     password: password # Optional registry authentication.
     # Features describe individual Talos features that can be switched on or off.
     features:
-        rbac: true
+        rbac: false
         stableHostname: false
         apidCheckExtKeyUsage: true # Enable checks for extended key usage of client certificates in apid.
         
         # Configure Talos API access from Kubernetes pods.
         kubernetesTalosAPIAccess:
-            enabled: true # Enable Talos API access from Kubernetes pods.
+            enabled: false # Enable Talos API access from Kubernetes pods.
             # The list of Talos API roles which can be granted for access from Kubernetes pods.
             allowedRoles:
                 - os:reader
@@ -258,6 +258,7 @@ machine:
     #     exampleLabel: exampleLabelValue
 # Provides cluster specific configuration options.
 cluster:
+    allowSchedulingOnControlPlanes: true
     id: 0GF_nTNOcidC3Nqp9TGGbmG6qWThz-i0DewQ8HZB3C4= # Globally unique identifier for this cluster (base64 encoded random 32 bytes).
     secret: KbR9AJ9QTBBjyaEz9QdMCEDzsuxbjTkjWYcrQTwuS0E= # Shared secret of cluster (base64 encoded random 32 bytes).
     # Provides control plane specific configuration options.
@@ -304,32 +305,31 @@ cluster:
             - 192.168.1.41
             - 192.168.1.42
             - 192.168.1.43
-        disablePodSecurityPolicy: true # Disable PodSecurityPolicy in the API server and default manifests.
-        # Configure the API server admission plugins.
-        admissionControl:
-            - name: PodSecurity # Name is the name of the admission controller.
-              # Configuration is an embedded configuration object to be used as the plugin's
-              configuration:
-                apiVersion: pod-security.admission.config.k8s.io/v1alpha1
-                defaults:
-                    audit: restricted
-                    audit-version: latest
-                    enforce: baseline
-                    enforce-version: latest
-                    warn: restricted
-                    warn-version: latest
-                exemptions:
-                    namespaces:
-                        - kube-system
-                    runtimeClasses: []
-                    usernames: []
-                kind: PodSecurityConfiguration
-        # Configure the API server audit policy.
-        auditPolicy:
-            apiVersion: audit.k8s.io/v1
-            kind: Policy
-            rules:
-                - level: Metadata
+        disablePodSecurityPolicy: true
+       #admissionControl:
+       #    - name: PodSecurity # Name is the name of the admission controller.
+       #      # Configuration is an embedded configuration object to be used as the plugin's
+       #      configuration:
+       #        apiVersion: pod-security.admission.config.k8s.io/v1alpha1
+       #        kind: PodSecurityConfiguration
+       #        defaults:
+       #            audit: restricted
+       #            audit-version: latest
+       #            enforce: baseline
+       #            enforce-version: latest
+       #            warn: restricted
+       #            warn-version: latest
+       #        exemptions:
+       #            namespaces:
+       #                - kube-system
+       #            runtimeClasses: []
+       #            usernames: []
+       ## Configure the API server audit policy.
+       #auditPolicy:
+       #    apiVersion: audit.k8s.io/v1
+       #    kind: Policy
+       #    rules:
+       #        - level: Metadata
     # Controller manager server specific configuration options.
     controllerManager:
         image: k8s.gcr.io/kube-controller-manager:v1.25.4 # The container image used in the controller manager manifest.
