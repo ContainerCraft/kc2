@@ -82,7 +82,7 @@ spec:
       - name: cloudinitdisk
         cloudInitNoCloud:
           secretRef:
-            name: talos-controlplane-userdata
+            name: talos-controlplane-init-userdata
       - name: c01-talos-disk-vda-root
         dataVolume:
           name: c01-talos-volume-vda-root

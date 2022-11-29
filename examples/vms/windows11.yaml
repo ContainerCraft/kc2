@@ -9,19 +9,19 @@ metadata:
     app: windows
 spec:
   dataVolumeTemplates:
-  - metadata:
-      name: windows-iso
-    spec:
-      pvc:
-        accessModes:
-        - ReadWriteMany
-        resources:
-          requests:
-            storage: 8G
-        storageClassName: truenas-flash-nfs
-      source:
-        registry:
-          url: "docker://192.168.1.2:32000/usrbinkat/win11:22h2"
+  # metadata:
+  #   name: windows-iso
+  # spec:
+  #   pvc:
+  #     accessModes:
+  #     - ReadWriteMany
+  #     resources:
+  #       requests:
+  #         storage: 8G
+  #     storageClassName: truenas-flash-nfs
+  #   source:
+  #     registry:
+  #       url: "docker://192.168.1.2:32000/usrbinkat/win11:22h2"
   - metadata:
       name: windows-volume-c-root
     spec:
@@ -78,11 +78,11 @@ spec:
           autoattachPodInterface: false
           autoattachSerialConsole: true
           disks:
-          - name: iso
-            bootOrder: 2
-            cdrom:
-              bus: sata
-              readonly: true
+          # name: iso
+          # bootOrder: 2
+          # cdrom:
+          #   bus: sata
+          #   readonly: true
           - name: windows-disk-c-root
             bootOrder: 1
             disk:
@@ -135,6 +135,6 @@ spec:
       - name: windows-disk-d-data
         dataVolume:
           name: windows-volume-d-data
-      - name: iso
-        dataVolume:
-          name: windows-iso
+      # name: iso
+      # dataVolume:
+      #   name: windows-iso
