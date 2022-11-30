@@ -53,7 +53,7 @@ spec:
             devices.kubevirt.io/kvm: "1"
         devices:
           autoattachGraphicsDevice: false
-          autoattachPodInterface: false
+          autoattachPodInterface: true
           autoattachSerialConsole: true
           disks:
           - name: cloudinitdisk
@@ -81,6 +81,22 @@ spec:
       volumes:
       - name: cloudinitdisk
         cloudInitNoCloud:
+          networkData: |
+            network:
+              version: 2
+              ethernets:
+                eth0:
+                  dhcp4: true
+                  gateway4: 192.168.1.1
+                  nameservers:
+                    search: [home.arpa]
+                    addresses: [8.8.8.8]
+                eth1:
+                  dhcp4: true
+                  gateway4: 192.168.1.1
+                  nameservers:
+                    search: [home.arpa]
+                    addresses: [8.8.8.8]
           secretRef:
             name: talos-controlplane-init-userdata
       - name: c01-talos-disk-vda-root
