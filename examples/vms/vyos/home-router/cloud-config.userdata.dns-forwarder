@@ -5,10 +5,10 @@ vyos_config_commands:
   - configure
   - set firewall all-ping 'enable'
   - set firewall syn-cookies 'enable'
-  - set firewall config-trap 'disable'
   - set firewall log-martians 'enable'
-  - set firewall ip-src-route 'disable'
   - set firewall send-redirects 'enable'
+  - set firewall config-trap 'disable'
+  - set firewall ip-src-route 'disable'
   - set firewall broadcast-ping 'disable'
   - set firewall ipv6-src-route 'disable'
   - set firewall source-validation 'disable'
@@ -58,14 +58,14 @@ vyos_config_commands:
   - set interfaces loopback lo
   - set nat source rule 100 outbound-interface 'eth0'
   - set nat source rule 100 translation address 'masquerade'
-  - set protocols static route 0.0.0.0/0 next-hop 10.0.0.1
+  - set protocols static route 0.0.0.0/0 next-hop 10.42.0.1
   - set service dhcp-server shared-network-name LAN subnet 192.168.1.0/24 domain-name 'home.arpa'
   - set service dhcp-server shared-network-name LAN subnet 192.168.1.0/24 default-router '192.168.1.1'
   - set service dhcp-server shared-network-name LAN subnet 192.168.1.0/24 range 0 start '192.168.1.100'
   - set service dhcp-server shared-network-name LAN subnet 192.168.1.0/24 range 0 stop '192.168.1.249'
   - set service dhcp-server shared-network-name LAN subnet 192.168.1.0/24 lease '86400'
   - set service dhcp-server hostfile-update
-  - set service dhcp-server shared-network-name LAN subnet 192.168.1.0/24 dns-server '192.168.1.1'
+  - set service dhcp-server shared-network-name LAN subnet 192.168.1.0/16 dns-server '192.168.1.1'
   - set service dns forwarding cache-size '1000'
   - set service dns forwarding allow-from '0.0.0.0/0'
   - set service dns forwarding listen-address '0.0.0.0'

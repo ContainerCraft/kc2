@@ -1,28 +1,26 @@
 apiVersion: kubevirt.io/v1alpha3
 kind: VirtualMachine
 metadata:
-  name: vyos-blue-wan0
+  name: opnsense-blue-wan0
   namespace: default
   generation: 1
   labels:
-    kubevirt.io/os: linux
-    app.ccio.io/vyos: gw1
-    app.ccio.io/deployment: blue
+    kubevirt.io/os: FreeBSD
+    kubevirt.io/flavor: opnsense
+    app.ccio.io/opnsense: gw1
 spec:
   running: true
   template:
     metadata:
       labels:
-        kubevirt.io/os: linux
-        app.ccio.io/vyos: gw1
-        app.ccio.io/deployment: blue
+        app.ccio.io/opnsense: gw1
     spec:
       terminationGracePeriodSeconds: 0
       domain:
         cpu:
-          cores: 1
+          cores: 4
           threads: 1
-          sockets: 4
+          sockets: 1
           model: host-passthrough
           dedicatedCpuPlacement: false
         machine:
@@ -31,42 +29,33 @@ spec:
           requests:
             memory: 2G
         devices:
-          autoattachPodInterface: false
           autoattachSerialConsole: true
           autoattachGraphicsDevice: true
-          networkInterfaceMultiqueue: false
+          networkInterfaceMultiqueue: true
+          autoattachPodInterface: false
           rng: {}
           disks:
           - name: disk-vda-root
             disk:
               bus: virtio
-          - name: cloudinitdisk
-            cdrom:
-              bus: sata
-              readonly: true
           interfaces:
           - name: eth0
+            macAddress: 3a:5e:2c:86:02:19
             model: virtio
-            macAddress: fe:a6:f3:2d:7b:76
             bridge: {}
           - name: eth1
-            macAddress: 3a:5e:2c:86:02:19
+            macAddress: fe:a6:f3:2d:7b:76
             model: virtio
             bridge: {}
       networks:
       - name: eth0
         multus:
-          networkName: nadwan0
+          networkName: nadbr0
       - name: eth1
         multus:
-          networkName: nadbr0
+          networkName: nadwan0
       volumes:
       - name: disk-vda-root
         containerDisk:
-          image: 192.168.1.2:32000/containercraft/vyos:1.4-rolling
-          #image: quay.io/containercraft/vyos:1.4-rolling
+          image: 192.168.1.2:32000/containercraft/opnsense:23
           imagePullPolicy: IfNotPresent
-      - name: cloudinitdisk
-        cloudInitNoCloud:
-          secretRef:
-            name: wan0vyos-cloudconfig

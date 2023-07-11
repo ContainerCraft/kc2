@@ -1,22 +1,45 @@
 apiVersion: kubevirt.io/v1alpha3
 kind: VirtualMachine
 metadata:
-  name: vyos-blue-wan0
+  name: opnsense-blue-wan0
   namespace: default
   generation: 1
   labels:
     kubevirt.io/os: linux
-    app.ccio.io/vyos: gw1
-    app.ccio.io/deployment: blue
+    node: "qotom"
+    app: opnsense-wan0
 spec:
   running: true
+  dataVolumeTemplates:
+  - metadata:
+      name: opnsense-blue-wan0-root-vda
+      annotations:
+        kubevirt.io/provisionOnNode: "qotom"
+    spec:
+      config:
+        featureGates:
+        - HonorWaitForFirstConsumer
+      nodeSelector:
+        node-role.kubernetes.io/wan: ""
+      pvc:
+        accessModes:
+        - ReadWriteOnce
+        resources:
+          requests:
+            storage: 16G
+        storageClassName: hostpath-provisioner
+      source:
+        registry:
+          url: "docker://192.168.1.2:32000/ccio/opnsense:23"
+          imagePullPolicy: IfNotPresent
   template:
     metadata:
       labels:
-        kubevirt.io/os: linux
-        app.ccio.io/vyos: gw1
-        app.ccio.io/deployment: blue
+        kubevirt.io/domain: opnsense
+        app.ccio.vyos/wan: blue
     spec:
+      nodeSelector:
+        node-role.kubernetes.io/wan: ""
       terminationGracePeriodSeconds: 0
       domain:
         cpu:
@@ -29,7 +52,7 @@ spec:
           type: q35
         resources:
           requests:
-            memory: 2G
+            memory: 4G
         devices:
           autoattachPodInterface: false
           autoattachSerialConsole: true
@@ -40,17 +63,15 @@ spec:
           - name: disk-vda-root
             disk:
               bus: virtio
-          - name: cloudinitdisk
-            cdrom:
-              bus: sata
-              readonly: true
+          #- name: cloudinitdisk
+          #  cdrom:
+          #    bus: sata
+          #    readonly: true
           interfaces:
           - name: eth0
             model: virtio
-            macAddress: fe:a6:f3:2d:7b:76
             bridge: {}
           - name: eth1
-            macAddress: 3a:5e:2c:86:02:19
             model: virtio
             bridge: {}
       networks:
@@ -62,11 +83,5 @@ spec:
           networkName: nadbr0
       volumes:
       - name: disk-vda-root
-        containerDisk:
-          image: 192.168.1.2:32000/containercraft/vyos:1.4-rolling
-          #image: quay.io/containercraft/vyos:1.4-rolling
-          imagePullPolicy: IfNotPresent
-      - name: cloudinitdisk
-        cloudInitNoCloud:
-          secretRef:
-            name: wan0vyos-cloudconfig
+        dataVolume:
+          name: opnsense-blue-wan0-root-vda
