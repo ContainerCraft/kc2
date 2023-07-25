@@ -1,0 +1,6 @@
+apiVersion: k8s.cni.cncf.io/v1
+kind: NetworkAttachmentDefinition
+metadata:
+  name: nadwan0
+spec:
+  config: '{"cniVersion":"0.3.1","name":"wan0","plugins":[{"type":"bridge","bridge":"wan0","ipam":{}},{"type":"tuning"}]}'
