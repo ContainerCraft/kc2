@@ -173,11 +173,11 @@ The network is segmented into distinct VLANs and IP subnets to provide isolation
 
 ## IP Address Management (IPAM)
 
-| **Hostname**  | **IP Address**       | **Subnet**       | **VLAN** | **MAC Address**   | **Role**       | **Interface** | **Notes**                     |
-|---------------|----------------------|------------------|----------|-------------------|----------------|---------------|
-| vyos-router   | `10.0.1.1`           | `10.0.1.0/24`    | 1        | Randomized        | Router         | `eth0`        | Untagged LAN.                 |
-| vyos-router   | DHCP (via ISP)       | WAN (dynamic)    | 91       | Randomized        | Router         | `eth0.91`     | Primary WAN.                  |
-| IoT-device-1  | `10.0.20.101`        | `10.0.20.0/24`   | 20       | Randomized        | IoT Device     | `eth0.20`     | Smart Thermostat.             |
-| DMZ-server-1  | `173.26.30.101`      | `173.26.30.0/24` | 30       | Randomized        | DMZ Server     | `eth0.30`     | Public-facing web server.     |
-| mgmt-switch-1 | `173.26.10.2`        | `173.26.10.0/24` | 10       | Randomized        | Switch         | `eth0.10`     | Management switch connection. |
+| **Hostname**     | **IP Address**     | **Subnet**       | **VLAN** | **MAC Address**   | **Role**       | **Interface** | **Notes** |
+|---------------|--------------------|------------------|----------|-------------------|----------------|---------------|-----------------|
+| vyos-router   | `10.0.1.1`           | `10.0.1.0/24`      | 1        | Randomized        | Router         | `eth0`          | Untagged LAN.                 |
+| vyos-router   | DHCP (via ISP)     | WAN (dynamic)    | 91       | Randomized        | Router         | `eth0.91`       | Primary WAN.                  |
+| IoT-device-1  | `10.0.20.101`        | `10.0.20.0/24  `   | 20       | Randomized        | IoT Device     | `eth0.20  `     | Smart Thermostat.             |
+| DMZ-server-1  | `173.26.30.101`      | `173.26.30.0/  24` | 30       | Randomized        | DMZ Server     | `eth0.30  `     | Public-facing web server.     |
+| mgmt-switch-1 | `173.26.10.2`        | `173.26.10.0/  24` | 10       | Randomized        | Switch         | `eth0.10  `     | Management switch connection. |
 
