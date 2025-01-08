@@ -1,0 +1,67 @@
+apiVersion: kubevirt.io/v1alpha3
+kind: VirtualMachine
+metadata:
+  name: vyos-blue-wan0
+  namespace: default
+  generation: 1
+  labels:
+    kubevirt.io/os: linux
+    app.ccio.io/vyos: gw1
+    app.ccio.io/deployment: blue
+spec:
+  running: true
+  template:
+    metadata:
+      labels:
+        kubevirt.io/os: linux
+        app.ccio.io/vyos: gw1
+        app.ccio.io/deployment: blue
+    spec:
+      terminationGracePeriodSeconds: 0
+      domain:
+        cpu:
+          cores: 1
+          threads: 1
+          sockets: 3
+          model: host-passthrough
+          dedicatedCpuPlacement: false
+        machine:
+          type: q35
+        resources:
+          limits:
+            memory: 4G
+          requests:
+            memory: 1G
+        devices:
+          autoattachPodInterface: false
+          autoattachSerialConsole: true
+          autoattachGraphicsDevice: true
+          networkInterfaceMultiqueue: false
+          rng: {}
+          disks:
+          - name: disk-vda-root
+            disk:
+              bus: virtio
+          - name: cloudinitdisk
+            cdrom:
+              bus: sata
+              readonly: true
+          interfaces:
+          - name: eth0
+            model: virtio
+            macAddress: fe:a6:f3:2d:7b:76
+            bridge: {}
+      networks:
+      - name: eth0
+        multus:
+          networkName: br0
+      volumes:
+      - name: disk-vda-root
+        containerDisk:
+          image: docker.io/containercraft/vyos:si240106
+          #image: 192.168.1.2:32000/containercraft/vyos:1.4-rolling
+          imagePullPolicy: IfNotPresent
+      - name: cloudinitdisk
+        cloudInitNoCloud:
+          secretRef:
+            name: wan01-vyos-cloudconfig

@@ -83,20 +83,16 @@ spec:
         cloudInitNoCloud:
           networkData: |
             network:
-              version: 2
-              ethernets:
-                eth0:
-                  dhcp4: true
-                  gateway4: 192.168.1.1
-                  nameservers:
-                    search: [home.arpa]
-                    addresses: [8.8.8.8]
-                eth1:
-                  dhcp4: true
-                  gateway4: 192.168.1.1
-                  nameservers:
-                    search: [home.arpa]
-                    addresses: [8.8.8.8]
+              version: 1
+              config:
+              - type: physical
+                name: eth0
+                subnets:
+                  - type: dhcp
+              - type: physical
+                name: eth1
+                subnets:
+                  - type: dhcp
           secretRef:
             name: talos-controlplane-init-userdata
       - name: c01-talos-disk-vda-root
