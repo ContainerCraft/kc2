@@ -1,67 +1,82 @@
-apiVersion: kubevirt.io/v1alpha3
+---
+# VyOS VM Specification for KubeVirt
+# Optimized and tuned for secure, segmented network architecture as described in README.md
+
+apiVersion: kubevirt.io/v1
 kind: VirtualMachine
 metadata:
-  name: vyos-blue-wan0
+  name: vyos-blue
   namespace: default
-  generation: 1
   labels:
-    kubevirt.io/os: linux
-    app.ccio.io/vyos: gw1
-    app.ccio.io/deployment: blue
+    app: vyos
+  annotations:
+    # Enable live migration for VMs with pod bridge interfaces
+    kubevirt.io/allow-pod-bridge-network-live-migration: "true"
+    # Ensure the VM is re-provisioned if the node changes
+    kubevirt.io/provisionOnNodeChange: "true"
 spec:
-  running: true
+  # Automatically restarts the VM on failure
+  runStrategy: RerunOnFailure
   template:
     metadata:
       labels:
-        kubevirt.io/os: linux
-        app.ccio.io/vyos: gw1
-        app.ccio.io/deployment: blue
+        app: vyos
+        # Indicate this VM is a router in the network
+        vyos-role: router
     spec:
+      # Sets the VM's hostname
+      hostname: vyos-blue
       terminationGracePeriodSeconds: 0
       domain:
         cpu:
-          cores: 1
-          threads: 1
-          sockets: 3
+          # Configures the VM with 2 CPU cores
+          # Single CPU socket for simplicity
+          # Two threads per core for multi-threaded processing
+          # Use the host-passthrough cpu for near native performance
+          cores: 2
+          sockets: 1
+          threads: 2
           model: host-passthrough
-          dedicatedCpuPlacement: false
-        machine:
-          type: q35
-        resources:
-          limits:
-            memory: 4G
-          requests:
-            memory: 1G
+        memory:
+          # Allocate 2GiB of memory to the VM
+          guest: 2Gi
         devices:
-          autoattachPodInterface: false
-          autoattachSerialConsole: true
-          autoattachGraphicsDevice: true
-          networkInterfaceMultiqueue: false
+          # Add a random number generator device for entropy
           rng: {}
+          autoattachPodInterface: false
+          # Enable access to a serial console for management
+          autoattachSerialConsole: true
+          # Disable graphical device attachment since it's not needed for VyOS
+          autoattachGraphicsDevice: false
           disks:
-          - name: disk-vda-root
-            disk:
-              bus: virtio
-          - name: cloudinitdisk
-            cdrom:
-              bus: sata
-              readonly: true
+            - name: containerdisk
+              bootOrder: 1 # Configures this disk as the boot disk
+              disk:
+                bus: virtio
+            - name: cloudinitdisk
+              disk:
+                bus: virtio
           interfaces:
-          - name: eth0
-            model: virtio
-            macAddress: fe:a6:f3:2d:7b:76
-            bridge: {}
+            # Configures a bridge interface for external network connectivity
+            - bridge: {}
+              name: eth0
+              # Assign a static MAC address for deterministic router iface
+              macAddress: "52:54:00:ab:cd:ef"
       networks:
-      - name: eth0
-        multus:
-          networkName: br0
+        # Connects the VM to the Multus network "br0", a managed switch trunk port
+        - name: eth0
+          multus:
+            networkName: br0
       volumes:
-      - name: disk-vda-root
-        containerDisk:
-          image: docker.io/containercraft/vyos:si240106
-          #image: 192.168.1.2:32000/containercraft/vyos:1.4-rolling
-          imagePullPolicy: IfNotPresent
-      - name: cloudinitdisk
-        cloudInitNoCloud:
-          secretRef:
-            name: wan01-vyos-cloudconfig
+        - name: containerdisk
+          # Use the containerDisk ephemeral OS for VyOS
+          containerDisk:
+            # Pull VyOS rolling release qcow2 disk image from ContainerCraft on Docker Hub
+            image: docker.io/containercraft/vyos:si240106
+            imagePullPolicy: IfNotPresent
+        # Attach the VyOS config user-data from Kubernetes secret for declarative configuration on boot
+        - name: cloudinitdisk
+          cloudInitNoCloud:
+            secretRef:
+              name: wan0vyos-cloudconfig
+
