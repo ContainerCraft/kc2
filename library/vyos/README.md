@@ -74,7 +74,6 @@ The network runs on a single interface acting as a VLAN trunk (`eth0`). Traffic 
 > ❌ = Untagged
 > 🚫 = Excluded
 >
-```
 
 #### Explanation of the Configuration:
 1. **Ports 01-08 (1GbE)**:
@@ -220,9 +219,4 @@ The integration with KubeVirt allows for flexibility and scalability, making it 
 - The VyOS community for creating an excellent open-source router OS that serves as the backbone of this architecture. 🛡️
 - KubeVirt for simplifying VM deployments on Kubernetes and enabling seamless integration with modern cloud-native environments. ☁️
 - Mermaid.js for enabling simple and version-controlled diagrams that enhance documentation clarity. ✨🔗📊
-
----
-
-Together, let's build secure, modern, and efficient networks! 🌐🔒💡
-
 
