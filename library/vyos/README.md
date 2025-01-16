@@ -16,19 +16,6 @@ VyOS serves as a powerful and flexible router OS, enabling detailed control over
 - **Cloud-Native Integration**: ☁️ Deployment on Kubernetes via KubeVirt with modern specifications for cloud-native environments enables easy integration with containerized workflows.
 - **Community-Driven Documentation**: 📚 Detailed guides, diagrams, and configuration examples empower contributors and users with the knowledge to customize and extend the architecture. 🌐🔥🛡️
 
-## Project Components ⚙️⚙️
-
-This repository includes the following files:
-
-### 1. `README.md` 📝📚✨
-This document provides a comprehensive overview of the project and serves as a reference guide for setup and usage. It is intended to help users quickly understand the project scope and operational details.
-
-### 2. `cloud-config.userdata` 🛠️🔧📄
-Defines initial VyOS configuration using cloud-init. Includes hostname, interfaces, VLANs, firewall rules, and other essential settings for first-boot automation. This ensures the VyOS instance is ready for use immediately upon deployment.
-
-### 3. `vyos-blue.yaml` 📋🔗🛠️
-The KubeVirt VM specification defining the VyOS instance. This file aligns with modern `kubevirt.io/v1` specifications, ensuring compatibility and maintainability while adhering to best practices for virtualization.
-
 ## Network Architecture 🌐
 
 ### Physical Design 🔌
@@ -184,6 +171,19 @@ Traffic policies enforce:
 - Limited cross-zone communication (e.g., IoT cannot access LAN), providing an additional layer of security by default. 🔐🔁🌉
 
 ## Getting Started 🛠️🚀📋
+
+## SDN Components ⚙️⚙️
+
+This repository includes the following files:
+
+### 1. `README.md` 📝📚✨
+This document provides a comprehensive overview of the project and serves as a reference guide for setup and usage. It is intended to help users quickly understand the project scope and operational details.
+
+### 2. `cloud-config.userdata` 🛠️🔧📄
+Defines initial VyOS configuration using cloud-init. Includes hostname, interfaces, VLANs, firewall rules, and other essential settings for first-boot automation. This ensures the VyOS instance is ready for use immediately upon deployment.
+
+### 3. `vyos-blue.yaml` 📋🔗🛠️
+The KubeVirt VM specification defining the VyOS instance. This file aligns with modern `kubevirt.io/v1` specifications, ensuring compatibility and maintainability while adhering to best practices for virtualization.
 
 ### Prerequisites 📦⚙️✅
 
