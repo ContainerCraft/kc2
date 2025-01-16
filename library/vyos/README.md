@@ -108,57 +108,80 @@ Traffic policies enforce:
 Below is a representation of the architecture using Mermaid.js:
 
 
-```mermaid
 flowchart TB
-    subgraph WAN_Connectivity ["WAN Connectivity"]
-        ISP["ISP Gateway<br/>Dynamic IP"]
-    end
+    %% Topmost level - WAN Connectivity
+    ISP["ISP Internet Gateway<br/>Dynamic IP"]
+    ISP -->|DHCP| WAN["WAN VLAN 91<br/>DHCP (ISP-assigned)"]
 
-    subgraph VLANs ["VLANs & Subnets"]
+    %% QNAP Switch Layer
+    subgraph QNAP_Switch ["QNAP Switch"]
         direction TB
-        WAN["WAN<br/>VLAN 91<br/>DHCP (ISP)"]
-        LAN["LAN<br/>VLAN 1 (untagged)<br/>10.0.1.0/24"]
-        MGMT["MGMT<br/>VLAN 10<br/>172.26.10.0/24"]
-        IoT["IoT<br/>VLAN 20<br/>10.0.20.0/24"]
-        DMZ["DMZ<br/>VLAN 30<br/>172.26.30.0/24"]
-    end
-
-    subgraph Router ["VyOS Router - High Availability"]
-        direction TB
-        Router1["VyOS Instance 1<br/>eth0.91 (WAN VLAN)"]
-        Router2["VyOS Instance 2<br/>eth0.91 (WAN VLAN)"]
-        Router1 & Router2 -- Anti-affinity --> VLANs
-    end
-
-    subgraph Talos_Cluster ["Talos Hosts & Trunk Ports"]
-        Talos1["Talos Host 1<br/>br0"]
-        Talos2["Talos Host 2<br/>br0"]
-        Talos3["Talos Host 3<br/>br0"]
-        Talos1 --> Router1
-        Talos2 --> Router2
-        Talos1 & Talos2 & Talos3 --> VLANs
-    end
-
-    subgraph Switch_Config ["QNAP Switch"]
-        Port01["Port 01-08<br/>Server Room - LAN"]
+        Port01["Port 01-08<br/>Server Room (LAN Access)"]
         Port09["Port 09<br/>Trunk (Talos Host 1)"]
         Port10["Port 10<br/>Trunk (Talos Host 2)"]
         Port11["Port 11<br/>Trunk (Talos Host 3)"]
-        Port09 & Port10 & Port11 --> Talos_Cluster
+        WAN --> QNAP
+        QNAP --> Port01
+        QNAP --> Port09
+        QNAP --> Port10
+        QNAP --> Port11
     end
 
-    subgraph Traffic_Policies ["Traffic Flow Policies"]
-        Outbound["Outbound NAT<br/>Masquerade"]
-        Isolation["VLAN Isolation<br/>Strict Rules"]
+    %% Talos Host Cluster Layer
+    subgraph Talos_Cluster ["Talos Host Cluster"]
+        direction TB
+        Talos1["Talos Host 1<br/>br0"]
+        Talos2["Talos Host 2<br/>br0"]
+        Talos3["Talos Host 3<br/>br0"]
+        Port09 --> Talos1
+        Port10 --> Talos2
+        Port11 --> Talos3
+    end
+
+    %% VyOS High-Availability Router
+    subgraph VyOS_Router_HA ["VyOS Router/Firewall - High Availability"]
+        direction TB
+        VyOS1["VyOS Instance 1<br/>eth0.91 (WAN VLAN)"]
+        VyOS2["VyOS Instance 2<br/>eth0.91 (WAN VLAN)"]
+        VyOS1 -->|Anti-affinity| Talos1
+        VyOS2 -->|Anti-affinity| Talos2
+    end
+
+    %% VLANs and Traffic Segmentation
+    subgraph VLAN_Segments ["VLANs & Traffic Segmentation"]
+        direction TB
+        LAN["LAN VLAN 1<br/>10.0.1.0/24"]
+        MGMT["MGMT VLAN 10<br/>172.26.10.0/24"]
+        IoT["IoT VLAN 20<br/>10.0.20.0/24"]
+        DMZ["DMZ VLAN 30<br/>172.26.30.0/24"]
+        DMZ_VMs["DMZ Servers<br/>(e.g., Public Services)"]
+        MGMT_Devices["Management Devices<br/>(Switch MGMT, IPMI, iDRAC)"]
+        IoT_Devices["IoT Devices<br/>(Sensors, Cameras)"]
+
+        VyOS1 -->|Routing| LAN
+        VyOS2 -->|Routing| MGMT
+        VyOS1 -->|Routing| IoT
+        VyOS2 -->|Routing| DMZ
+
+        LAN -->|Access| Devices_LAN["Workstations & Desktops"]
+        MGMT -->|Access| MGMT_Devices
+        IoT -->|Access| IoT_Devices
+        DMZ -->|Access| DMZ_VMs
+    end
+
+    %% Traffic Flow Policies
+    subgraph Traffic_Policies ["Traffic Policies & Security"]
+        direction TB
+        NAT["Outbound NAT<br/>Masquerade"]
         Firewall["Firewall Rules<br/>Zone-based Access"]
-        Monitoring["DHCP & Flow Accounting<br/>Logs & Metrics"]
+        Isolation["Strict VLAN Isolation"]
+        Monitoring["Monitoring<br/>Logs & Metrics"]
+        NAT --> VyOS_Router_HA
+        Firewall --> VyOS_Router_HA
+        Isolation --> VLAN_Segments
+        Monitoring --> VLAN_Segments
     end
 
-    ISP --> Router
-    Router --> Switch_Config
-    Switch_Config --> Traffic_Policies
-    Traffic_Policies --> VLANs
-```
 
 
 This diagram illustrates the logical relationships between zones, ensuring clarity in network design and simplifying troubleshooting efforts. 📐🔍📶
