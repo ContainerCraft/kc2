@@ -68,6 +68,16 @@ flowchart TB
         Port11 --> Talos3
     end
 
+    %% Traffic Flow Policies and Security (moved below Talos Cluster)
+    subgraph Traffic_Policies ["Traffic Policies & Security"]
+        direction TB
+        NAT["Outbound NAT<br/>Masquerade"]
+        Firewall["Firewall Rules<br/>Zone-based Access"]
+        Isolation["Strict VLAN Isolation"]
+        Monitoring["Monitoring<br/>Logs & Metrics"]
+    end
+    Talos_Cluster --> Traffic_Policies
+
     %% VyOS High-Availability Router
     subgraph VyOS_Router_HA ["VyOS Router/Firewall - High Availability"]
         direction TB
@@ -76,6 +86,7 @@ flowchart TB
         VyOS1 -->|Anti-affinity| Talos1
         VyOS2 -->|Anti-affinity| Talos2
     end
+    Traffic_Policies --> VyOS_Router_HA
 
     %% VLANs and Traffic Segmentation
     subgraph VLAN_Segments ["VLANs & Traffic Segmentation"]
@@ -98,19 +109,7 @@ flowchart TB
         IoT -->|Access| IoT_Devices
         DMZ -->|Access| DMZ_VMs
     end
-
-    %% Traffic Flow Policies
-    subgraph Traffic_Policies ["Traffic Policies & Security"]
-        direction TB
-        NAT["Outbound NAT<br/>Masquerade"]
-        Firewall["Firewall Rules<br/>Zone-based Access"]
-        Isolation["Strict VLAN Isolation"]
-        Monitoring["Monitoring<br/>Logs & Metrics"]
-        NAT --> VyOS_Router_HA
-        Firewall --> VyOS_Router_HA
-        Isolation --> VLAN_Segments
-        Monitoring --> VLAN_Segments
-    end
+    VyOS_Router_HA --> VLAN_Segments
 ```
 
 This diagram illustrates the logical relationships between zones, ensuring clarity in network design and simplifying troubleshooting efforts. 📐🔍📶
