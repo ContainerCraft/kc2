@@ -1,14 +1,14 @@
 # VyOS Network Architecture
 
-A Secure, Scalable, and Modern Networking Appliance on Kubernetes 🌐✨🚀
+A Secure, Scalable, and Modern Networking Appliance on Kubernetes ✨🚀
 
 Welcome to VyOS & Router / Firewall Network Architecture! This repository provides a comprehensive implementation of a secure, segmented, and scalable network architecture using VyOS as the core routing and network management platform. Whether you're a hobbyist, small business administrator, or professional network engineer, this project aims to deliver a versatile framework adaptable to various environments, including home labs, SMB networks, and enterprise scenarios. 🏠💼🌟
 
-## Overview 🌟🛠️🔒
+## Overview 🌟
 
-VyOS serves as a powerful and flexible router OS, enabling detailed control over network configurations and security. This project leverages VyOS to create a multi-VLAN architecture that isolates traffic between zones while providing efficient routing and firewall capabilities. The design adheres to best practices in network segmentation and secure deployment, offering clear documentation and a pathway to production-grade deployments. By implementing this architecture, users can effectively manage complex network requirements while maintaining robust security measures. 💡📚✅
+VyOS serves as a powerful and flexible router OS, enabling detailed control over network configurations and security. This project leverages VyOS to create a multi-VLAN architecture that isolates traffic between zones while providing efficient routing and firewall capabilities. The design adheres to best practices in network segmentation and secure deployment, offering clear documentation and a pathway to production-grade deployments. By implementing this architecture, users can effectively manage complex network requirements while maintaining robust security measures.
 
-### Features 🔧🚀📖
+### Features 🔧📖
 
 - **Comprehensive Segmentation**: 📊 Logical separation of traffic into zones (LAN, MGMT, IoT, DMZ) via VLANs and subnets ensures clear organization and enhanced security.
 - **Security-Focused**: 🛡️ Fine-grained firewall rules and NAT configurations to protect resources and control access, allowing administrators to enforce stringent policies across all zones.
@@ -16,7 +16,7 @@ VyOS serves as a powerful and flexible router OS, enabling detailed control over
 - **Cloud-Native Integration**: ☁️ Deployment on Kubernetes via KubeVirt with modern specifications for cloud-native environments enables easy integration with containerized workflows.
 - **Community-Driven Documentation**: 📚 Detailed guides, diagrams, and configuration examples empower contributors and users with the knowledge to customize and extend the architecture. 🌐🔥🛡️
 
-## Project Components 📂📑⚙️
+## Project Components ⚙️⚙️
 
 This repository includes the following files:
 
@@ -26,15 +26,15 @@ This document provides a comprehensive overview of the project and serves as a r
 ### 2. `cloud-config.userdata` 🛠️🔧📄
 Defines initial VyOS configuration using cloud-init. Includes hostname, interfaces, VLANs, firewall rules, and other essential settings for first-boot automation. This ensures the VyOS instance is ready for use immediately upon deployment.
 
-### 3. `deploy.sh` 📜⚙️⟳
-A shell script to manage the lifecycle of the VyOS virtual machine on Kubernetes. This script automates tasks such as creating secrets, deploying the VM, and handling updates to streamline operational management.
-
-### 4. `vyos-blue.yaml` 📋🔗🛠️
+### 3. `vyos-blue.yaml` 📋🔗🛠️
 The KubeVirt VM specification defining the VyOS instance. This file aligns with modern `kubevirt.io/v1` specifications, ensuring compatibility and maintainability while adhering to best practices for virtualization.
 
-## Network Architecture 🗾🌐💦
+## Network Architecture 🌐
 
-### Logical Design 🧠🔒📂
+### Physical Design 🔌
+The network runs on a single interface acting as a VLAN trunk (`eth0`). Traffic segmentation is achieved through VLAN tagging, with the WAN connection also on a tagged VLAN. This design simplifies physical infrastructure requirements while maintaining logical isolation. 🧙
+
+### Logical Design 🧠
 The network is segmented into distinct VLANs and subnets to achieve robust security and efficient traffic management. Each VLAN serves a specific purpose:
 
 | **Zone** | **VLAN ID** | **Subnet**         | **Purpose**                                      |
@@ -47,66 +47,8 @@ The network is segmented into distinct VLANs and subnets to achieve robust secur
 
 Each VLAN and its corresponding subnet are configured to minimize conflicts, ensuring reliable operation in environments with multiple overlapping networks. 🔑🔧🌐
 
-### Physical Design 🔌🔒🌎
-The network runs on a single interface acting as a VLAN trunk (`eth0`). Traffic segmentation is achieved through VLAN tagging, with the WAN connection also on a tagged VLAN. This design simplifies physical infrastructure requirements while maintaining logical isolation. 🧙‍♂️⚖️
-
-### QNAP Switch Configuration
-
-| Port | Description                    | VLAN 1 (LAN) | VLAN 10 (MGMT) | VLAN 20 (IoT) | VLAN 30 (DMZ) | VLAN 91 (WAN) |
-|------|--------------------------------|--------------|----------------|---------------|---------------|---------------|
-| 01   | General server room use        | ❌           | 🚫             | 🚫            | 🚫            | 🚫            |
-| 02   | General server room use        | ❌           | 🚫             | 🚫            | 🚫            | 🚫            |
-| 03   | General server room use        | ❌           | 🚫             | 🚫            | 🚫            | 🚫            |
-| 04   | General server room use        | ❌           | 🚫             | 🚫            | 🚫            | 🚫            |
-| 05   | General server room use        | ❌           | 🚫             | 🚫            | 🚫            | 🚫            |
-| 06   | General server room use        | ❌           | 🚫             | 🚫            | 🚫            | 🚫            |
-| 07   | General server room use        | ❌           | 🚫             | 🚫            | 🚫            | 🚫            |
-| 08   | WAN / Server Room Drop         | 🚫           | 🚫             | 🚫            | 🚫            | ❌            |
-| 09   | Talos Host 1 (trunk to br0)    | ✅           | ✅             | ✅            | ✅            | ✅            |
-| 10   | Talos Host 2 (trunk to br0)    | ✅           | ✅             | ✅            | ✅            | ✅            |
-| 11   | Talos Host 3 (trunk to br0)    | ✅           | ✅             | ✅            | ✅            | ✅            |
-| 12   | Reserved for expansion         | ✅           | ✅             | ✅            | ✅            | ✅            |
-
-> 
-> Key:
-> 
-> ✅ = Tagged
-> ❌ = Untagged
-> 🚫 = Excluded
->
-
-#### Explanation of the Configuration:
-1. **Ports 01-08 (1GbE)**:
-   - Configured for untagged VLAN 1 traffic (default LAN network: `10.0.1.0/24`).
-   - No tagged VLANs on these ports, suitable for general devices or servers without VLAN tagging support.
-
-2. **Ports 09-11 (10GbE, SFP+ for Talos Hosts)**:
-   - Configured as **trunk ports**:
-     - **Tagged** for VLANs: `10` (MGMT), `20` (IoT), `30` (DMZ), and `91` (WAN).
-     - **Tagged** for VLAN 1 for the LAN traffic (untagged on the Talos hosts, handled by `br0`).
-   - These ports allow full VLAN traffic to pass through for Talos hosts and their Linux bridges (`br0`).
-
-3. **Port 12 (10GbE, Reserved for Future Expansion)**:
-   - Also configured as a trunk with the same VLAN tagging setup as ports 09-11 to support additional Talos nodes or other networking requirements.
-
-#### Notes:
-- **WAN VLAN (91)**: Ensure DHCP configuration is properly applied on VLAN 91 for WAN traffic.
-- **Management VLAN (10)**: Ensure secure access controls are implemented to prevent unauthorized access to the MGMT VLAN.
-- **Tagged vs. Untagged**:
-  - **Tagged (✅)**: VLAN traffic carries VLAN IDs for isolation (used on trunk ports).
-  - **Untagged (❌)**: Default traffic with no VLAN tag (used for general access ports).
-  - **Excluded (🚫)**: VLAN traffic is explicitly
-
-### Traffic Flow 🌊🔄🚦
-Traffic policies enforce:
-
-- Strict isolation between VLANs unless explicitly allowed by firewall rules. 🚧
-- Outbound NAT masquerading for traffic destined to the WAN, ensuring secure and private communication for internal devices. 🔒
-- Limited cross-zone communication (e.g., IoT cannot access LAN), providing an additional layer of security by default. 🔐🔁🌉
-
 ### Deployment Diagram 📊🖼️📡
 Below is a representation of the architecture using Mermaid.js:
-
 
 ```mermaid
 flowchart TB
@@ -184,8 +126,62 @@ flowchart TB
     end
 ```
 
-
 This diagram illustrates the logical relationships between zones, ensuring clarity in network design and simplifying troubleshooting efforts. 📐🔍📶
+
+
+### QNAP Switch Configuration
+
+| Port | Description                    | VLAN 1 (LAN) | VLAN 10 (MGMT) | VLAN 20 (IoT) | VLAN 30 (DMZ) | VLAN 91 (WAN) |
+|------|--------------------------------|--------------|----------------|---------------|---------------|---------------|
+| 01   | General server room use        | ❌           | 🚫             | 🚫            | 🚫            | 🚫            |
+| 02   | General server room use        | ❌           | 🚫             | 🚫            | 🚫            | 🚫            |
+| 03   | General server room use        | ❌           | 🚫             | 🚫            | 🚫            | 🚫            |
+| 04   | General server room use        | ❌           | 🚫             | 🚫            | 🚫            | 🚫            |
+| 05   | General server room use        | ❌           | 🚫             | 🚫            | 🚫            | 🚫            |
+| 06   | General server room use        | ❌           | 🚫             | 🚫            | 🚫            | 🚫            |
+| 07   | General server room use        | ❌           | 🚫             | 🚫            | 🚫            | 🚫            |
+| 08   | WAN / Server Room Drop         | 🚫           | 🚫             | 🚫            | 🚫            | ❌            |
+| 09   | Talos Host 1 (trunk to br0)    | ✅           | ✅             | ✅            | ✅            | ✅            |
+| 10   | Talos Host 2 (trunk to br0)    | ✅           | ✅             | ✅            | ✅            | ✅            |
+| 11   | Talos Host 3 (trunk to br0)    | ✅           | ✅             | ✅            | ✅            | ✅            |
+| 12   | Reserved for expansion         | ✅           | ✅             | ✅            | ✅            | ✅            |
+
+> 
+> Key:
+> 
+> ✅ = Tagged
+> ❌ = Untagged
+> 🚫 = Excluded
+>
+
+#### Explanation of the Configuration:
+1. **Ports 01-08 (1GbE)**:
+   - Configured for untagged VLAN 1 traffic (default LAN network: `10.0.1.0/24`).
+   - No tagged VLANs on these ports, suitable for general devices or servers without VLAN tagging support.
+
+2. **Ports 09-11 (10GbE, SFP+ for Talos Hosts)**:
+   - Configured as **trunk ports**:
+     - **Tagged** for VLANs: `10` (MGMT), `20` (IoT), `30` (DMZ), and `91` (WAN).
+     - **Tagged** for VLAN 1 for the LAN traffic (untagged on the Talos hosts, handled by `br0`).
+   - These ports allow full VLAN traffic to pass through for Talos hosts and their Linux bridges (`br0`).
+
+3. **Port 12 (10GbE, Reserved for Future Expansion)**:
+   - Also configured as a trunk with the same VLAN tagging setup as ports 09-11 to support additional Talos nodes or other networking requirements.
+
+#### Notes:
+- **WAN VLAN (91)**: Ensure DHCP configuration is properly applied on VLAN 91 for WAN traffic.
+- **Management VLAN (10)**: Ensure secure access controls are implemented to prevent unauthorized access to the MGMT VLAN.
+- **Tagged vs. Untagged**:
+  - **Tagged (✅)**: VLAN traffic carries VLAN IDs for isolation (used on trunk ports).
+  - **Untagged (❌)**: Default traffic with no VLAN tag (used for general access ports).
+  - **Excluded (🚫)**: VLAN traffic is explicitly
+
+### Traffic Flow 🌊🔄🚦
+Traffic policies enforce:
+
+- Strict isolation between VLANs unless explicitly allowed by firewall rules. 🚧
+- Outbound NAT masquerading for traffic destined to the WAN, ensuring secure and private communication for internal devices. 🔒
+- Limited cross-zone communication (e.g., IoT cannot access LAN), providing an additional layer of security by default. 🔐🔁🌉
 
 ## Getting Started 🛠️🚀📋
 
