@@ -108,6 +108,7 @@ Traffic policies enforce:
 Below is a representation of the architecture using Mermaid.js:
 
 
+```mermaid
 flowchart TB
     %% Topmost level - WAN Connectivity
     ISP["ISP Internet Gateway<br/>Dynamic IP"]
@@ -181,7 +182,7 @@ flowchart TB
         Isolation --> VLAN_Segments
         Monitoring --> VLAN_Segments
     end
-
+```
 
 
 This diagram illustrates the logical relationships between zones, ensuring clarity in network design and simplifying troubleshooting efforts. 📐🔍📶
