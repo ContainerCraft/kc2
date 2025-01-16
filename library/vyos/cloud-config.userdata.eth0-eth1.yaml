@@ -1,0 +1,64 @@
+#cloud-config
+vyos_config_commands:
+  # Enable configuration mode
+  - configure
+  # Global system settings
+  - set system host-name 'vyos-router'
+  - set system domain-name 'home.arpa'
+  - set system name-server '1.1.1.1'
+  - set system name-server '8.8.8.8'
+  - set system login user kc2admin authentication plaintext-password 'kc2admin'
+  - set system config-management commit-revisions '20'
+  - set system console device ttyS0 speed '9600'
+  # Time synchronization
+  - set system ntp server 0.pool.ntp.org
+  - set system ntp server 1.pool.ntp.org
+  - set system ntp server 2.pool.ntp.org
+  # SSH Service
+  - set service ssh port '2222'
+  - set service ssh listen-address '0.0.0.0'
+  - set service ssh disable-password-authentication 'false'
+  # WAN Configuration (eth0)
+  - set interfaces ethernet eth0 address 'dhcp'
+  - set interfaces ethernet eth0 description 'WAN'
+  - set firewall name WAN-IN default-action 'drop'
+  - set firewall name WAN-LOCAL default-action 'drop'
+  - set interfaces ethernet eth0 firewall in name 'WAN-IN'
+  - set interfaces ethernet eth0 firewall local name 'WAN-LOCAL'
+  # LAN Configuration (eth1)
+  - set interfaces ethernet eth1 address '10.0.1.1/24'
+  - set interfaces ethernet eth1 description 'LAN'
+  - set service dhcp-server shared-network-name LAN subnet 10.0.1.0/24 default-router '10.0.1.1'
+  - set service dhcp-server shared-network-name LAN subnet 10.0.1.0/24 domain-name 'home.arpa'
+  - set service dhcp-server shared-network-name LAN subnet 10.0.1.0/24 range 0 start '10.0.1.100'
+  - set service dhcp-server shared-network-name LAN subnet 10.0.1.0/24 range 0 stop '10.0.1.200'
+  # VLAN Configuration for MGMT, IoT, and DMZ
+  - set interfaces ethernet eth1 vif 10 description 'MGMT'
+  - set interfaces ethernet eth1 vif 10 address '172.26.10.1/24'
+  - set interfaces ethernet eth1 vif 20 description 'IoT'
+  - set interfaces ethernet eth1 vif 20 address '10.0.20.1/24'
+  - set interfaces ethernet eth1 vif 30 description 'DMZ'
+  - set interfaces ethernet eth1 vif 30 address '172.26.30.1/24'
+  - set service dhcp-server shared-network-name MGMT subnet 172.26.10.0/24 default-router '172.26.10.1'
+  - set service dhcp-server shared-network-name MGMT subnet 172.26.10.0/24 range 0 start '172.26.10.100'
+  - set service dhcp-server shared-network-name MGMT subnet 172.26.10.0/24 range 0 stop '172.26.10.200'
+  - set service dhcp-server shared-network-name IoT subnet 10.0.20.0/24 default-router '10.0.20.1'
+  - set service dhcp-server shared-network-name IoT subnet 10.0.20.0/24 range 0 start '10.0.20.100'
+  - set service dhcp-server shared-network-name IoT subnet 10.0.20.0/24 range 0 stop '10.0.20.200'
+  - set service dhcp-server shared-network-name DMZ subnet 172.26.30.0/24 default-router '172.26.30.1'
+  - set service dhcp-server shared-network-name DMZ subnet 172.26.30.0/24 range 0 start '172.26.30.100'
+  - set service dhcp-server shared-network-name DMZ subnet 172.26.30.0/24 range 0 stop '172.26.30.200'
+  # NAT Configuration for Internet Access
+  - set nat source rule 100 outbound-interface 'eth0'
+  - set nat source rule 100 source address '10.0.0.0/8'
+  - set nat source rule 100 translation address 'masquerade'
+  # Firewall Rules
+  - set firewall global-options state-policy established action 'accept'
+  - set firewall global-options state-policy related action 'accept'
+  # Logging and Debugging
+  - set system syslog global facility all level 'info'
+  - set system syslog global facility protocols level 'debug'
+  # Commit and Save
+  - commit
+  - save
+
