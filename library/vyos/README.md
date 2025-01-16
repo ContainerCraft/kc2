@@ -109,61 +109,57 @@ Below is a representation of the architecture using Mermaid.js:
 
 
 ```mermaid
-graph TD
-  subgraph Office_Network["192.168.1.0/24 (Office Network)"]
-    DHCP[DHCP Server]
-  end
-
-  subgraph Server_Room["Server Room"]
-    QNAP[QNAP Switch]
-
-    subgraph Talos_Host_Cluster["Talos Host Cluster"]
-      Talos1["Talos Host 1"]
-      Talos2["Talos Host 2"]
-      Talos3["Talos Host 3"]
-      Talos1_br0["br0.91 (Trunk VLAN 91)"]
-      Talos2_br0["br0.91 (Trunk VLAN 91)"]
-      Talos3_br0["br0.91 (Trunk VLAN 91)"]
-      Talos1 --> Talos1_br0
-      Talos2 --> Talos2_br0
-      Talos3 --> Talos3_br0
+flowchart TB
+    subgraph WAN_Connectivity ["WAN Connectivity"]
+        ISP["ISP Gateway<br/>Dynamic IP"]
     end
-  end
 
-  subgraph VyOS_Router_HA["VyOS Router/Firewall - High Availability"]
-    VyOS_VM1["VyOS Instance 1"]
-    VyOS_VM2["VyOS Instance 2"]
-    eth0_91_VM1["eth0.91 (VLAN 91 - WAN, Instance 1)"]
-    eth0_91_VM2["eth0.91 (VLAN 91 - WAN, Instance 2)"]
-    VyOS_VM1 -->|Anti-affinity| Talos1_br0
-    VyOS_VM2 -->|Anti-affinity| Talos2_br0
-    VyOS_VM1 --> eth0_91_VM1
-    VyOS_VM2 --> eth0_91_VM2
-  end
+    subgraph VLANs ["VLANs & Subnets"]
+        direction TB
+        WAN["WAN<br/>VLAN 91<br/>DHCP (ISP)"]
+        LAN["LAN<br/>VLAN 1 (untagged)<br/>10.0.1.0/24"]
+        MGMT["MGMT<br/>VLAN 10<br/>172.26.10.0/24"]
+        IoT["IoT<br/>VLAN 20<br/>10.0.20.0/24"]
+        DMZ["DMZ<br/>VLAN 30<br/>172.26.30.0/24"]
+    end
 
-  subgraph VLAN_Traffic["VLAN Traffic"]
-    MGMT -->|Access| MGMT_Devices["Switch MGMT, IPMI, iDRAC"]
-    IoT -->|Access| IoT_Devices["IoT Sensors, Cameras"]
-    DMZ -->|Access| DMZ_VMs["Public Servers on DMZ"]
-  end
+    subgraph Router ["VyOS Router - High Availability"]
+        direction TB
+        Router1["VyOS Instance 1<br/>eth0.91 (WAN VLAN)"]
+        Router2["VyOS Instance 2<br/>eth0.91 (WAN VLAN)"]
+        Router1 & Router2 -- Anti-affinity --> VLANs
+    end
 
-  ISP["ISP Internet Gateway"] --> DHCP
-  DHCP --> Talos1_br0 --> eth0_91_VM1
-  DHCP --> Talos2_br0 --> eth0_91_VM2
-  DHCP --> Talos3_br0
+    subgraph Talos_Cluster ["Talos Hosts & Trunk Ports"]
+        Talos1["Talos Host 1<br/>br0"]
+        Talos2["Talos Host 2<br/>br0"]
+        Talos3["Talos Host 3<br/>br0"]
+        Talos1 --> Router1
+        Talos2 --> Router2
+        Talos1 & Talos2 & Talos3 --> VLANs
+    end
 
-  QNAP -->|Untagged| Server_LAN["LAN Devices"]
-  QNAP -->|Tagged VLAN 10| MGMT["Management Devices"]
-  QNAP -->|Tagged VLAN 20| IoT["IoT Devices"]
-  QNAP -->|Tagged VLAN 30| DMZ["DMZ Servers"]
+    subgraph Switch_Config ["QNAP Switch"]
+        Port01["Port 01-08<br/>Server Room - LAN"]
+        Port09["Port 09<br/>Trunk (Talos Host 1)"]
+        Port10["Port 10<br/>Trunk (Talos Host 2)"]
+        Port11["Port 11<br/>Trunk (Talos Host 3)"]
+        Port09 & Port10 & Port11 --> Talos_Cluster
+    end
 
-  Talos1 -->|Trunk| QNAP
-  Talos2 -->|Trunk| QNAP
-  Talos3 -->|Trunk| QNAP
+    subgraph Traffic_Policies ["Traffic Flow Policies"]
+        Outbound["Outbound NAT<br/>Masquerade"]
+        Isolation["VLAN Isolation<br/>Strict Rules"]
+        Firewall["Firewall Rules<br/>Zone-based Access"]
+        Monitoring["DHCP & Flow Accounting<br/>Logs & Metrics"]
+    end
 
-  VyOS_VM1 -->|Routing| QNAP
-  VyOS_VM2 -->|Routing| QNAP
+    ISP --> Router
+    Router --> Switch_Config
+    Switch_Config --> Traffic_Policies
+    Traffic_Policies --> VLANs
 ```
+
 
 This diagram illustrates the logical relationships between zones, ensuring clarity in network design and simplifying troubleshooting efforts. 📐🔍📶
 
