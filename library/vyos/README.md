@@ -164,7 +164,6 @@ graph TD
   VyOS_VM1 -->|Routing| QNAP
   VyOS_VM2 -->|Routing| QNAP
 ```
-```
 
 This diagram illustrates the logical relationships between zones, ensuring clarity in network design and simplifying troubleshooting efforts. 📐🔍📶
 
