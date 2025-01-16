@@ -107,6 +107,7 @@ Traffic policies enforce:
 ### Deployment Diagram 📊🖼️📡
 Below is a representation of the architecture using Mermaid.js:
 
+
 ```mermaid
 graph TD
   subgraph Office_Network["192.168.1.0/24 (Office Network)"]
@@ -115,32 +116,41 @@ graph TD
 
   subgraph Server_Room["Server Room"]
     QNAP[QNAP Switch]
+
     subgraph Talos_Host_Cluster["Talos Host Cluster"]
       Talos1["Talos Host 1"]
       Talos2["Talos Host 2"]
       Talos3["Talos Host 3"]
+      Talos1_br0["br0.91 (Trunk VLAN 91)"]
+      Talos2_br0["br0.91 (Trunk VLAN 91)"]
+      Talos3_br0["br0.91 (Trunk VLAN 91)"]
+      Talos1 --> Talos1_br0
+      Talos2 --> Talos2_br0
+      Talos3 --> Talos3_br0
     end
   end
 
-  subgraph VyOS_Router["VyOS Router/Firewall"]
-    eth0[eth0: VLAN Trunk
-Untagged: LAN
-Tagged: VLAN 10, 20, 30, 91]
-    eth0_91[eth0.91
-VLAN 91: WAN]
-    eth0_1[eth0
-VLAN 1: LAN]
-    eth0_10[eth0.10
-VLAN 10: MGMT]
-    eth0_20[eth0.20
-VLAN 20: IoT]
-    eth0_30[eth0.30
-VLAN 30: DMZ]
+  subgraph VyOS_Router_HA["VyOS Router/Firewall - High Availability"]
+    VyOS_VM1["VyOS Instance 1"]
+    VyOS_VM2["VyOS Instance 2"]
+    eth0_91_VM1["eth0.91 (VLAN 91 - WAN, Instance 1)"]
+    eth0_91_VM2["eth0.91 (VLAN 91 - WAN, Instance 2)"]
+    VyOS_VM1 -->|Anti-affinity| Talos1_br0
+    VyOS_VM2 -->|Anti-affinity| Talos2_br0
+    VyOS_VM1 --> eth0_91_VM1
+    VyOS_VM2 --> eth0_91_VM2
+  end
+
+  subgraph VLAN_Traffic["VLAN Traffic"]
+    MGMT -->|Access| MGMT_Devices["Switch MGMT, IPMI, iDRAC"]
+    IoT -->|Access| IoT_Devices["IoT Sensors, Cameras"]
+    DMZ -->|Access| DMZ_VMs["Public Servers on DMZ"]
   end
 
   ISP["ISP Internet Gateway"] --> DHCP
-  DHCP --> Talos1 -->|VLAN 91| QNAP
-  DHCP --> VyOS_Router -->|VLAN 91| QNAP
+  DHCP --> Talos1_br0 --> eth0_91_VM1
+  DHCP --> Talos2_br0 --> eth0_91_VM2
+  DHCP --> Talos3_br0
 
   QNAP -->|Untagged| Server_LAN["LAN Devices"]
   QNAP -->|Tagged VLAN 10| MGMT["Management Devices"]
@@ -151,11 +161,9 @@ VLAN 30: DMZ]
   Talos2 -->|Trunk| QNAP
   Talos3 -->|Trunk| QNAP
 
-  subgraph VLAN_Traffic["VLAN Traffic"]
-    MGMT -->|Access| MGMT_Devices["Switch MGMT, IPMI, iDRAC"]
-    IoT -->|Access| IoT_Devices["IoT Sensors, Cameras"]
-    DMZ -->|Access| DMZ_VMs["Public Servers on DMZ"]
-  end
+  VyOS_VM1 -->|Routing| QNAP
+  VyOS_VM2 -->|Routing| QNAP
+```
 ```
 
 This diagram illustrates the logical relationships between zones, ensuring clarity in network design and simplifying troubleshooting efforts. 📐🔍📶
