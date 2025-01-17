@@ -1,25 +1,31 @@
-# VyOS Network Architecture
+# K8s Kubevirt VyOS QNAP Network Architecture
 
 A Secure, Scalable, and Modern Networking Appliance on Kubernetes ✨🚀
 
-Welcome to VyOS & Router / Firewall Network Architecture! This repository provides a comprehensive implementation of a secure, segmented, and scalable network architecture using VyOS as the core routing and network management platform. Whether you're a hobbyist, small business administrator, or professional network engineer, this project aims to deliver a versatile framework adaptable to various environments, including home labs, SMB networks, and enterprise scenarios. 🏠💼🌟
+An advanced Kubevirt + VyOS Network Architecture providing a comprehensive implementation of a secure, segmented, and scalable network architecture using VyOS as the core routing and network management platform. Whether you're a hobbyist, small business administrator, or professional network engineer, this sample project offers a starting point to deliver a versatile network framework adaptable to various environments, including home labs, SMB networks, and enterprise scenarios. 🏠💼🌟
 
 ## Overview 🌟
 
-VyOS serves as a powerful and flexible router OS, enabling detailed control over network configurations and security. This project leverages VyOS to create a multi-VLAN architecture that isolates traffic between zones while providing efficient routing and firewall capabilities. The design adheres to best practices in network segmentation and secure deployment, offering clear documentation and a pathway to production-grade deployments. By implementing this architecture, users can effectively manage complex network requirements while maintaining robust security measures.
+**VyOS**: is a powerful and flexible router OS, enabling detailed control over network configurations and security. This project leverages VyOS to create a multi-VLAN architecture that isolates traffic between zones while providing efficient routing and firewall capabilities. The design adheres to best practices in network segmentation and secure deployment, offering clear documentation and a pathway to production-grade deployments. By implementing this architecture, users can effectively manage complex network requirements while maintaining robust security measures.
+
+**Kubevirt**: is a powerful and flexible virtualization platform, enabling detailed control over network configurations and security. This project leverages Kubevirt to orchestrate the deployment of VyOS instances on Kubernetes.
+
+**Talos**: is a modern Kubernetes Linux distribution, offering the smoothest Kubernetes experience for your infrastructure.
 
 ### Features 🔧📖
 
-- **Comprehensive Segmentation**: 📊 Logical separation of traffic into zones (LAN, MGMT, IoT, DMZ) via VLANs and subnets ensures clear organization and enhanced security.
-- **Security-Focused**: 🛡️ Fine-grained firewall rules and NAT configurations to protect resources and control access, allowing administrators to enforce stringent policies across all zones.
-- **Scalable Design**: 📈 Configurable to add new VLANs, zones, and WAN connections with minimal disruption, ensuring future growth is seamless and manageable.
-- **Cloud-Native Integration**: ☁️ Deployment on Kubernetes via KubeVirt with modern specifications for cloud-native environments enables easy integration with containerized workflows.
-- **Community-Driven Documentation**: 📚 Detailed guides, diagrams, and configuration examples empower contributors and users with the knowledge to customize and extend the architecture. 🌐🔥🛡️
+- **Segmentation**: 📊 Logical separation of traffic into zones (LAN, MGMT, IoT, DMZ) via VLANs and subnets ensures clear organization and enhanced security.
+- **Security**: 🛡️ Fine-grained firewall rules and NAT configurations to protect resources and control access, allowing administrators to enforce stringent policies across all zones.
+- **Scalable**: 📈 Configurable to add new VLANs, zones, and WAN connections with minimal disruption, ensuring future growth is seamless and manageable.
+- **Cloud-Native**: ☁️ Deployment on Kubernetes via KubeVirt with modern specifications for cloud-native environments enables easy integration with containerized workflows.
 
 ## Network Architecture 🌐
 
 ### Physical Design 🔌
-The network runs on a single interface acting as a VLAN trunk (`eth0`). Traffic segmentation is achieved through VLAN tagging, with the WAN connection also on a tagged VLAN. This design simplifies physical infrastructure requirements while maintaining logical isolation. 🧙
+
+This network architecture is designed for a single interface Upstream / WAN / ISP connection. It runs on a single interface acting as a VLAN trunk (`eth0`). Traffic segmentation is achieved through VLAN tagging, with the WAN connection also on a tagged VLAN. This design simplifies physical infrastructure requirements while maintaining logical isolation. 🧙
+
+Implementation requires at least a managed switch with VLAN support.
 
 ### Logical Design 🧠
 The network is segmented into distinct VLANs and subnets to achieve robust security and efficient traffic management. Each VLAN serves a specific purpose:
@@ -39,27 +45,20 @@ Below is a representation of the architecture using Mermaid.js:
 
 ```mermaid
 flowchart TB
-    %% Topmost level - WAN Connectivity
-    ISP["ISP Internet Gateway<br/>Dynamic IP"]
-    ISP -->|DHCP| WAN["WAN VLAN 91<br/>DHCP (ISP-assigned)"]
+    %% Top - ISP Connection
+    ISP["External Network Drop<br/>---<br/>ISP Modem"] -->|DHCP| WAN_Port08["Port 08<br/>Untagged VLAN 91<br/>WAN VLAN"]
 
-    %% QNAP Switch Layer
-    subgraph QNAP_Switch ["QNAP Switch"]
+    %% QNAP Switch
+    subgraph QNAP_SWITCH ["QNAP Switch (QSW-M408S)"]
         direction TB
-        Port01["Port 01-08<br/>Server Room (LAN Access)"]
-        Port09["Port 09<br/>Trunk (Talos Host 1)"]
-        Port10["Port 10<br/>Trunk (Talos Host 2)"]
-        Port11["Port 11<br/>Trunk (Talos Host 3)"]
-        WAN --> QNAP
-        QNAP --> Port01
-        QNAP --> Port09
-        QNAP --> Port10
-        QNAP --> Port11
+        WAN_Port08 --> QNAP["QNAP Trunk Switching Core"]
+        QNAP --> Port09["Port 09 (Trunk)<br/>Talos Host 1<br/>(VLANs: 1, 10, 20, 30, 91)"]
+        QNAP --> Port10["Port 10 (Trunk)<br/>Talos Host 2<br/>(VLANs: 1, 10, 20, 30, 91)"]
+        QNAP --> Port11["Port 11 (Trunk)<br/>Talos Host 3<br/>(VLANs: 1, 10, 20, 30, 91)"]
     end
 
-    %% Talos Host Cluster Layer
-    subgraph Talos_Cluster ["Talos Host Cluster"]
-        direction TB
+    %% Talos Hosts Cluster
+    subgraph Talos_Cluster ["Talos Hosts"]
         Talos1["Talos Host 1<br/>br0"]
         Talos2["Talos Host 2<br/>br0"]
         Talos3["Talos Host 3<br/>br0"]
@@ -68,73 +67,81 @@ flowchart TB
         Port11 --> Talos3
     end
 
-    %% Traffic Flow Policies and Security (moved below Talos Cluster)
+    %% Traffic Policies and Security
     subgraph Traffic_Policies ["Traffic Policies & Security"]
-        direction TB
         NAT["Outbound NAT<br/>Masquerade"]
         Firewall["Firewall Rules<br/>Zone-based Access"]
         Isolation["Strict VLAN Isolation"]
-        Monitoring["Monitoring<br/>Logs & Metrics"]
     end
-    Talos_Cluster --> Traffic_Policies
+    Talos1 --> Traffic_Policies
+    Talos2 --> Traffic_Policies
+    Talos3 --> Traffic_Policies
 
-    %% VyOS High-Availability Router
+    %% VyOS Router HA
     subgraph VyOS_Router_HA ["VyOS Router/Firewall - High Availability"]
-        direction TB
         VyOS1["VyOS Instance 1<br/>eth0.91 (WAN VLAN)"]
         VyOS2["VyOS Instance 2<br/>eth0.91 (WAN VLAN)"]
-        VyOS1 -->|Anti-affinity| Talos1
-        VyOS2 -->|Anti-affinity| Talos2
+        Traffic_Policies --> VyOS1
+        Traffic_Policies --> VyOS2
+        VyOS1 -->|Downstream| Port01_07["Ports 01-07<br/>1G Downstream to Office Switches<br/>(LAN VLAN ID 1)"]
+        VyOS2 -->|Downstream| Port12["Port 12<br/>10G Downstream Uplink<br/>(LAN VLAN ID 1)"]
     end
-    Traffic_Policies --> VyOS_Router_HA
 
-    %% VLANs and Traffic Segmentation
+    %% VLAN Segmentation
     subgraph VLAN_Segments ["VLANs & Traffic Segmentation"]
-        direction TB
         LAN["LAN VLAN 1<br/>10.0.1.0/24"]
         MGMT["MGMT VLAN 10<br/>172.26.10.0/24"]
         IoT["IoT VLAN 20<br/>10.0.20.0/24"]
         DMZ["DMZ VLAN 30<br/>172.26.30.0/24"]
-        DMZ_VMs["DMZ Servers<br/>(e.g., Public Services)"]
+
+        Devices_LAN["Workstations & Desktops"]
         MGMT_Devices["Management Devices<br/>(Switch MGMT, IPMI, iDRAC)"]
         IoT_Devices["IoT Devices<br/>(Sensors, Cameras)"]
+        DMZ_VMs["DMZ Servers<br/>(e.g., Public Services)"]
 
-        VyOS1 -->|Routing| LAN
-        VyOS2 -->|Routing| MGMT
-        VyOS1 -->|Routing| IoT
-        VyOS2 -->|Routing| DMZ
+        Port01_07 --> LAN
+        Port12 --> LAN
 
-        LAN -->|Access| Devices_LAN["Workstations & Desktops"]
-        MGMT -->|Access| MGMT_Devices
-        IoT -->|Access| IoT_Devices
-        DMZ -->|Access| DMZ_VMs
+        LAN --> Devices_LAN
+        MGMT --> MGMT_Devices
+        IoT --> IoT_Devices
+        DMZ --> DMZ_VMs
+
+        VyOS1 --> LAN
+        VyOS1 --> MGMT
+        VyOS1 --> IoT
+        VyOS1 --> DMZ
+
+        VyOS2 --> LAN
+        VyOS2 --> MGMT
+        VyOS2 --> IoT
+        VyOS2 --> DMZ
     end
-    VyOS_Router_HA --> VLAN_Segments
 ```
 
-This diagram illustrates the logical relationships between zones, ensuring clarity in network design and simplifying troubleshooting efforts. 📐🔍📶
+This diagram illustrates the logical relationships between hardware, VyOS instances, zones, and VLANs, ensuring clarity in network design and simplifying troubleshooting efforts. 📐🔍📶
 
 
 ### QNAP Switch Configuration
 
 | Port | Description                    | VLAN 1 (LAN) | VLAN 10 (MGMT) | VLAN 20 (IoT) | VLAN 30 (DMZ) | VLAN 91 (WAN) |
 |------|--------------------------------|--------------|----------------|---------------|---------------|---------------|
-| 01   | General server room use        | ❌           | 🚫             | 🚫            | 🚫            | 🚫            |
-| 02   | General server room use        | ❌           | 🚫             | 🚫            | 🚫            | 🚫            |
-| 03   | General server room use        | ❌           | 🚫             | 🚫            | 🚫            | 🚫            |
-| 04   | General server room use        | ❌           | 🚫             | 🚫            | 🚫            | 🚫            |
-| 05   | General server room use        | ❌           | 🚫             | 🚫            | 🚫            | 🚫            |
-| 06   | General server room use        | ❌           | 🚫             | 🚫            | 🚫            | 🚫            |
-| 07   | General server room use        | ❌           | 🚫             | 🚫            | 🚫            | 🚫            |
-| 08   | WAN / Server Room Drop         | 🚫           | 🚫             | 🚫            | 🚫            | ❌            |
+| 01   | Generic Server                 | ❌           | 🚫             | 🚫            | 🚫            | 🚫            |
+| 02   | Generic Server                 | ❌           | 🚫             | 🚫            | 🚫            | 🚫            |
+| 03   | Generic Server                 | ❌           | 🚫             | 🚫            | 🚫            | 🚫            |
+| 04   | Generic Server                 | ❌           | 🚫             | 🚫            | 🚫            | 🚫            |
+| 05   | Generic Server                 | ❌           | 🚫             | 🚫            | 🚫            | 🚫            |
+| 06   | Generic Server                 | ❌           | 🚫             | 🚫            | 🚫            | 🚫            |
+| 07   | Generic Server                 | ❌           | 🚫             | 🚫            | 🚫            | 🚫            |
+| 08   | ISP WAN / Server Room Drop     | 🚫           | 🚫             | 🚫            | 🚫            | ❌            |
 | 09   | Talos Host 1 (trunk to br0)    | ✅           | ✅             | ✅            | ✅            | ✅            |
 | 10   | Talos Host 2 (trunk to br0)    | ✅           | ✅             | ✅            | ✅            | ✅            |
 | 11   | Talos Host 3 (trunk to br0)    | ✅           | ✅             | ✅            | ✅            | ✅            |
 | 12   | Reserved for expansion         | ✅           | ✅             | ✅            | ✅            | ✅            |
 
-> 
+>
 > Key:
-> 
+>
 > ✅ = Tagged
 > ❌ = Untagged
 > 🚫 = Excluded
@@ -142,8 +149,8 @@ This diagram illustrates the logical relationships between zones, ensuring clari
 
 #### Explanation of the Configuration:
 1. **Ports 01-08 (1GbE)**:
-   - Configured for untagged VLAN 1 traffic (default LAN network: `10.0.1.0/24`).
-   - No tagged VLANs on these ports, suitable for general devices or servers without VLAN tagging support.
+   - 01-07: Configured for untagged VLAN 1 traffic (default LAN network: `10.0.1.0/24`).
+   - 08: VLAN 91 (WAN) External Network / WAN / Server Room Drop
 
 2. **Ports 09-11 (10GbE, SFP+ for Talos Hosts)**:
    - Configured as **trunk ports**:
@@ -155,44 +162,32 @@ This diagram illustrates the logical relationships between zones, ensuring clari
    - Also configured as a trunk with the same VLAN tagging setup as ports 09-11 to support additional Talos nodes or other networking requirements.
 
 #### Notes:
-- **WAN VLAN (91)**: Ensure DHCP configuration is properly applied on VLAN 91 for WAN traffic.
-- **Management VLAN (10)**: Ensure secure access controls are implemented to prevent unauthorized access to the MGMT VLAN.
+- **External Network / WAN VLAN (91)**: DHCP assigned IP address from external network.
+- **Management VLAN (10)**: Management devices (Switch MGMT, IPMI, iDRAC)
 - **Tagged vs. Untagged**:
   - **Tagged (✅)**: VLAN traffic carries VLAN IDs for isolation (used on trunk ports).
-  - **Untagged (❌)**: Default traffic with no VLAN tag (used for general access ports).
-  - **Excluded (🚫)**: VLAN traffic is explicitly
+  - **Untagged (❌)**: Single VLAN traffic only, interface is dedicated to a single VLAN.
+  - **Excluded (🚫)**: VLAN traffic is explicitly excluded from these ports.
 
 ### Traffic Flow 🌊🔄🚦
 Traffic policies enforce:
 
 - Strict isolation between VLANs unless explicitly allowed by firewall rules. 🚧
 - Outbound NAT masquerading for traffic destined to the WAN, ensuring secure and private communication for internal devices. 🔒
+- DMZ VLAN NAT from internal devices to DMZ, secure and private communication for external and internal devices. 🔒
 - Limited cross-zone communication (e.g., IoT cannot access LAN), providing an additional layer of security by default. 🔐🔁🌉
 
 ## Getting Started 🛠️🚀📋
 
 ## SDN Components ⚙️⚙️
 
-This repository includes the following files:
-
-### 1. `README.md` 📝📚✨
-This document provides a comprehensive overview of the project and serves as a reference guide for setup and usage. It is intended to help users quickly understand the project scope and operational details.
-
-### 2. `cloud-config.userdata` 🛠️🔧📄
-Defines initial VyOS configuration using cloud-init. Includes hostname, interfaces, VLANs, firewall rules, and other essential settings for first-boot automation. This ensures the VyOS instance is ready for use immediately upon deployment.
-
-### 3. `vyos-blue.yaml` 📋🔗🛠️
-The KubeVirt VM specification defining the VyOS instance. This file aligns with modern `kubevirt.io/v1` specifications, ensuring compatibility and maintainability while adhering to best practices for virtualization.
-
 ### Prerequisites 📦⚙️✅
 
 1. **Environment**:
    - Kubernetes cluster with KubeVirt installed. 🖥️
    - Access to kubectl with permissions to create secrets and deploy resources. 🔐
-
-2. **Tools**:
-   - Mermaid CLI for diagram generation (optional). 📊
-   - VyOS ISO or container image. 📦
+   - Access to a QNAP switch with VLAN support. 🖥️
+   - Bare Metal or Virtualized environment with Talos installed and at least 1 network interface. 🖥️
 
 ### Setup Steps 🚧⚡📜
 
@@ -212,12 +207,7 @@ The KubeVirt VM specification defining the VyOS instance. This file aligns with 
 
    This command deploys the VyOS virtual machine, initiating the process of setting up the network architecture. 🚀🖥️🗂️
 
-3. **Verify Connectivity**:
-   - Ensure devices in each VLAN receive the correct DHCP-assigned IPs. 🖧
-   - Test routing between VLANs and Internet access. 🌐📡✔️
-
-4. **Monitor and Adjust**:
-   - Use `deploy.sh` for managing updates and redeployments. 🔄
+3. **Monitor and Adjust**:
    - Regularly review firewall logs and configurations to ensure optimal performance and security. 🔎🛡️
 
 ## Contributing 🤝🌍🛠️
@@ -232,13 +222,12 @@ Please follow the guidelines in `CONTRIBUTING.md` to submit your contributions. 
 
 ## Context and Usage 🌐🖥️💡
 
-This architecture is designed to seamlessly integrate into larger cloud-native infrastructure solutions, such as those powered by Kargo and Konductor. It replaces traditional networking components (e.g., OpenStack-based solutions) with a Kubernetes-native approach for routing and network management. By leveraging this VyOS-based implementation, users can build advanced networks that support overlay configurations, tenant isolation, and secure interconnectivity across hybrid environments. 🔗🏗️🌍
+This architecture is designed to seamlessly integrate into larger cloud-native infrastructure solutions, such as those powered by the ContainerCraft Kargo and Konductor projects. It replaces traditional and proprietary networking components with a Cloud Native Kubernetes architecture for firewall, routing, and network management. By leveraging this VyOS-based implementation, users can build advanced networks that support overlay configurations, tenant isolation, and secure interconnectivity across hybrid environments. 🔗🏗️🌍
 
-The integration with KubeVirt allows for flexibility and scalability, making it ideal for environments ranging from small-scale home labs to enterprise-grade deployments. The modular nature of this architecture ensures that it can be easily adapted to meet specific use cases, providing a solid foundation for innovation. 🏗️🚀💻
+The integration with KubeVirt allows for flexibility and scalability, making it ideal for environments ranging from small-scale home labs to enterprise-grade deployments.
 
 ## Acknowledgments 🌟🤝📚
 
 - The VyOS community for creating an excellent open-source router OS that serves as the backbone of this architecture. 🛡️
 - KubeVirt for simplifying VM deployments on Kubernetes and enabling seamless integration with modern cloud-native environments. ☁️
 - Mermaid.js for enabling simple and version-controlled diagrams that enhance documentation clarity. ✨🔗📊
-
